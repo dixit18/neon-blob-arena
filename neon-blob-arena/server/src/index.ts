@@ -41,7 +41,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   if (url.pathname === '/health') {
-    res.end(JSON.stringify({ ok: true, region: REGION, rooms: rooms.size, players: [...rooms.values()].reduce((a, r) => a + r.size, 0), db: dbReady(), tickHz: TUNE.TICK_HZ }));
+    res.end(JSON.stringify({ ok: true, region: REGION, rooms: rooms.size, players: [...rooms.values()].reduce((a, r) => a + r.size, 0), db: dbReady(), tickHz: TUNE.TICK_HZ, tickAvgMs: +tickAvgMs.toFixed(2), tickMaxMs: +tickMaxMs.toFixed(1) }));
     return;
   }
   if (url.pathname === '/rooms') {
@@ -102,7 +102,9 @@ wss.on('connection', (ws: WebSocket, req) => {
 });
 
 // fixed loops: sim 20Hz, snapshots 15Hz (decoupled so slow broadcast never slows sim)
+let tickAvgMs = 0, tickMaxMs = 0; // QA-visible sim cost (see /health)
 setInterval(() => {
+  const t0 = performance.now();
   for (const r of rooms.values()) {
     try { r.step(); } catch (e) { console.error('[tick] room', r.id, e); }
   }
@@ -111,6 +113,10 @@ setInterval(() => {
     const humans = [...r.players.values()].filter(p => !p.isBot).length;
     if (humans === 0 && r.conns.size === 0 && r.tick > 20 * 60) { rooms.delete(id); console.log(`[room ${id}] gc`); }
   }
+  const dtMs = performance.now() - t0;
+  tickAvgMs = tickAvgMs * 0.95 + dtMs * 0.05;
+  if (dtMs > tickMaxMs) tickMaxMs = dtMs;
+  if (dtMs > 25) console.warn(`[tick] slow ${dtMs.toFixed(1)}ms`);
 }, 1000 / TUNE.TICK_HZ);
 
 setInterval(() => {

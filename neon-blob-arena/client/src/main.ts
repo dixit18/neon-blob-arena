@@ -39,7 +39,7 @@ let myName = localStorage.getItem('blob-name') || '';
 if (myName) (el('name') as HTMLInputElement).value = myName;
 if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining this link land here`;
 
-let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0 };
+let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, pvx: 0, pvy: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
 const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number }>();
 let pellets: { x: number; y: number; hue: number }[] = [];
@@ -83,6 +83,21 @@ let liveTaunts: { id: string; e: number }[] = [];
 let lastTauntAt = 0;
 let best = Number(localStorage.getItem('blob-best') || 0); // personal best (motivation loop)
 let lastBanner = '';
+// QA-mandated throttles: DOM writes were the #1 local jank source (15Hz innerHTML)
+let lastDomAt = 0, lastLeadHtml = '', lastFeedHtml = '';
+let frameNo = 0, fpsEma = 60;
+const LEVELS: [string, number][] = [['Minnow', 0], ['Nibbler', 25], ['Chonk', 50], ['Brute', 90], ['Titan', 140], ['BLOB GOD', 200]];
+let myLevel = 0;
+function levelFor(mass: number): number { let li = 0; for (let i = 0; i < LEVELS.length; i++) if (mass >= LEVELS[i][1]) li = i; return li; }
+// coach toast: concept tutorial for first-timers (concept-clarity fix)
+let coachTO: ReturnType<typeof setTimeout> | null = null;
+function coach(msg: string, ms = 2800) {
+  const c = el('coach');
+  c.textContent = msg;
+  c.style.display = 'block';
+  if (coachTO) clearTimeout(coachTO);
+  coachTO = setTimeout(() => { c.style.display = 'none'; }, ms);
+}
 function ring(x: number, y: number, max: number, hue: number) {
   rings.push({ x, y, r: 8, max, life: 0.45, hue });
   if (rings.length > 24) rings.shift();
@@ -167,6 +182,12 @@ function connect(name: string) {
       el('roomLabel').textContent = `Room: ${roomId} — friends with this link land straight in`;
       el('roomPill').textContent = `🎲 room ${roomId}`;
       el('menu').style.display = 'none';
+      if (!localStorage.getItem('blob-seen')) { // first-timer concept tutorial
+        localStorage.setItem('blob-seen', '1');
+        setTimeout(() => coach('🍩 Eat the glowing dots to grow big'), 600);
+        setTimeout(() => coach('⚡ Press SPACE to dash through rivals'), 4200);
+        setTimeout(() => coach('👑 Biggest blob when ⏱ hits 0 wins the round!'), 7800);
+      }
       return;
     }
     if (m.t === 'died') {
@@ -197,9 +218,13 @@ function connect(name: string) {
   setInterval(() => {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const d = inputDir();
-    // local prediction: nudge camera + predicted pos for zero-latency feel
+    // local prediction MIRRORS the server steering model (same accel constant),
+    // so reconcile stops fighting us — this was the rubber-band "lag" feel.
     const spd = 330 * Math.pow(12 / Math.max(12, me.mass), 0.22);
-    me.x += d.dx * spd * (1 / 30); me.y += d.dy * spd * (1 / 30);
+    const k = 1 - Math.exp(-8 * (1 / 30));
+    me.pvx += (d.dx * spd - me.pvx) * k;
+    me.pvy += (d.dy * spd - me.pvy) * k;
+    me.x += me.pvx * (1 / 30); me.y += me.pvy * (1 / 30);
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
     ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued }));
@@ -222,6 +247,13 @@ function onSnap(s: Snap) {
     if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
     if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); }
     prevMass = m.mass; prevKills = m.kills;
+    const li = levelFor(m.mass); // progression beyond leaderboard: titles per size
+    if (li > myLevel) {
+      myLevel = li;
+      coach(`🎖 LEVEL UP — you are now ${LEVELS[li][0]}!`);
+      sfx('kill');
+      ring(me.x, me.y, me.r + 80, 55);
+    }
     if (!m.alive) {
       const target = spectateId && remotes.get(spectateId) ? remotes.get(spectateId)! : null;
       const secs = m.respawnIn != null ? Math.max(0, m.respawnIn).toFixed(1) : '…';
@@ -248,9 +280,15 @@ function onSnap(s: Snap) {
   }
   pellets = s.pellets;
   liveTaunts = s.taunts || [];
-  el('lleaders').innerHTML = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
-  el('feed').innerHTML = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
-  el('me').textContent = `🟣${me.mass} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${me.dashReady ? '⚡' : '…'}`;
+  // throttled DOM (2Hz max, only on change) — was 15Hz innerHTML jank
+  if (now - lastDomAt > 500) {
+    lastDomAt = now;
+    const lh = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
+    if (lh !== lastLeadHtml) { lastLeadHtml = lh; el('lleaders').innerHTML = lh; }
+    const fh = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
+    if (fh !== lastFeedHtml) { lastFeedHtml = fh; el('feed').innerHTML = fh; }
+  }
+  el('me').textContent = `🟣${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps · ${me.dashReady ? '⚡' : '…'}`;
   el('pcount').textContent = `${s.players.length + 1} online`;
   // round urgency pill
   const mm = Math.floor(s.round / 60), ss = String(s.round % 60).padStart(2, '0');
@@ -290,6 +328,7 @@ let last = performance.now();
 function frame(now: number) {
   requestAnimationFrame(frame);
   const rawDt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (rawDt > 0) fpsEma += ((1 / rawDt) - fpsEma) * 0.05; // QA fps meter (see HUD)
   const dt = hitstop > 0 ? 0 : rawDt; // hit-stop: world freezes, render continues
   if (hitstop > 0) hitstop -= rawDt;
   // camera follows predicted me — or spectate target while dead
@@ -369,7 +408,7 @@ function frame(now: number) {
     ctx.fillStyle = '#a855f7';
     ctx.beginPath(); ctx.arc(joy.ox + joy.dx * 60, joy.oy + joy.dy * 60, 24, 0, 7); ctx.fill();
   }
-  drawMini();
+  if ((frameNo++ % 3) === 0) drawMini(); // minimap 20Hz is plenty (was every frame)
 }
 
 // (glowSprite retired in the gummy-goth pass — stickerSprite bakes outline+face+highlight)

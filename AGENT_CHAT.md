@@ -60,6 +60,15 @@
 **Vikram:** Bundle audit PASS: initial 18KB (7.5KB gzip), GSAP split to lazy 69KB chunk — first paint untouched. tsc clean. One TS slap (tuple arity on drips) fixed. User restarts local with `-Restart` to see it.
 **Kai:** Committing + pushing.
 
+## 2026-09-11 — v0.6: lag war + concept clarity + Riya QA hired (user: "lagging, unclear, need QA")
+**Aarav:** Hired **Riya "Breaker" Sharma — QA Engineer** (8th employee, ORG graph+table, owns new `QA.md` bible). Brief from user pain: (1) lag, (2) "don't get the concept", (3) leaderboard-only motivation.
+**Riya (QA, day one):** Lag triage with numbers, not vibes. Probe on isolated :7751 (NOT touching user's room): 30/30 clients, 14.0 snaps/s, `tickAvgMs: 0.2`, `tickMaxMs: 3.1` — SERVER CLEARED. Lag is client-side. Shipped instrumentation instead of guesses: tick avg/max in `/health`, fps meter in HUD, `QA.md` budgets + runbook + regression gate. Release rule: nothing ships red.
+**Zara:** Server telemetry DONE: per-loop timing, rolling avg, slow-tick warn >25ms, all in `/health`.
+**Leo (lag fixes):** (1) DOM writes throttled 15Hz→2Hz-change-only — this was the local jank king. (2) Minimap every 3rd frame. (3) Prediction now MIRRORS server steering math — the rubber-band "lag" feel should be gone. HUD shows live fps so anyone can see it.
+**Leo (concept + motivation):** first-timer coach toasts (🍩 eat → ⚡ dash → 👑 crown), level titles Minnow→BLOB GOD with level-up celebration. Concept now teaches itself in 10s.
+**Vikram:** Builds green. If the game still lags on the boss's machine after `-Restart` + hard refresh, Riya's runbook says: read HUD fps + `/health` tickAvgMs and paste numbers — then we hunt for real.
+**Kai:** Committing + pushing. ⚠️ Probe cleanup killed stray node procs on THIS box — if your local tab froze, rerun `.\start-local.ps1 -Restart` (fresh code anyway).
+
 ## 2026-09-11 — R&D roster formalized (user: "who works full-time on R&D?")
 **Aarav:** User wants one throat to choke on research. Answer: **Dr. Nova "Lab" Iyer — Head of R&D, 100% research, zero ship duties.** ORG.md rewritten with divisions + time-split table so it's unambiguous forever.
 **Nova:** Acknowledged. My beat stays: Reddit/Twitter/HN/forums/postmortems/live benchmarks, cited findings only. Engineers keep ~20% craft-R&D inside their own adoptions; everything I publish gets a RedTeam cut-list before build.

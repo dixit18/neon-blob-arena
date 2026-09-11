@@ -25,6 +25,9 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 **R&D division (with Nova)**
 - **Mira "Muse" Nair — Motion & Illustration R&D.** GSAP UI animation, Pinterest illustration research, sticker-art direction. Owns the look; never touches the canvas hot loop.
 
+**Quality**
+- **Riya "Breaker" Sharma — QA Engineer (quality is her only job).** Owns `QA.md`, hunts lag with numbers (tick ms, fps, snapshot bytes), runs the device matrix and regression checklist. Can block ANY release; nothing ships while red.
+
 ## Time split (so it's unambiguous)
 
 | Agent | R&D | Build | Review/QA |
@@ -34,8 +37,9 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 | Zara / Leo | 20% | 70% | 10% |
 | Aarav / Vikram | 10% | 0% / QA | 90% decisions+cuts |
 | Kai | 0% | 80% | 20% integration |
+| Riya "Breaker" Sharma | 10% (repro research) | 0% | 90% QA |
 
-Graph: Vision ↔ RedTeam → Nova → Forge + Pixel + Mira → ShipIt → RedTeam (load test) → Vision (ship/block). Loop until RedTeam approves.
+Graph: Vision ↔ RedTeam → Nova → Forge + Pixel + Mira → ShipIt → Riya (QA gate) + RedTeam (load test) → Vision (ship/block). Loop until RedTeam approves.
 
 ## Rules
 1. Server authoritative. Never trust client pos/score.
