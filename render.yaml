@@ -3,15 +3,17 @@
 # You are prompted for secrets once (DATABASE_URL, ORIGIN, VITE_SERVER — see below).
 # After first sync: copy both URLs, fill the cross-links, Render auto-redeploys.
 # Free tier sleeps after ~15 min idle: add a free UptimeRobot cron pinging /health every 10 min.
+#
+# NOTE: no `rootDir` anywhere on purpose — Render was combining rootDir with the
+# docker/static paths and failing the build. All paths below are repo-root-relative.
 services:
   # ---- Backend: Node WS game server (Docker, free) ----
   - type: web
     name: neon-blob-arena
     runtime: docker
-    dockerfilePath: ./neon-blob-arena/server/Dockerfile # repo-root-relative
-    dockerContext: ./neon-blob-arena/server # so COPY package.json/src resolve here
+    dockerfilePath: ./neon-blob-arena/server/Dockerfile
+    dockerContext: ./neon-blob-arena/server
     plan: free
-    rootDir: neon-blob-arena/server
     healthCheckPath: /health
     buildFilter:
       paths:
@@ -29,9 +31,8 @@ services:
   - type: web
     name: neon-blob-arena-fe
     runtime: static
-    rootDir: neon-blob-arena/client
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./neon-blob-arena/client/dist # repo-root-relative
+    buildCommand: npm --prefix neon-blob-arena/client install && npm --prefix neon-blob-arena/client run build
+    staticPublishPath: ./neon-blob-arena/client/dist
     buildFilter:
       paths:
         - neon-blob-arena/client/**
