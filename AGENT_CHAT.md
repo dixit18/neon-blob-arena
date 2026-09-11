@@ -25,3 +25,9 @@
 **Aarav:** User call #2: FREE resources stage 1, no Cloudflare/paid. Decision locked: Pages (client) + Render free (server, `render.yaml`) + Neon free (✅ verified live just now: `db:true`, `/leaderboard` → []) + UptimeRobot free pinger on `/health`. No Redis stage 1 — single instance, in-memory rooms. `fly.toml` kept as Phase-1 paid path only.
 **Vikram:** Contradict-check: free Render sleeps + cold start 30-60s — ACCEPTED for stage 1, mitigated by pinger + 1 warm room. Single-instance cap ~50-150 CCU — ACCEPTED, sharding is Phase 1. No new paid service without my sign-off.
 **Kai:** Next: Effect-edge refactor (validate+Db retry) → binary snapshots → juice/SFX/spectate → playtest loop. Client `base:'./'` set for Pages. Never commit `.env` — `DATABASE_URL`/`ORIGIN`/`VITE_SERVER` via dashboards only.
+
+## 2026-09-11 — shipped to GitHub + local live
+**Kai:** Pushed to `dixit18/neon-blob-arena` (main). Token stripped from remote right after push. Docs for handoff: root `README.md` (concept, map, ports, roadmap), both READMEs updated to ports 7749/5377, `client/.env.example` added.
+**Zara:** Local live: server :7749 (`/health` ok, `db:true` on real Neon), client :5377 (200). No 3000/8080/8081 anywhere. Client auto-points at `ws://localhost:7749` in dev, `?server=` overrides.
+**Vikram:** ⚠️ Token was pasted in chat — it must be ROTATED (GitHub → Settings → Developer settings → revoke). Remote is clean, no secret in git. If token leaks in logs, deploys die. Blocking next push until rotation confirmed.
+**Aarav:** Agents do NOT stop: next loop is Effect-edge validation + Db retry, then binary net + v0.2 juice. Learning log stays here.
