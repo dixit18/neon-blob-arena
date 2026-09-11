@@ -1,0 +1,23 @@
+# Render Blueprint — all-free stage 1 ($0): Node WS server on free web service + Neon free.
+# Usage: push repo to GitHub -> Render Dashboard -> New -> Blueprint -> select repo.
+# Then set DATABASE_URL (Neon string) + ORIGIN (your Pages URL) in the service Environment tab.
+# Free tier sleeps after ~15 min idle: add a free UptimeRobot cron pinging /health every 10 min.
+services:
+  - type: web
+    name: neon-blob-arena
+    runtime: node
+    plan: free
+    rootDir: neon-blob-arena/server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: '20'
+      - key: REGION
+        value: iad
+      # Paste values in Render dashboard (never commit secrets):
+      - key: DATABASE_URL
+        sync: false
+      - key: ORIGIN
+        sync: false

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Neon Blob Arena — multiplayer physics arena</title>
+<meta name="description" content="Eat, dash, knock back rivals. 25-player browser arena. No signup, play with friends via link." />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#070714; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif; color:#fff; }
+  #game { position:fixed; inset:0; display:block; touch-action:none; }
+  .hud { position:fixed; pointer-events:none; z-index:5; }
+  #leaders { top:12px; right:12px; background:rgba(10,10,30,.72); border:1px solid #ffffff22; border-radius:12px; padding:10px 12px; min-width:170px; backdrop-filter: blur(6px); }
+  #leaders h3 { font-size:12px; letter-spacing:.12em; opacity:.7; margin-bottom:6px; }
+  #leaders div { font-size:13px; padding:1px 0; }
+  #feed { top:12px; left:12px; display:flex; flex-direction:column; gap:4px; max-width:44vw; }
+  #feed span { background:rgba(10,10,30,.66); border:1px solid #ffffff18; padding:4px 10px; border-radius:999px; font-size:12px; }
+  #me { bottom:14px; left:12px; background:rgba(10,10,30,.72); border:1px solid #ffffff22; padding:8px 12px; border-radius:12px; font-size:13px; }
+  #room { bottom:14px; right:12px; display:flex; gap:8px; pointer-events:auto; align-items:center; }
+  #room button, #menu button { pointer-events:auto; cursor:pointer; border:1px solid #ffffff33; background:#7c3aed; color:#fff; border-radius:10px; padding:9px 14px; font-weight:700; }
+  #room button.ghost { background:#ffffff14; }
+  #menu { position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; background:radial-gradient(1000px 600px at 50% 30%, #2e1065cc, #070714ee); }
+  #menu .card { text-align:center; padding:28px; max-width:480px; }
+  #menu h1 { font-size:44px; line-height:1; margin-bottom:8px; text-shadow:0 0 30px #a855f7; }
+  #menu p { opacity:.8; margin-bottom:14px; font-size:14px; }
+  #menu input { pointer-events:auto; width:100%; padding:12px; border-radius:10px; border:1px solid #ffffff33; background:#ffffff10; color:#fff; font-size:16px; text-align:center; margin-bottom:10px; }
+  #menu .row { display:flex; gap:8px; justify-content:center; }
+  #hint { position:fixed; bottom:64px; width:100%; text-align:center; font-size:12px; opacity:.6; pointer-events:none; z-index:5; }
+  #minimap { position:fixed; right:12px; bottom:64px; width:120px; height:120px; border-radius:12px; border:1px solid #ffffff22; background:rgba(10,10,30,.6); z-index:5; }
+  #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:#00000088; }
+  #dead .card { background:#14142b; border:1px solid #ffffff22; padding:24px 32px; border-radius:16px; text-align:center; }
+  @media (max-width:640px){ #menu h1{font-size:32px} #leaders{min-width:130px} #minimap{display:none} }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud" id="leaders"><h3>🏆 LEADERS</h3><div id="lleaders">…</div></div>
+<div class="hud" id="feed"></div>
+<div class="hud" id="me">…</div>
+<div class="hud" id="room">
+  <button class="ghost" id="copyLink" title="Copy invite link">🔗 Invite</button>
+  <button id="dashBtn" title="Dash (Space)">⚡ Dash</button>
+</div>
+<canvas id="minimap" width="120" height="120"></canvas>
+<div id="hint">Move: mouse / WASD / drag &nbsp;•&nbsp; Dash: Space / ⚡ &nbsp;•&nbsp; Eat smaller blobs, dodge bigger ones</div>
+<div id="menu">
+  <div class="card">
+    <h1>🟣 NEON<br/>BLOB ARENA</h1>
+    <p>Eat pellets. Dash through rivals. Knock them flying.<br/>25 players per arena · no signup · <span id="pcount">…</span> online</p>
+    <input id="name" maxlength="14" placeholder="your blob name…" />
+    <div class="row">
+      <button id="play">▶ &nbsp;PLAY</button>
+      <button id="newRoom" class="ghost" style="background:#ffffff14" title="Create private room for friends">+ Private room</button>
+    </div>
+    <p style="margin-top:12px;font-size:12px" id="roomLabel"></p>
+  </div>
+</div>
+<div id="dead"><div class="card"><h2 id="deadTitle">💥 Eaten!</h2><p id="deadSub"></p><button id="respawn" style="margin-top:12px;border:1px solid #ffffff33;background:#7c3aed;color:#fff;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer">Respawn</button></div></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

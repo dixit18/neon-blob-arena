@@ -1,0 +1,53 @@
+# Free static deploy for the client (GitHub Pages, $0).
+# Push this folder as a git repo to GitHub, then: Settings -> Pages -> Source: GitHub Actions.
+# Set the VITE_SERVER secret/variable to your free backend URL (e.g. https://neon-blob-arena.onrender.com
+# becomes wss://neon-blob-arena.onrender.com). Repo variables: Settings -> Secrets and variables -> Actions.
+name: Deploy client to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['neon-blob-arena/client/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: neon-blob-arena/client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: neon-blob-arena/client/package-lock.json
+      - run: npm ci || npm install
+      - run: npm run build
+        env:
+          # Backend WS URL baked at build time. Set repo variable VITE_SERVER,
+          # e.g. wss://neon-blob-arena.onrender.com (must start with wss://).
+          VITE_SERVER: ${{ vars.VITE_SERVER }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: neon-blob-arena/client/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
