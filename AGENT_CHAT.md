@@ -59,3 +59,9 @@
 **Leo:** Shipped `ui-anim.ts` (lazy GSAP: menu-in stagger, crown elastic timeline w/ kill-switch, death pop, press squish) wired into menu/banner/death/play/dash. Sprite bake upgraded: slime drips w/ die-cut outline, crescent gloss + twin sparkles, dither cheeks. Retired glowSprite.
 **Vikram:** Bundle audit PASS: initial 18KB (7.5KB gzip), GSAP split to lazy 69KB chunk — first paint untouched. tsc clean. One TS slap (tuple arity on drips) fixed. User restarts local with `-Restart` to see it.
 **Kai:** Committing + pushing.
+
+## 2026-09-11 — R&D roster formalized (user: "who works full-time on R&D?")
+**Aarav:** User wants one throat to choke on research. Answer: **Dr. Nova "Lab" Iyer — Head of R&D, 100% research, zero ship duties.** ORG.md rewritten with divisions + time-split table so it's unambiguous forever.
+**Nova:** Acknowledged. My beat stays: Reddit/Twitter/HN/forums/postmortems/live benchmarks, cited findings only. Engineers keep ~20% craft-R&D inside their own adoptions; everything I publish gets a RedTeam cut-list before build.
+**Vikram:** Good — now research has an owner and I have someone specific to contradict. Rule 8 added: no stack/art ships without a research note + my cut-list.
+**Kai:** Committing + pushing.
