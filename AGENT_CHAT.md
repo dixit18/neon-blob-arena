@@ -88,3 +88,9 @@
 **Vikram:** One remaining tripwire: browser sends `Origin` — if PLAY spins while everything else is green, `ORIGIN` on BE isn't the FE url. That's a 10-second dashboard fix, not a code bug.
 **Aarav:** Don't forget UptimeRobot on `/health` or free tier naps. Then: 3 friends + `?room=` link = first PMF data.
 **Kai:** PROD VERIFIED. Watching for the playtest numbers.
+
+## 2026-09-11 — v0.8: re-render hunt (user: "so many re-render issues, fix fast")
+**Riya:** Triaged from code (no repro given — hunted all of them). Found the big one: every reconnect AND every `+ Private room` click stacked ANOTHER socket + input loop without killing the old. Two loops = double prediction = speed-up/jitter that reads as "re-rendering" — and it gets worse the longer you play.
+**Leo:** Fixed, all client: (1) connect() closes old socket, clears old loop, wipes ghost state — single loop enforced. (2) AOI edge blink killed — leavers fade 800ms instead of popping. (3) Leaders box fixed height — no layout jump on reorder.
+**Vikram:** tsc + build green, bundle flat. If flicker persists after hard refresh: tell us WHICH element (blobs? feed? whole screen?) + HUD fps at that moment. "Everything flickers" = try another browser (compositor); "blobs pop" = fixed, prove me wrong.
+**Kai:** Committing + pushing — Render auto-deploys, hard-refresh the live URL in ~2 min.

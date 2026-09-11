@@ -41,7 +41,7 @@ if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining t
 
 let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, pvx: 0, pvy: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
-const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number }>();
+const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number }>();
 let pellets: { x: number; y: number; hue: number }[] = [];
 let cam = { x: me.x, y: me.y };
 let trauma = 0;
@@ -114,6 +114,7 @@ let mouse = { x: W / 2, y: H / 2, active: false };
 let joy = { active: false, dx: 0, dy: 0, id: -1, ox: 0, oy: 0 };
 let dashQueued = false;
 let seq = 0;
+let inputTimer: ReturnType<typeof setInterval> | null = null; // single input loop (reconnects must not stack)
 
 window.addEventListener('keydown', e => {
   keys.add(e.key.toLowerCase());
@@ -171,6 +172,10 @@ const SERVER = new URLSearchParams(location.search).get('server')
   || (['localhost', '127.0.0.1'].includes(location.hostname) ? `ws://${location.hostname}:7749` : 'wss://neon-blob-arena.onrender.com');
 
 function connect(name: string) {
+  // BUGFIX: reconnects used to stack duplicate sockets + input loops (speed-up/jitter).
+  try { ws?.close(); } catch { /* already dead */ }
+  if (inputTimer) { clearInterval(inputTimer); inputTimer = null; }
+  remotes.clear(); pellets = []; liveTaunts = []; spectateId = null;
   const q = new URLSearchParams({ name });
   if (roomId) q.set('room', roomId);
   ws = new WebSocket(`${SERVER}?${q.toString()}`);
@@ -215,7 +220,8 @@ function connect(name: string) {
     setTimeout(() => { if (el('menu').style.display === 'none') connect(name); }, 1500);
   };
   // input @30Hz with redundant feel, server rate-limits anyway
-  setInterval(() => {
+  if (inputTimer) clearInterval(inputTimer);
+  inputTimer = setInterval(() => {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const d = inputDir();
     // local prediction MIRRORS the server steering model (same accel constant),
@@ -267,11 +273,15 @@ function onSnap(s: Snap) {
   for (const p of s.players) {
     const r = remotes.get(p.id);
     if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now });
-    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; }
+    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; }
   }
-  // prune gone
+  // fade-out, not pop-out: AOI edge used to blink blobs in/out every frame
   const ids = new Set(s.players.map(p => p.id));
-  for (const k of [...remotes.keys()]) if (!ids.has(k)) remotes.delete(k);
+  for (const [k, r] of remotes) {
+    if (ids.has(k)) continue;
+    if (r.gone === undefined) r.gone = now;
+    else if (now - r.gone > 800) remotes.delete(k);
+  }
   // spectate pick: follow the biggest blob while dead
   if (!me.alive && (!spectateId || !remotes.has(spectateId))) {
     let best: string | null = null, bestR = -1;
@@ -364,10 +374,16 @@ function frame(now: number) {
     ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.fill();
   }
 
-  // remotes (interpolated)
+  // remotes (interpolated, fading out at AOI edge)
   for (const [id, r] of remotes) {
     const x = renderX(id), y = renderY(id);
-    drawBlob(x, y, r.r, r.h, r.n, false);
+    if (r.gone === undefined) drawBlob(x, y, r.r, r.h, r.n, false);
+    else {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - (performance.now() - r.gone) / 800);
+      drawBlob(x, y, r.r, r.h, r.n, false);
+      ctx.restore();
+    }
   }
   // me on top
   if (me.alive) drawBlob(me.x, me.y, me.r, 275, 'YOU', true);
