@@ -1,22 +1,41 @@
-# Render Blueprint — all-free stage 1 ($0): Node WS server on free web service + Neon free.
+# Render Blueprint — all-free stage 1 ($0): backend WS server (Docker) + frontend static site.
 # Usage: push repo to GitHub -> Render Dashboard -> New -> Blueprint -> select repo.
-# Then set DATABASE_URL (Neon string) + ORIGIN (your Pages URL) in the service Environment tab.
+# You are prompted for secrets once (DATABASE_URL, ORIGIN, VITE_SERVER — see below).
+# After first sync: copy both URLs, fill the cross-links, Render auto-redeploys.
 # Free tier sleeps after ~15 min idle: add a free UptimeRobot cron pinging /health every 10 min.
 services:
+  # ---- Backend: Node WS game server (Docker, free) ----
   - type: web
     name: neon-blob-arena
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./neon-blob-arena/server/Dockerfile # repo-root-relative
+    dockerContext: ./neon-blob-arena/server # so COPY package.json/src resolve here
     plan: free
     rootDir: neon-blob-arena/server
     healthCheckPath: /health
+    buildFilter:
+      paths:
+        - neon-blob-arena/server/**
     envVars:
-      - key: NODE_VERSION
-        value: '20'
       - key: REGION
         value: iad
       # Paste values in Render dashboard (never commit secrets):
       - key: DATABASE_URL
-        sync: false
+        sync: false # Neon string
       - key: ORIGIN
-        sync: false
+        sync: false # frontend URL, e.g. https://neon-blob-arena-fe.onrender.com (fill after 1st sync)
+
+  # ---- Frontend: static Vite build (free) ----
+  - type: web
+    name: neon-blob-arena-fe
+    runtime: static
+    rootDir: neon-blob-arena/client
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./neon-blob-arena/client/dist # repo-root-relative
+    buildFilter:
+      paths:
+        - neon-blob-arena/client/**
+    envVars:
+      # Paste in Render dashboard (fill after 1st sync, triggers rebuild):
+      - key: VITE_SERVER
+        sync: false # backend WS URL, e.g. wss://neon-blob-arena.onrender.com
