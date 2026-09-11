@@ -15,6 +15,7 @@ const ORIGIN = (process.env.ORIGIN || '').split(',').map(s => s.trim()).filter(B
 const REGION = process.env.REGION || 'local';
 
 const rooms = new Map<string, Room>();
+let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
 function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 
 function getOrCreateRoom(id?: string): Room {
@@ -54,7 +55,10 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/stats') {
     const ticks = [...rooms.values()].map(r => r.tick);
-    res.end(JSON.stringify({ rooms: rooms.size, ticks }));
+    // PMF dashboard (Arjun): joins, rounds, taunts — requeue/invite loop proxies. No PII.
+    const rounds = [...rooms.values()].reduce((a, r) => a + r.roundCount, 0);
+    const taunts = [...rooms.values()].reduce((a, r) => a + r.tauntCount, 0);
+    res.end(JSON.stringify({ rooms: rooms.size, ticks, joins: joinsTotal, rounds, taunts }));
     return;
   }
   res.statusCode = 404; res.end(JSON.stringify({ error: 'not found' }));
@@ -77,6 +81,7 @@ wss.on('connection', (ws: WebSocket, req) => {
   room.addPlayer(id, name);
   const conn = { ws, playerId: id, room, msgTimes: [] as number[], lastSeq: 0 };
   room.conns.set(id, conn);
+  joinsTotal++;
   room.pushFeed(`✨ ${name} joined`);
   ws.send(JSON.stringify({ t: 'hello', you: id, room: room.id, world: TUNE.WORLD }));
 

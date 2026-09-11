@@ -299,8 +299,17 @@ function onSnap(s: Snap) {
   const top = s.feed[0] || '';
   if (top.startsWith('🏆') && top !== lastBanner) {
     lastBanner = top;
+    // daily crown (comeback loop): my wins persist per-day in this browser
+    if (myName && top.includes(myName)) {
+      const today = new Date().toISOString().slice(0, 10);
+      const crowns = Number(localStorage.getItem('blob-crowns') || 0) + 1;
+      localStorage.setItem('blob-crowns', String(crowns));
+      localStorage.setItem('blob-crown-day', today);
+      el('crownLine').textContent = `👑 crowns: ${crowns}`;
+      el('bannerSub').textContent = `👑 DAILY CROWN #${crowns} — defend it tomorrow! Next round running, invite friends 🔗`;
+    }
     el('bannerTitle').textContent = top;
-    el('bannerSub').textContent = 'Next round is already running — invite friends now 🔗';
+    if (!(myName && top.includes(myName))) el('bannerSub').textContent = 'Next round is already running — invite friends now 🔗';
     void uiCrownPop();
     sfx('kill');
   }
@@ -573,11 +582,50 @@ function drawMini() {
 }
 requestAnimationFrame(frame);
 
+// share-result card (invite loop): 1-tap PNG score flex with room link baked in
+function shareCard() {
+  const c = document.createElement('canvas'); c.width = 600; c.height = 380;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#1E1033'; g.fillRect(0, 0, 600, 380);
+  g.strokeStyle = '#FFE93C'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
+  g.textAlign = 'center';
+  g.fillStyle = '#FFFDF5'; g.font = '900 44px sans-serif';
+  g.fillText('BLOB ARENA', 300, 80);
+  g.fillStyle = '#F0ABFC'; g.font = '800 30px sans-serif';
+  g.fillText(`${myName || 'Blob'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
+  g.fillStyle = '#CBBFE0'; g.font = '700 26px sans-serif';
+  g.fillText(`best ${best} · ${LEVELS[myLevel][0]}`, 300, 195);
+  g.fillStyle = '#22D3EE'; g.font = '800 30px sans-serif';
+  g.fillText('revenge me 👇', 300, 250);
+  g.fillStyle = '#FFFDF5'; g.font = '700 24px sans-serif';
+  const link = location.origin + location.pathname + '?room=' + (roomId || 'lobby');
+  g.fillText(link.length > 42 ? link.slice(0, 42) + '…' : link, 300, 290);
+  g.fillStyle = '#8b8cf6'; g.font = '700 22px sans-serif';
+  g.fillText('no signup · 3-min rounds · bots never sleep', 300, 335);
+  c.toBlob((blob) => {
+    if (!blob) return;
+    const b = blob;
+    const file = new File([b], 'blob-arena.png', { type: 'image/png' });
+    const nav = navigator as Navigator & { share?: (d: { files?: File[]; title?: string; text?: string }) => Promise<void>; canShare?: (d: { files?: File[] }) => boolean };
+    if (nav.canShare?.({ files: [file] }) && nav.share) {
+      nav.share({ files: [file], title: 'Blob Arena', text: `I dropped ${me.score} mass — revenge? ${link}` }).catch(() => download());
+    } else download();
+    function download() {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'blob-arena-score.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+  }, 'image/png');
+}
+
 // ---------- menu ----------
 el('play').addEventListener('click', () => {
   audio(); sfx('click'); // unlock WebAudio on user gesture
   const n = ((el('name') as HTMLInputElement).value || 'Blob' + Math.floor(Math.random() * 99)).slice(0, 14);
   localStorage.setItem('blob-name', n);
+  myName = n;
   connect(n);
 });
 el('newRoom').addEventListener('click', () => {
@@ -603,6 +651,8 @@ EMOTES.forEach((e, i) => {
 el('inviteCta').addEventListener('click', () => el('copyLink').click());
 el('nudge').addEventListener('click', () => el('copyLink').click());
 el('bestLine').textContent = `🏅 best: ${best > 0 ? best : '—'}`;
+el('crownLine').textContent = `👑 crowns: ${Number(localStorage.getItem('blob-crowns') || 0) || '—'}`;
+el('shareBtn').addEventListener('click', () => { sfx('click'); shareCard(); });
 void uiMenuIn();
 uiPressify('#play');
 uiPressify('#dashBtn');

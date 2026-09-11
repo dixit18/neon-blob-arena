@@ -27,6 +27,8 @@ export class Room {
   taunts: { id: string; e: number; until: number }[] = [];
   tauntCd = new Map<string, number>(); // playerId -> tick when they may taunt again
   roundTick = 0;
+  roundCount = 0; // PMF stat: rounds completed (see /stats)
+  tauntCount = 0; // PMF stat: taunts sent (invite-loop proxy)
   grid = new Map<number, number[]>(); // spatial hash cell -> player indices (int keys, zero string garbage)
 
   constructor(id: string) {
@@ -275,6 +277,7 @@ export class Room {
     if (this.tick < (this.tauntCd.get(id) ?? 0)) return;
     this.tauntCd.set(id, this.tick + 60);
     this.taunts.push({ id, e: e as number, until: this.tick + 40 });
+    this.tauntCount++;
     if (this.taunts.length > 12) this.taunts.shift();
   }
 
@@ -287,6 +290,7 @@ export class Room {
 
   endRound() {
     this.roundTick = 0;
+    this.roundCount++;
     const alive = [...this.players.values()].filter(p => p.alive);
     const champ = alive.filter(p => !p.isBot).sort((a, b) => b.mass - a.mass)[0]
       ?? alive.sort((a, b) => b.mass - a.mass)[0];

@@ -24,6 +24,7 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 
 **R&D division (with Nova)**
 - **Mira "Muse" Nair — Motion & Illustration R&D.** GSAP UI animation, Pinterest illustration research, sticker-art direction. Owns the look; never touches the canvas hot loop.
+- **Arjun "Signal" Kapoor — Growth & PMF R&D (marketing is his only job).** Answers *why anyone comes*: hooks, viral loops, distribution, PMF numbers (requeue%, invite rate, D1/D7). No paid ads, no bots-faking — earned attention only. Every loop ships with a growth read + one in-game viral mechanic.
 
 **Quality**
 - **Riya "Breaker" Sharma — QA Engineer (quality is her only job).** Owns `QA.md`, hunts lag with numbers (tick ms, fps, snapshot bytes), runs the device matrix and regression checklist. Can block ANY release; nothing ships while red.
@@ -38,8 +39,9 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 | Aarav / Vikram | 10% | 0% / QA | 90% decisions+cuts |
 | Kai | 0% | 80% | 20% integration |
 | Riya "Breaker" Sharma | 10% (repro research) | 0% | 90% QA |
+| Arjun "Signal" Kapoor | 70% (growth research) | 30% (viral mechanics) | advises all |
 
-Graph: Vision ↔ RedTeam → Nova → Forge + Pixel + Mira → ShipIt → Riya (QA gate) + RedTeam (load test) → Vision (ship/block). Loop until RedTeam approves.
+Graph: Vision ↔ RedTeam → Nova → Forge + Pixel + Mira → ShipIt → Riya (QA gate) + RedTeam (load test) → Vision (ship/block). Arjun (growth) advises every loop with PMF numbers. Loop until RedTeam approves.
 
 ## Rules
 1. Server authoritative. Never trust client pos/score.

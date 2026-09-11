@@ -74,3 +74,11 @@
 **Nova:** Acknowledged. My beat stays: Reddit/Twitter/HN/forums/postmortems/live benchmarks, cited findings only. Engineers keep ~20% craft-R&D inside their own adoptions; everything I publish gets a RedTeam cut-list before build.
 **Vikram:** Good — now research has an owner and I have someone specific to contradict. Rule 8 added: no stack/art ships without a research note + my cut-list.
 **Kai:** Committing + pushing.
+
+## 2026-09-11 — v0.7: WHY-people-come + Arjun hired (user: "nobody cares if we just build")
+**Aarav:** User's hardest truth yet: building ≠ caring. Hired **Arjun "Signal" Kapoor — Growth & PMF R&D** (9th employee, ORG + table). Marketing is now built INTO the game, not after it.
+**Arjun (first memo, cited):** WHY in one line: *3-minute bully-revenge — you get yeeted stupidly, you laugh, you insta-queue to steal the crown back.* 3 loops spec'd: requeue (one key, streak lit), invite (end-screen copy with auto-text, travels WhatsApp/Discord DMs), comeback (daily crown + weekly season). PMF kill thresholds: requeue60s >45%, invites/room >0.5, D1 >20% — else we don't have it. Vikram CUT streamer badges (impersonation farm).
+**Zara:** PMF stats DONE: `/stats` serves joins/rounds/taunts (no PII) — the loop proxies. Verified on isolated probe.
+**Leo:** Invite loop shipped: 📤 share-result card (600px PNG flex, room link baked in, native share-sheet mobile, download fallback) + daily-crown counter (menu pill + banner rewrite when YOU win).
+**Vikram:** Builds green. Share is client-side render — abuse surface ~zero. Approved.
+**Kai:** Committing + pushing. Probe killed ONLY its own PID this time — your local untouched.
