@@ -44,6 +44,43 @@ let trauma = 0;
 let particles: { x: number; y: number; vx: number; vy: number; life: number; hue: number; r: number }[] = [];
 let lastSnapAt = performance.now();
 
+// ---------- juice: procedural SFX + shockwave rings + hit-stop + spectate ----------
+let AC: AudioContext | null = null;
+function audio(): AudioContext | null {
+  if (!AC) { try { AC = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)(); } catch { /* no audio */ } }
+  if (AC && AC.state === 'suspended') void AC.resume();
+  return AC;
+}
+function tone(f0: number, f1: number, dur: number, type: OscillatorType, vol: number, delay = 0) {
+  const ac = audio(); if (!ac) return;
+  const t = ac.currentTime + delay;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(Math.max(1, f0), t);
+  o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click') {
+  switch (kind) {
+    case 'dash': tone(300, 900, 0.18, 'sawtooth', 0.08); break;
+    case 'eat': tone(400 + Math.random() * 200, 900, 0.09, 'sine', 0.10); break;
+    case 'kill': tone(500, 1000, 0.12, 'square', 0.07); tone(750, 1500, 0.14, 'square', 0.05, 0.07); break;
+    case 'die': tone(400, 60, 0.4, 'sawtooth', 0.12); break;
+    case 'click': tone(600, 800, 0.06, 'sine', 0.06); break;
+  }
+}
+let rings: { x: number; y: number; r: number; max: number; life: number; hue: number }[] = [];
+function ring(x: number, y: number, max: number, hue: number) {
+  rings.push({ x, y, r: 8, max, life: 0.45, hue });
+  if (rings.length > 24) rings.shift();
+}
+let hitstop = 0;
+let spectateId: string | null = null;
+let prevMass = 12, prevKills = 0;
+
 // input
 const keys = new Set<string>();
 let mouse = { x: W / 2, y: H / 2, active: false };
@@ -116,9 +153,12 @@ function connect(name: string) {
     if (m.t === 'died') {
       trauma = Math.min(1, trauma + 0.7);
       burst(me.x, me.y, 26, 280);
+      ring(me.x, me.y, me.r + 90, 280);
+      sfx('die');
+      spectateId = null;
+      el('deadTitle').textContent = '💥 Eaten!';
+      el('deadSub').textContent = `Eaten by ${m.by}. Spectating…`;
       el('dead').style.display = 'flex';
-      el('deadSub').textContent = `Eaten by ${m.by}. Respawning…`;
-      setTimeout(() => { el('dead').style.display = 'none'; }, 2600);
       return;
     }
     if (m.t === 'snap') onSnap(m as Snap);
@@ -136,7 +176,7 @@ function connect(name: string) {
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
     ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued }));
-    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); }
+    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); }
     dashQueued = false;
   }, 1000 / 30);
 }
@@ -151,6 +191,18 @@ function onSnap(s: Snap) {
     else { me.x += (m.x - me.x) * 0.45; me.y += (m.y - me.y) * 0.45; }
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
     me.alive = m.alive; me.score = m.score; me.kills = m.kills;
+    // eat detect: sudden mass gain = chomp (juice only — server owns truth)
+    if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
+    if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); }
+    prevMass = m.mass; prevKills = m.kills;
+    if (!m.alive) {
+      const target = spectateId && remotes.get(spectateId) ? remotes.get(spectateId)! : null;
+      const secs = m.respawnIn != null ? Math.max(0, m.respawnIn).toFixed(1) : '…';
+      el('dead').style.display = 'flex';
+      el('deadSub').textContent = `Spectating ${target ? target.n : 'arena'} — back in ${secs}s`;
+    } else if (el('dead').style.display !== 'none') {
+      el('dead').style.display = 'none';
+    }
   }
   const now = performance.now();
   for (const p of s.players) {
@@ -161,6 +213,12 @@ function onSnap(s: Snap) {
   // prune gone
   const ids = new Set(s.players.map(p => p.id));
   for (const k of [...remotes.keys()]) if (!ids.has(k)) remotes.delete(k);
+  // spectate pick: follow the biggest blob while dead
+  if (!me.alive && (!spectateId || !remotes.has(spectateId))) {
+    let best: string | null = null, bestR = -1;
+    for (const [id, r] of remotes) if (r.r > bestR) { bestR = r.r; best = id; }
+    spectateId = best;
+  }
   pellets = s.pellets;
   el('lleaders').innerHTML = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
   el('feed').innerHTML = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
@@ -183,10 +241,14 @@ function burst(x: number, y: number, n: number, hue: number) {
 let last = performance.now();
 function frame(now: number) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  // camera follows predicted me
-  cam.x += (me.x - cam.x) * Math.min(1, dt * 6);
-  cam.y += (me.y - cam.y) * Math.min(1, dt * 6);
+  const rawDt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dt = hitstop > 0 ? 0 : rawDt; // hit-stop: world freezes, render continues
+  if (hitstop > 0) hitstop -= rawDt;
+  // camera follows predicted me — or spectate target while dead
+  let tx = me.x, ty = me.y;
+  if (!me.alive && spectateId) { tx = renderX(spectateId); ty = renderY(spectateId); }
+  cam.x += (tx - cam.x) * Math.min(1, rawDt * 6);
+  cam.y += (ty - cam.y) * Math.min(1, rawDt * 6);
   trauma = Math.max(0, trauma - dt * 1.6);
   const shx = trauma * trauma * 14 * (Math.random() * 2 - 1);
   const shy = trauma * trauma * 14 * (Math.random() * 2 - 1);
@@ -230,6 +292,16 @@ function frame(now: number) {
     ctx.globalAlpha = Math.min(1, p.life * 2);
     ctx.fillStyle = `hsl(${p.hue} 95% 65%)`;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  // knockback shockwave rings
+  for (let i = rings.length - 1; i >= 0; i--) {
+    const g = rings[i];
+    g.life -= rawDt; if (g.life <= 0) { rings.splice(i, 1); continue; }
+    g.r += (g.max - g.r) * Math.min(1, rawDt * 9);
+    ctx.globalAlpha = Math.min(1, g.life * 2.5);
+    ctx.strokeStyle = `hsl(${g.hue} 95% 65%)`; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 7); ctx.stroke();
     ctx.globalAlpha = 1;
   }
   ctx.restore();
@@ -282,6 +354,7 @@ requestAnimationFrame(frame);
 
 // ---------- menu ----------
 el('play').addEventListener('click', () => {
+  audio(); sfx('click'); // unlock WebAudio on user gesture
   const n = ((el('name') as HTMLInputElement).value || 'Blob' + Math.floor(Math.random() * 99)).slice(0, 14);
   localStorage.setItem('blob-name', n);
   connect(n);

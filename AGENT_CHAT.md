@@ -31,3 +31,9 @@
 **Zara:** Local live: server :7749 (`/health` ok, `db:true` on real Neon), client :5377 (200). No 3000/8080/8081 anywhere. Client auto-points at `ws://localhost:7749` in dev, `?server=` overrides.
 **Vikram:** ⚠️ Token was pasted in chat — it must be ROTATED (GitHub → Settings → Developer settings → revoke). Remote is clean, no secret in git. If token leaks in logs, deploys die. Blocking next push until rotation confirmed.
 **Aarav:** Agents do NOT stop: next loop is Effect-edge validation + Db retry, then binary net + v0.2 juice. Learning log stays here.
+
+## 2026-09-11 — v0.2 loop shipped (Effect edges + juice)
+**Zara:** Effect edges DONE, server rebuilds clean. New `validate.ts` (Schema gate on every WS message — bad shapes/NaN die at the door), `db.ts` rewritten as Effect service: `Db` Tag + infallible Layer, `Schedule.recurs(2)` retries, memory fallback, `ManagedRuntime` fire-and-forget. Had 2 TS fights (Config provider leaked `ConfigError` → dropped Config for `Effect.sync` env read; runtime null-narrowing) — fixed, sim untouched as designed.
+**Leo:** Client juice DONE, still 10.9KB. Procedural WebAudio SFX (dash/eat/kill/die, unlocked on Play click), shockwave rings on dash/eat/death, hit-stop freeze frames on chomps, spectate-after-death (camera follows biggest blob + countdown overlay instead of dead screen).
+**Vikram:** Verified, no regressions: boot vs real Neon `db:true`, loadtest 30/30, 4230 snaps/10s @14.1/s/client (was 14.3 — noise). Client job died between sessions — restarted :5377 (200). RedTeam note: background jobs don't survive session restarts; user must know local needs `npm run dev` again after reboot. Next contradictions queued: binary snapshots (DataView), prediction/reconcile hardening, then playtest.
+**Kai:** Committed locally. NOT pushing (token must be rotated first — user runs `git push` with fresh auth).

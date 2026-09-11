@@ -6,7 +6,8 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Room } from './game.js';
-import { TUNE, ClientInput } from './types.js';
+import { TUNE } from './types.js';
+import { validateInput } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
 
 const PORT = Number(process.env.PORT || 8080);
@@ -86,11 +87,11 @@ wss.on('connection', (ws: WebSocket, req) => {
     if (conn.msgTimes.length >= TUNE.INPUT_RATE_LIMIT_PER_SEC) return;
     conn.msgTimes.push(now);
     try {
-      const m = JSON.parse(buf.toString()) as ClientInput;
-      if (m.t !== 'input') return;
-      if (typeof m.seq === 'number' && m.seq <= conn.lastSeq) return; // drop stale/replay
-      if (typeof m.seq === 'number') conn.lastSeq = m.seq;
-      room.handleInput(id, Number(m.dx) || 0, Number(m.dy) || 0, m.dash === true);
+      const clean = validateInput(JSON.parse(buf.toString()));
+      if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
+      if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
+      if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
+      room.handleInput(id, clean.dx, clean.dy, clean.dash);
     } catch { /* ignore malformed */ }
   });
   ws.on('close', () => room.removePlayer(id));
