@@ -14,6 +14,7 @@
 <style>
   :root { --bg:#140A24; --panel:rgba(20,12,36,.8); --line:#ffffff1f; --cyan:#22d3ee; --pink:#f0abfc; --violet:#8b5cf6; --gold:#fbbf24; }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { -webkit-user-select:none; user-select:none; }
   html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:#fff;
     font-family:"Avenir Next","Segoe UI",ui-sans-serif,system-ui,Roboto,sans-serif; }
   #game { position:fixed; inset:0; display:block; touch-action:none; }
@@ -42,6 +43,7 @@
   #room button { pointer-events:auto; cursor:pointer; border:1px solid #ffffff2e; background:linear-gradient(135deg,#7c3aed,#4f46e5);
     color:#fff; border-radius:12px; padding:10px 15px; font-weight:800; font-size:14px; min-height:44px; }
   #room button.ghost { background:rgba(255,255,255,.08); }
+  #emotesToggle { display:none; } /* mobile drawer toggle only */
   #emotes { bottom:calc(66px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); display:flex; gap:7px; pointer-events:auto; }
   #emotes button { cursor:pointer; font-size:19px; background:var(--panel); border:1px solid var(--line);
     border-radius:999px; width:42px; height:42px; }
@@ -91,7 +93,13 @@
     #feed span { font-size:11px; }
     #minimap { display:none; }
     #hint { display:none; }
-    #roundPill { font-size:13px; padding:6px 12px; }
+    #roundPill { font-size:18px; padding:7px 14px; } /* R&D: readable at arm's length */
+    #emotes { display:none; bottom:calc(130px + env(safe-area-inset-bottom)); }
+    #emotes.open { display:flex; }
+    #emotesToggle { display:block; }
+    #dashBtn { width:88px; height:88px; border-radius:50%; font-size:13px; } /* R&D: 88px hit, thumb arc */
+    #feed span, #me { font-size:13px; } /* R&D: never <13px tabular on phones */
+    #leaders div { font-size:13px; }
     #emotes { bottom:calc(72px + env(safe-area-inset-bottom)); }
     #emotes button { width:46px; height:46px; }
     #room button { min-height:48px; }
@@ -109,6 +117,7 @@
 <div class="hud" id="room">
   <button class="ghost" id="copyLink" title="Copy invite link">🔗 Invite</button>
   <button class="ghost" id="soundBtn" title="Sound on/off">🔊</button>
+  <button class="ghost" id="emotesToggle" title="Taunts">😂</button>
   <button id="dashBtn" title="Dash (Space)">⚡ Dash</button>
 </div>
 <div class="hud" id="emotes"></div>

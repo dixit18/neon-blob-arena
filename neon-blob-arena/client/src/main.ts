@@ -121,16 +121,21 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Space') { dashQueued = true; e.preventDefault(); }
 });
 window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
-canvas.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return; // BUGFIX: touch drags poisoned mouse steering (drift after lift)
+  mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
+});
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch') { joy.active = true; joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.dx = 0; joy.dy = 0; }
   else { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; }
 });
 window.addEventListener('pointermove', e => {
   if (joy.active && e.pointerId === joy.id) {
+    // R&D tune: 75px base, 10px dead-zone, remapped — no drift, no jump
     const dx = e.clientX - joy.ox, dy = e.clientY - joy.oy;
-    const l = Math.hypot(dx, dy) || 1, max = 60;
-    const c = Math.min(1, l / max);
+    const l = Math.hypot(dx, dy);
+    if (l < 1) { joy.dx = joy.dy = 0; return; }
+    const c = l <= 10 ? 0 : Math.min(1, (l - 10) / (75 - 10));
     joy.dx = (dx / l) * c; joy.dy = (dy / l) * c;
   }
 });
@@ -189,8 +194,9 @@ function connect(name: string) {
       el('menu').style.display = 'none';
       if (!localStorage.getItem('blob-seen')) { // first-timer concept tutorial
         localStorage.setItem('blob-seen', '1');
-        setTimeout(() => coach('🍩 Eat the glowing dots to grow big'), 600);
-        setTimeout(() => coach('⚡ Press SPACE to dash through rivals'), 4200);
+        const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        setTimeout(() => coach(touch ? '👆 Drag anywhere to move & grow' : '🍩 Eat the glowing dots to grow big'), 600);
+        setTimeout(() => coach(touch ? '⚡ Tap DASH to burst through rivals' : '⚡ Press SPACE to dash through rivals'), 4200);
         setTimeout(() => coach('👑 Biggest blob when ⏱ hits 0 wins the round!'), 7800);
       }
       return;
@@ -359,10 +365,11 @@ function frame(now: number) {
   const shx = trauma * trauma * 14 * (Math.random() * 2 - 1);
   const shy = trauma * trauma * 14 * (Math.random() * 2 - 1);
 
-  ctx.fillStyle = '#1E1033'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#170E22'; ctx.fillRect(0, 0, W, H); // R&D: darker plum, less washout
   paintDoodles();
+  const ZOOM = Math.min(W, H) < 640 ? 0.82 : 1; // R&D: zoom out on phones (less blind)
   ctx.save();
-  ctx.translate(W / 2 - cam.x + shx, H / 2 - cam.y + shy);
+  ctx.translate(W / 2, H / 2); ctx.scale(ZOOM, ZOOM); ctx.translate(-cam.x + shx, -cam.y + shy);
 
   // (doodle tile painted pre-transform; no grid — sticker style)
   // arena border (candy rope)
@@ -426,12 +433,16 @@ function frame(now: number) {
   }
   ctx.restore();
 
-  // joystick overlay
+  // joystick overlay: ghost anchor + 75px base + 32px knob (R&D spec)
   if (joy.active) {
-    ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 60, 0, 7); ctx.stroke();
-    ctx.fillStyle = '#a855f7';
-    ctx.beginPath(); ctx.arc(joy.ox + joy.dx * 60, joy.oy + joy.dy * 60, 24, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 110, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#ffffff88'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 75, 0, 7); ctx.stroke();
+    ctx.fillStyle = '#FFE93C';
+    ctx.beginPath(); ctx.arc(joy.ox + joy.dx * 75, joy.oy + joy.dy * 75, 32, 0, 7); ctx.fill();
   }
   if ((frameNo++ % 3) === 0) drawMini(); // minimap 20Hz is plenty (was every frame)
 }
@@ -440,12 +451,12 @@ function frame(now: number) {
 
 // ---------- gummy-goth sticker blobs (baked sprites, zero per-frame gradients) ----------
 const GUMMY = [
-  { h: 335, c: '#FF6B9D' }, // gummy-pink
-  { h: 42, c: '#FFC94D' },  // mango
-  { h: 155, c: '#51E8A2' }, // mint
-  { h: 200, c: '#4DC6FF' }, // glacier
-  { h: 265, c: '#B78CFF' }, // grape-soda
-  { h: 18, c: '#FF7A45' },  // tang
+  { h: 335, c: '#E35BB0' }, // gummy-pink (deepened for sunlight legibility)
+  { h: 42, c: '#F5A623' },  // mango
+  { h: 155, c: '#2ED9A3' }, // mint
+  { h: 200, c: '#2FA8E0' }, // glacier
+  { h: 265, c: '#9B6BF3' }, // grape-soda
+  { h: 18, c: '#F2622E' },  // tang
 ];
 function sparkle4(g: CanvasRenderingContext2D, x: number, y: number, s: number, color: string) {
   // four-point sticker sparkle (baked, zero runtime cost)
@@ -497,9 +508,9 @@ function stickerSprite(hue: number, r: number): HTMLCanvasElement {
     g.beginPath(); g.arc(dx, 128, dx === 80 ? 8 : 5.5, 0, 7); g.fill();
     g.fillRect(dx - (dx === 80 ? 8 : 5.5), 118, (dx === 80 ? 8 : 5.5) * 2, 10 + dh);
   }
-  // flat gummy body
+  // flat gummy body (0.80 = chunky sticker ring that survives small screens)
   g.fillStyle = GUMMY[gi].c;
-  g.beginPath(); g.arc(S / 2, S / 2, R * 0.86, 0, 7); g.fill();
+  g.beginPath(); g.arc(S / 2, S / 2, R * 0.80, 0, 7); g.fill();
   // chunky crescent gloss + twin sparkles (pre-baked, no canvas gradients)
   g.fillStyle = 'rgba(255,255,255,.9)';
   g.beginPath(); g.ellipse(S / 2 - 26, S / 2 - 30, 17, 10, -0.6, 0, 7); g.fill();
@@ -545,7 +556,7 @@ function paintDoodles() {
     const t = document.createElement('canvas'); t.width = t.height = 256;
     const g = t.getContext('2d')!;
     g.fillStyle = 'rgba(255,255,255,.10)';
-    const dots: [number, number, number][] = [[32, 40, 3], [120, 24, 2], [200, 70, 3], [70, 120, 2], [160, 150, 3], [230, 200, 2], [40, 210, 3], [110, 230, 2]];
+    const dots: [number, number, number][] = [[40, 50, 3], [170, 160, 3], [90, 215, 2]]; // R&D: -60% density
     for (const [x, y, r] of dots) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
     // one sticker star per tile
     g.strokeStyle = 'rgba(255,233,60,.35)'; g.lineWidth = 3; g.lineCap = 'round';
@@ -661,10 +672,12 @@ EMOTES.forEach((e, i) => {
     if (n - lastTauntAt < 1000) return;
     lastTauntAt = n;
     if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'taunt', i }));
+    el('emotes').classList.remove('open'); // drawer auto-closes on mobile
   });
   el('emotes').appendChild(b);
 });
 el('inviteCta').addEventListener('click', () => el('copyLink').click());
+el('emotesToggle').addEventListener('click', () => { el('emotes').classList.toggle('open'); sfx('click'); });
 el('nudge').addEventListener('click', () => el('copyLink').click());
 el('bestLine').textContent = `🏅 best: ${best > 0 ? best : '—'}`;
 el('crownLine').textContent = `👑 crowns: ${Number(localStorage.getItem('blob-crowns') || 0) || '—'}`;

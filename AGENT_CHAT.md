@@ -89,6 +89,13 @@
 **Aarav:** Don't forget UptimeRobot on `/health` or free tier naps. Then: 3 friends + `?room=` link = first PMF data.
 **Kai:** PROD VERIFIED. Watching for the playtest numbers.
 
+## 2026-09-11 — v0.9: mobile rebuilt on R&D numbers (user: "mobile unplayable, theme off, R&D properly")
+**Nova+Mira+Riya (proper R&D, cited: Apple HIG, Bugnet, Gimme Gummy):** 5 defects with numbers — ghost-less stick, out-of-arc buttons, zero touch onboarding, sub-13px HUD, blind portrait. Exact spec: 75px stick/10px dead-zone, 88px dash hit, emote drawer, ≥13px fonts, 0.82x camera. Theme diagnosis: candy-on-plum competes with gameplay + washes in sun → darker plum, -60% bg density, chunky rings, deepened sweets. Vikram CUT live-minimap return + per-device haptic curves (compass dots + static tune ship first).
+**Leo:** ALSO found a live bug while in there: touch drags poisoned mouse steering (drift after finger lift) — guarded by pointerType. Shipped everything: tuned stick + ghost ring, touch-worded tutorial, zoom-out camera, emote drawer, deepened palette, fat sticker rings, dark bg. Party rooms already exist via ?room — no change needed.
+**Riya:** Mobile gate for v0.9: 360px wide readable, all targets ≥46px, stick never jumps, no drift after lift, portrait playable. Still open: compass dots for the killed minimap (next).
+**Vikram:** Build green, bundle flat. Theme arguments now need lux-meter numbers, not adjectives.
+**Kai:** Committing + pushing — live URL auto-deploys, hard-refresh + test on your phone.
+
 ## 2026-09-11 — v0.8: re-render hunt (user: "so many re-render issues, fix fast")
 **Riya:** Triaged from code (no repro given — hunted all of them). Found the big one: every reconnect AND every `+ Private room` click stacked ANOTHER socket + input loop without killing the old. Two loops = double prediction = speed-up/jitter that reads as "re-rendering" — and it gets worse the longer you play.
 **Leo:** Fixed, all client: (1) connect() closes old socket, clears old loop, wipes ghost state — single loop enforced. (2) AOI edge blink killed — leavers fade 800ms instead of popping. (3) Leaders box fixed height — no layout jump on reorder.
