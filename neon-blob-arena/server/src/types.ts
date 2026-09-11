@@ -3,6 +3,7 @@ export interface Vec { x: number; y: number }
 
 export interface PlayerState {
   id: string;
+  num: number; // small numeric id: GC-free pair keys now, binary protocol next
   name: string;
   x: number; y: number;
   vx: number; vy: number;
@@ -44,7 +45,10 @@ export interface ServerSnapshot {
   pellets: Pellet[];
   leaders: { n: string; s: number }[];
   feed: string[];
+  taunts: { id: string; e: number }[]; // active emote taunts (server-pruned, 2s life)
 }
+
+export const EMOTES = ['😂', '😈', '💪', '😱', '👋'] as const; // must match client
 
 export const TUNE = {
   WORLD: 4000,

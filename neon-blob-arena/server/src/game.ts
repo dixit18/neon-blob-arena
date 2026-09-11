@@ -15,6 +15,7 @@ function spawnPos(margin = 80) { return { x: rand(margin, TUNE.WORLD - margin), 
 export class Room {
   id: string;
   tick = 0;
+  nextNum = 1; // numeric entity ids (rooms cap ~40 entities, keys stay small ints)
   players = new Map<string, PlayerState>();
   conns = new Map<string, Conn>();
   pellets: Pellet[] = [];
@@ -22,7 +23,9 @@ export class Room {
   lastSnap = 0;
   respawns = new Map<string, number>(); // playerId -> tick ready
   botTimer = 0;
-  grid = new Map<string, string[]>(); // spatial hash cell -> playerIds
+  taunts: { id: string; e: number; until: number }[] = [];
+  tauntCd = new Map<string, number>(); // playerId -> tick when they may taunt again
+  grid = new Map<number, number[]>(); // spatial hash cell -> player indices (int keys, zero string garbage)
 
   constructor(id: string) {
     this.id = id;
@@ -41,7 +44,7 @@ export class Room {
     const p = spawnPos();
     const hue = Math.floor(rand(0, 360));
     const st: PlayerState = {
-      id, name: name.slice(0, 14) || (isBot ? 'Bot' : 'Blob'),
+      id, num: this.nextNum++, name: name.slice(0, 14) || (isBot ? 'Bot' : 'Blob'),
       x: p.x, y: p.y, vx: 0, vy: 0,
       mass: TUNE.START_MASS, r: massToRadius(TUNE.START_MASS),
       hue, kills: 0, score: 0, alive: true, isBot,
@@ -162,38 +165,47 @@ export class Room {
     while (this.pellets.length < TUNE.PELLETS) this.addPellet();
     this.botTimer++;
     if (this.botTimer % 40 === 0) this.ensureBots();
+    if (this.tick % 10 === 0 && this.taunts.length > 0) this.taunts = this.taunts.filter(t => t.until > this.tick);
   }
 
-  rebuildGrid() {
+  rebuildGrid(list: PlayerState[]) {
     this.grid.clear();
     const cell = 220;
-    for (const p of this.players.values()) {
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
       if (!p.alive) continue;
-      const key = `${Math.floor(p.x / cell)},${Math.floor(p.y / cell)}`;
+      const key = Math.floor(p.x / cell) * 256 + Math.floor(p.y / cell);
       let arr = this.grid.get(key);
       if (!arr) { arr = []; this.grid.set(key, arr); }
-      arr.push(p.id);
+      arr.push(i);
     }
   }
 
   collide() {
-    this.rebuildGrid();
+    const list = [...this.players.values()];
+    this.rebuildGrid(list);
     const cell = 220;
-    const seen = new Set<string>();
-    for (const p of this.players.values()) {
+    const seen = new Set<number>();
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i];
       if (!p.alive) continue;
       const cx = Math.floor(p.x / cell), cy = Math.floor(p.y / cell);
-      for (let gx = cx - 1; gx <= cx + 1; gx++) for (let gy = cy - 1; gy <= cy + 1; gy++) {
-        const arr = this.grid.get(`${gx},${gy}`);
-        if (!arr) continue;
-        for (const oid of arr) {
-          if (oid <= p.id) continue;
-          const key = p.id + '|' + oid;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          const o = this.players.get(oid);
-          if (!o || !o.alive) continue;
-          resolveCollision(p, o);
+      for (let gx = cx - 1; gx <= cx + 1; gx++) {
+        if (gx < 0) continue;
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          if (gy < 0) continue;
+          const arr = this.grid.get(gx * 256 + gy);
+          if (!arr) continue;
+          for (let k = 0; k < arr.length; k++) {
+            const j = arr[k];
+            if (j <= i) continue;
+            const key = i * 256 + j; // rooms cap ~40 entities: int pair key, no strings
+            if (seen.has(key)) continue;
+            seen.add(key);
+            const o = list[j];
+            if (!o.alive) continue;
+            resolveCollision(p, o);
+          }
         }
       }
     }
@@ -250,6 +262,17 @@ export class Room {
     }
   }
 
+  // Preset emote taunt: fixed set, 3s cooldown, 2s life. No free text (zero moderation).
+  addTaunt(id: string, e: unknown) {
+    const p = this.players.get(id);
+    if (!p || !p.alive || p.isBot) return;
+    if (!Number.isInteger(e) || (e as number) < 0 || (e as number) > 4) return;
+    if (this.tick < (this.tauntCd.get(id) ?? 0)) return;
+    this.tauntCd.set(id, this.tick + 60);
+    this.taunts.push({ id, e: e as number, until: this.tick + 40 });
+    if (this.taunts.length > 12) this.taunts.shift();
+  }
+
   snapshot(forId: string): ServerSnapshot {
     const me = this.players.get(forId);
     const leaders = [...this.players.values()].filter(p => p.alive)
@@ -279,6 +302,7 @@ export class Room {
         respawnIn: me.alive ? undefined : Math.max(0, ((this.respawns.get(forId) ?? this.tick) - this.tick) / TUNE.TICK_HZ),
       } : undefined,
       players, pellets, leaders, feed: [...this.feed],
+      taunts: this.taunts.map(t => ({ id: t.id, e: t.e })),
     };
   }
 }

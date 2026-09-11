@@ -87,7 +87,10 @@ wss.on('connection', (ws: WebSocket, req) => {
     if (conn.msgTimes.length >= TUNE.INPUT_RATE_LIMIT_PER_SEC) return;
     conn.msgTimes.push(now);
     try {
-      const clean = validateInput(JSON.parse(buf.toString()));
+      const raw: unknown = JSON.parse(buf.toString());
+      const robj = raw as { t?: unknown; i?: unknown };
+      if (robj && robj.t === 'taunt') { room.addTaunt(id, robj.i); return; }
+      const clean = validateInput(raw);
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
       if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
@@ -114,7 +117,10 @@ setInterval(() => {
   for (const r of rooms.values()) {
     for (const [pid, c] of r.conns) {
       if (c.ws.readyState !== WebSocket.OPEN) continue;
-      try { c.ws.send(JSON.stringify(r.snapshot(pid))); } catch { /* backpressure: skip frame */ }
+      const buffered = c.ws.bufferedAmount;
+      if (buffered > 512 * 1024) { try { c.ws.terminate(); } catch { /* dead */ } r.removePlayer(pid); continue; }
+      if (buffered > 64 * 1024) continue; // laggard: drop this frame, sim never waits
+      try { c.ws.send(JSON.stringify(r.snapshot(pid))); } catch { /* skip frame */ }
     }
   }
 }, 1000 / TUNE.SNAP_HZ);

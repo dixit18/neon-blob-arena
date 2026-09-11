@@ -8,6 +8,7 @@ type Snap = {
   pellets: { id: number; x: number; y: number; hue: number }[];
   leaders: { n: string; s: number }[];
   feed: string[];
+  taunts: { id: string; e: number }[];
 };
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -64,6 +65,7 @@ function tone(f0: number, f1: number, dur: number, type: OscillatorType, vol: nu
   o.start(t); o.stop(t + dur + 0.02);
 }
 function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click') {
+  if (!soundOn) return;
   switch (kind) {
     case 'dash': tone(300, 900, 0.18, 'sawtooth', 0.08); break;
     case 'eat': tone(400 + Math.random() * 200, 900, 0.09, 'sine', 0.10); break;
@@ -73,6 +75,9 @@ function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click') {
   }
 }
 let rings: { x: number; y: number; r: number; max: number; life: number; hue: number }[] = [];
+const EMOTES = ['😂', '😈', '💪', '😱', '👋'];
+let liveTaunts: { id: string; e: number }[] = [];
+let lastTauntAt = 0;
 function ring(x: number, y: number, max: number, hue: number) {
   rings.push({ x, y, r: 8, max, life: 0.45, hue });
   if (rings.length > 24) rings.shift();
@@ -80,6 +85,8 @@ function ring(x: number, y: number, max: number, hue: number) {
 let hitstop = 0;
 let spectateId: string | null = null;
 let prevMass = 12, prevKills = 0;
+let soundOn = localStorage.getItem('blob-sound') !== 'off';
+function buzz(p: number | number[]) { try { navigator.vibrate?.(p); } catch { /* unsupported */ } }
 
 // input
 const keys = new Set<string>();
@@ -108,6 +115,12 @@ window.addEventListener('pointermove', e => {
 });
 window.addEventListener('pointerup', e => { if (e.pointerId === joy.id) { joy.active = false; joy.dx = joy.dy = 0; } });
 el('dashBtn').addEventListener('click', () => { dashQueued = true; });
+el('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  localStorage.setItem('blob-sound', soundOn ? 'on' : 'off');
+  el('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  if (soundOn) sfx('click');
+});
 el('copyLink').addEventListener('click', async () => {
   const link = location.origin + location.pathname + '?room=' + (roomId || 'lobby');
   try { await navigator.clipboard.writeText(link); el('copyLink').textContent = '✅ Copied!'; }
@@ -155,6 +168,7 @@ function connect(name: string) {
       burst(me.x, me.y, 26, 280);
       ring(me.x, me.y, me.r + 90, 280);
       sfx('die');
+      buzz([40, 40, 80]);
       spectateId = null;
       el('deadTitle').textContent = '💥 Eaten!';
       el('deadSub').textContent = `Eaten by ${m.by}. Spectating…`;
@@ -176,7 +190,7 @@ function connect(name: string) {
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
     ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued }));
-    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); }
+    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); }
     dashQueued = false;
   }, 1000 / 30);
 }
@@ -220,6 +234,7 @@ function onSnap(s: Snap) {
     spectateId = best;
   }
   pellets = s.pellets;
+  liveTaunts = s.taunts || [];
   el('lleaders').innerHTML = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
   el('feed').innerHTML = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
   el('me').textContent = `mass ${me.mass} · kills ${me.kills} · ${me.dashReady ? '⚡ dash ready' : '…charging'}`;
@@ -284,6 +299,21 @@ function frame(now: number) {
   if (me.alive) drawBlob(me.x, me.y, me.r, 275, 'YOU', true);
   else { ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('respawning…', cam.x, cam.y); }
 
+  // floating emote taunts (server-pruned, ~2s life)
+  const bobT = performance.now() / 240;
+  ctx.textAlign = 'center';
+  for (let i = 0; i < liveTaunts.length; i++) {
+    const t = liveTaunts[i];
+    const emo = EMOTES[t.e] || '';
+    if (!emo) continue;
+    let tx2: number | null = null, ty2: number | null = null, tr = 20;
+    if (t.id === myId && me.alive) { tx2 = me.x; ty2 = me.y; tr = me.r; }
+    else { const r = remotes.get(t.id); if (r) { tx2 = renderX(t.id); ty2 = renderY(t.id); tr = r.r; } }
+    if (tx2 === null || ty2 === null) continue;
+    ctx.font = '26px sans-serif';
+    ctx.fillText(emo, tx2, ty2 - tr - 18 + Math.sin(bobT + i * 1.7) * 5);
+  }
+
   // particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -316,13 +346,27 @@ function frame(now: number) {
   drawMini();
 }
 
+// pre-rendered glow sprites: kills per-frame createRadialGradient (the #1 Canvas cost)
+const glowCache = new Map<number, HTMLCanvasElement>();
+function glowSprite(hue: number): HTMLCanvasElement {
+  const b = Math.round(hue / 15) % 24;
+  let c = glowCache.get(b);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(64, 64, 8, 64, 64, 64);
+    grad.addColorStop(0, `hsla(${b * 15} 90% 60% / .9)`);
+    grad.addColorStop(1, `hsla(${b * 15} 90% 50% / 0)`);
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+    glowCache.set(b, c);
+  }
+  return c;
+}
+
 function drawBlob(x: number, y: number, r: number, hue: number, name: string, isMe: boolean) {
-  // glow
-  const g = ctx.createRadialGradient(x, y, r * 0.3, x, y, r * 1.6);
-  g.addColorStop(0, `hsla(${hue} 90% 60% / .9)`);
-  g.addColorStop(1, `hsla(${hue} 90% 50% / 0)`);
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(x, y, r * 1.6, 0, 7); ctx.fill();
+  // glow (cached sprite, scaled)
+  const gs = r * 3.2;
+  ctx.drawImage(glowSprite(hue), x - gs / 2, y - gs / 2, gs, gs);
   // body
   ctx.fillStyle = `hsl(${hue} 85% 58%)`;
   ctx.strokeStyle = isMe ? '#fff' : `hsl(${hue} 90% 75%)`;
@@ -366,6 +410,19 @@ el('newRoom').addEventListener('click', () => {
   (el('play') as HTMLButtonElement).click();
 });
 el('respawn').addEventListener('click', () => { el('dead').style.display = 'none'; });
+el('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+// emote taunt buttons (built from shared fixed set — no free text)
+EMOTES.forEach((e, i) => {
+  const b = document.createElement('button');
+  b.textContent = e; b.title = 'Taunt (3s cooldown)';
+  b.addEventListener('click', () => {
+    const n = Date.now();
+    if (n - lastTauntAt < 1000) return;
+    lastTauntAt = n;
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'taunt', i }));
+  });
+  el('emotes').appendChild(b);
+});
 
 // preload leaderboard count
 fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => {
