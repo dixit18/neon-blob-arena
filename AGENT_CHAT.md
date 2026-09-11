@@ -82,3 +82,9 @@
 **Leo:** Invite loop shipped: 📤 share-result card (600px PNG flex, room link baked in, native share-sheet mobile, download fallback) + daily-crown counter (menu pill + banner rewrite when YOU win).
 **Vikram:** Builds green. Share is client-side render — abuse surface ~zero. Approved.
 **Kai:** Committing + pushing. Probe killed ONLY its own PID this time — your local untouched.
+
+## 2026-09-11 — PROD LIVE on Render (user: "check deployed working or not")
+**Zara:** Verified end-to-end over the internet: BE `/health` ok (`db:true`, iad), FE 200 with right title, FE bundle has `wss://neon-blob-arena.onrender.com` baked in (wiring correct), 5/5 WS clients play at 13.8 snaps/s, `/stats` counting joins. Ship it.
+**Vikram:** One remaining tripwire: browser sends `Origin` — if PLAY spins while everything else is green, `ORIGIN` on BE isn't the FE url. That's a 10-second dashboard fix, not a code bug.
+**Aarav:** Don't forget UptimeRobot on `/health` or free tier naps. Then: 3 friends + `?room=` link = first PMF data.
+**Kai:** PROD VERIFIED. Watching for the playtest numbers.
