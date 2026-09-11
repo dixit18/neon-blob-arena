@@ -7,6 +7,7 @@ import { persistScore } from './db.js';
 export interface Conn { ws: WebSocket; playerId: string; room: Room; msgTimes: number[]; lastSeq: number }
 
 let pelletId = 1;
+const ROUND_TICKS = 180 * 20; // 3-minute rounds: the urgency engine
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const BOT_NAMES = ['Blip','Gloop','Zorp','Mochi','Vex','Pud','Nib','Quark','Slim','Orb','Fizz','Gup'];
 
@@ -25,6 +26,7 @@ export class Room {
   botTimer = 0;
   taunts: { id: string; e: number; until: number }[] = [];
   tauntCd = new Map<string, number>(); // playerId -> tick when they may taunt again
+  roundTick = 0;
   grid = new Map<number, number[]>(); // spatial hash cell -> player indices (int keys, zero string garbage)
 
   constructor(id: string) {
@@ -48,7 +50,7 @@ export class Room {
       x: p.x, y: p.y, vx: 0, vy: 0,
       mass: TUNE.START_MASS, r: massToRadius(TUNE.START_MASS),
       hue, kills: 0, score: 0, alive: true, isBot,
-      dashCdUntil: 0, spawnTick: this.tick,
+      dashCdUntil: 0, spawnTick: this.tick, streak: 0,
     };
     this.players.set(id, st);
     return st;
@@ -154,13 +156,13 @@ export class Room {
     for (const [id, at] of this.respawns) {
       if (this.tick >= at) {
         const p = this.players.get(id);
-        if (p) {
-          const s = spawnPos(); p.x = s.x; p.y = s.y; p.vx = p.vy = 0;
-          p.mass = TUNE.START_MASS; p.r = massToRadius(p.mass); p.alive = true; p.dashCdUntil = 0;
-        }
+        if (p) this.respawnNow(p);
         this.respawns.delete(id);
       }
     }
+    // rounds: the urgency engine — crown, compress, revive
+    this.roundTick++;
+    if (this.roundTick >= ROUND_TICKS) this.endRound();
     // pellet upkeep
     while (this.pellets.length < TUNE.PELLETS) this.addPellet();
     this.botTimer++;
@@ -244,8 +246,11 @@ export class Room {
           eater.mass += victim.mass * 0.75;
           eater.r = massToRadius(eater.mass);
           eater.kills++;
+          eater.streak++;
+          if (eater.streak >= 3) this.pushFeed(`🔥 ${eater.name} is on fire x${eater.streak}!`);
           victim.alive = false;
           victim.vx = victim.vy = 0;
+          victim.streak = 0;
           this.respawns.set(victim.id, this.tick + 60);
           // knockback pop for eater (juice + space)
           eater.vx *= 0.6; eater.vy *= 0.6;
@@ -273,6 +278,34 @@ export class Room {
     if (this.taunts.length > 12) this.taunts.shift();
   }
 
+  respawnNow(p: PlayerState) {
+    const s = spawnPos();
+    p.x = s.x; p.y = s.y; p.vx = p.vy = 0;
+    p.mass = TUNE.START_MASS; p.r = massToRadius(p.mass);
+    p.alive = true; p.dashCdUntil = 0; p.streak = 0; p.spawnTick = this.tick;
+  }
+
+  endRound() {
+    this.roundTick = 0;
+    const alive = [...this.players.values()].filter(p => p.alive);
+    const champ = alive.filter(p => !p.isBot).sort((a, b) => b.mass - a.mass)[0]
+      ?? alive.sort((a, b) => b.mass - a.mass)[0];
+    if (champ) {
+      champ.mass += 10; champ.r = massToRadius(champ.mass);
+      this.pushFeed(`🏆 ${champ.name} wins the round!`);
+    }
+    // soft reset: compress masses so the next round starts hungry, revive the dead
+    for (const p of this.players.values()) {
+      if (p.alive) {
+        p.mass = TUNE.START_MASS + (p.mass - TUNE.START_MASS) * 0.35;
+        p.r = massToRadius(p.mass);
+      } else if (!p.isBot) {
+        this.respawns.delete(p.id);
+        this.respawnNow(p);
+      }
+    }
+  }
+
   snapshot(forId: string): ServerSnapshot {
     const me = this.players.get(forId);
     const leaders = [...this.players.values()].filter(p => p.alive)
@@ -298,11 +331,12 @@ export class Room {
       me: me ? {
         x: me.x, y: me.y, r: me.r, mass: Math.floor(me.mass),
         dashReady: this.tick >= me.dashCdUntil, score: Math.floor(me.score),
-        kills: me.kills, alive: me.alive,
+        kills: me.kills, alive: me.alive, streak: me.streak,
         respawnIn: me.alive ? undefined : Math.max(0, ((this.respawns.get(forId) ?? this.tick) - this.tick) / TUNE.TICK_HZ),
       } : undefined,
       players, pellets, leaders, feed: [...this.feed],
       taunts: this.taunts.map(t => ({ id: t.id, e: t.e })),
+      round: Math.max(0, Math.ceil((ROUND_TICKS - this.roundTick) / TUNE.TICK_HZ)),
     };
   }
 }

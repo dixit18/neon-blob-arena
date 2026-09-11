@@ -2,70 +2,133 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Neon Blob Arena — multiplayer physics arena</title>
-<meta name="description" content="Eat, dash, knock back rivals. 25-player browser arena. No signup, play with friends via link." />
-<meta name="theme-color" content="#070714" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Neon Blob Arena — 3-min multiplayer rounds</title>
+<meta name="description" content="3-minute rounds. Eat, dash, streak, get crowned. 25-player browser arena — no signup, invite friends with one link." />
+<meta name="theme-color" content="#05060f" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" href="./icon.svg" type="image/svg+xml" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { width:100%; height:100%; overflow:hidden; background:#070714; font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, sans-serif; color:#fff; }
+  :root { --bg:#140A24; --panel:rgba(20,12,36,.8); --line:#ffffff1f; --cyan:#22d3ee; --pink:#f0abfc; --violet:#8b5cf6; --gold:#fbbf24; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:#fff;
+    font-family:"Avenir Next","Segoe UI",ui-sans-serif,system-ui,Roboto,sans-serif; }
   #game { position:fixed; inset:0; display:block; touch-action:none; }
-  .hud { position:fixed; pointer-events:none; z-index:5; }
-  #leaders { top:12px; right:12px; background:rgba(10,10,30,.72); border:1px solid #ffffff22; border-radius:12px; padding:10px 12px; min-width:170px; backdrop-filter: blur(6px); }
-  #leaders h3 { font-size:12px; letter-spacing:.12em; opacity:.7; margin-bottom:6px; }
-  #leaders div { font-size:13px; padding:1px 0; }
-  #feed { top:12px; left:12px; display:flex; flex-direction:column; gap:4px; max-width:44vw; }
-  #feed span { background:rgba(10,10,30,.66); border:1px solid #ffffff18; padding:4px 10px; border-radius:999px; font-size:12px; }
-  #me { bottom:14px; left:12px; background:rgba(10,10,30,.72); border:1px solid #ffffff22; padding:8px 12px; border-radius:12px; font-size:13px; }
-  #room { bottom:14px; right:12px; display:flex; gap:8px; pointer-events:auto; align-items:center; }
-  #room button, #menu button { pointer-events:auto; cursor:pointer; border:1px solid #ffffff33; background:#7c3aed; color:#fff; border-radius:10px; padding:9px 14px; font-weight:700; }
-  #room button.ghost { background:#ffffff14; }
-  #emotes { bottom:64px; left:50%; transform:translateX(-50%); display:flex; gap:6px; pointer-events:auto; }
-  #emotes button { cursor:pointer; font-size:18px; background:rgba(10,10,30,.66); border:1px solid #ffffff22; border-radius:999px; width:38px; height:38px; }
-  #menu { position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; background:radial-gradient(1000px 600px at 50% 30%, #2e1065cc, #070714ee); }
-  #menu .card { text-align:center; padding:28px; max-width:480px; }
-  #menu h1 { font-size:44px; line-height:1; margin-bottom:8px; text-shadow:0 0 30px #a855f7; }
-  #menu p { opacity:.8; margin-bottom:14px; font-size:14px; }
-  #menu input { pointer-events:auto; width:100%; padding:12px; border-radius:10px; border:1px solid #ffffff33; background:#ffffff10; color:#fff; font-size:16px; text-align:center; margin-bottom:10px; }
-  #menu .row { display:flex; gap:8px; justify-content:center; }
-  #hint { position:fixed; bottom:64px; width:100%; text-align:center; font-size:12px; opacity:.6; pointer-events:none; z-index:5; }
-  #minimap { position:fixed; right:12px; bottom:64px; width:120px; height:120px; border-radius:12px; border:1px solid #ffffff22; background:rgba(10,10,30,.6); z-index:5; }
-  #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:#00000088; }
-  #dead .card { background:#14142b; border:1px solid #ffffff22; padding:24px 32px; border-radius:16px; text-align:center; }
-  @media (max-width:640px){ #menu h1{font-size:32px} #leaders{min-width:130px} #minimap{display:none} }
+  #vig { position:fixed; inset:0; z-index:4; pointer-events:none;
+    background:radial-gradient(120% 120% at 50% 50%, transparent 55%, rgba(10,4,20,.55)); }
+  .hud { position:fixed; z-index:5; }
+  .pill { background:var(--panel); border:1px solid var(--line); border-radius:14px; backdrop-filter:blur(8px); }
+  #leaders { top:calc(10px + env(safe-area-inset-top)); right:10px; padding:10px 12px; min-width:164px; }
+  #leaders h3 { font-size:11px; letter-spacing:.14em; opacity:.65; margin-bottom:6px; }
+  #leaders div { font-size:13px; padding:1.5px 0; font-variant-numeric:tabular-nums; }
+  #nudge { margin-top:8px; font-size:12px; padding:6px 9px; border-radius:10px; background:rgba(139,92,246,.18);
+    border:1px solid rgba(139,92,246,.5); cursor:pointer; pointer-events:auto; }
+  #nudge.hot { animation:pulse 1.2s infinite; }
+  @keyframes pulse { 50% { transform:scale(1.05); box-shadow:0 0 18px #8b5cf6aa; } }
+  #feed { top:calc(10px + env(safe-area-inset-top)); left:10px; display:flex; flex-direction:column; gap:5px; max-width:46vw; pointer-events:none; }
+  #feed span { background:var(--panel); border:1px solid var(--line); padding:5px 11px; border-radius:999px; font-size:12px; }
+  #roundPill { top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); padding:7px 16px;
+    font-weight:800; font-size:15px; font-variant-numeric:tabular-nums; letter-spacing:.04em; pointer-events:none;
+    border-color:rgba(34,211,238,.45); box-shadow:0 0 16px rgba(34,211,238,.25); }
+  #roundPill.danger { border-color:#f87171; box-shadow:0 0 18px #f8717188; animation:pulse .8s infinite; }
+  #me { bottom:calc(12px + env(safe-area-inset-bottom)); left:10px; padding:9px 13px; font-size:13px; pointer-events:none;
+    font-variant-numeric:tabular-nums; }
+  #me .streak { color:var(--gold); font-weight:800; }
+  #room { bottom:calc(12px + env(safe-area-inset-bottom)); right:10px; display:flex; gap:8px; pointer-events:auto; align-items:center; }
+  #room button { pointer-events:auto; cursor:pointer; border:1px solid #ffffff2e; background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    color:#fff; border-radius:12px; padding:10px 15px; font-weight:800; font-size:14px; min-height:44px; }
+  #room button.ghost { background:rgba(255,255,255,.08); }
+  #emotes { bottom:calc(66px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); display:flex; gap:7px; pointer-events:auto; }
+  #emotes button { cursor:pointer; font-size:19px; background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; width:42px; height:42px; }
+  #minimap { position:fixed; right:10px; bottom:calc(66px + env(safe-area-inset-bottom)); width:116px; height:116px;
+    border-radius:14px; border:1px solid var(--line); background:rgba(12,14,32,.6); z-index:5; }
+  #hint { position:fixed; bottom:calc(116px + env(safe-area-inset-bottom)); width:100%; text-align:center; font-size:12px;
+    opacity:.55; pointer-events:none; z-index:5; }
+  #banner { position:fixed; top:22%; width:100%; text-align:center; z-index:9; display:none; pointer-events:none; }
+  #banner .inner { display:inline-block; background:rgba(20,12,4,.88); border:1px solid var(--gold); border-radius:18px;
+    padding:16px 30px; box-shadow:0 0 40px #fbbf2455; }
+  #banner h2 { font-size:26px; }
+  #banner p { font-size:13px; opacity:.85; margin-top:6px; }
+  #menu { position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; padding:16px;
+    background:radial-gradient(900px 500px at 50% 12%, #3b1a5ed9, #140a24f2), #140a24; overflow-y:auto; }
+  #menu .card { text-align:center; padding:26px 22px; max-width:520px; width:100%; }
+  .badge { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.1em; color:#03181d;
+    background:linear-gradient(90deg,var(--cyan),var(--pink)); border-radius:999px; padding:6px 14px; margin-bottom:12px; }
+  #menu h1 { font-size:54px; line-height:.95; margin-bottom:10px; font-weight:900; font-style:italic;
+    font-family:ui-rounded,"SF Pro Rounded","Segoe UI",Trebuchet MS,sans-serif; transform:rotate(-2deg);
+    color:#FFFDF5; -webkit-text-stroke:2px #fff; text-shadow:0 4px 0 #2A1740, 0 0 34px #e879f988; }
+  #menu .sub { opacity:.85; margin-bottom:12px; font-size:14px; }
+  .chips { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+  .chips span { font-size:12px; background:#ffffff10; border:1px solid var(--line); border-radius:999px; padding:5px 11px; }
+  #menu input { pointer-events:auto; width:100%; padding:13px; border-radius:12px; border:1px solid #ffffff2e;
+    background:#ffffff0d; color:#fff; font-size:17px; text-align:center; margin-bottom:10px; }
+  #menu .row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  #menu .row button { pointer-events:auto; cursor:pointer; border:none; border-radius:12px; padding:14px 26px;
+    font-weight:900; font-size:17px; color:#fff; background:linear-gradient(135deg,#06b6d4,#8b5cf6 60%,#d946ef); min-height:52px;
+    box-shadow:0 6px 30px #8b5cf666; }
+  #menu .row button.ghost { background:#ffffff12; border:1px solid #ffffff2e; box-shadow:none; font-size:15px; }
+  #menuMeta { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; font-size:12px; }
+  #menuMeta span { background:#ffffff0c; border:1px solid var(--line); padding:6px 12px; border-radius:999px; font-variant-numeric:tabular-nums; }
+  #roomLabel { margin-top:10px; font-size:12px; opacity:.75; }
+  #inviteCta { margin-top:10px; font-size:13px; color:var(--cyan); cursor:pointer; pointer-events:auto; font-weight:700; }
+  #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:#00000088; padding:16px; }
+  #dead .card { background:#14142bee; border:1px solid var(--line); padding:24px 30px; border-radius:18px; text-align:center; max-width:340px; }
+  #dead button { margin-top:12px; border:none; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff;
+    border-radius:12px; padding:12px 22px; font-weight:800; font-size:15px; cursor:pointer; min-height:48px; }
+  @media (max-width:640px) {
+    #menu h1 { font-size:40px; }
+    #leaders { min-width:128px; padding:8px 10px; }
+    #leaders div { font-size:12px; }
+    #feed { max-width:52vw; }
+    #feed span { font-size:11px; }
+    #minimap { display:none; }
+    #hint { display:none; }
+    #roundPill { font-size:13px; padding:6px 12px; }
+    #emotes { bottom:calc(72px + env(safe-area-inset-bottom)); }
+    #emotes button { width:46px; height:46px; }
+    #room button { min-height:48px; }
+    #me { font-size:12px; max-width:44vw; }
+  }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div class="hud" id="leaders"><h3>🏆 LEADERS</h3><div id="lleaders">…</div></div>
+<div id="vig"></div>
+<div class="hud pill" id="leaders"><h3>🏆 LEADERS</h3><div id="lleaders">…</div><div id="nudge" style="display:none">👥</div></div>
 <div class="hud" id="feed"></div>
-<div class="hud" id="me">…</div>
+<div class="hud pill" id="roundPill">⏱ --:--</div>
+<div class="hud pill" id="me">…</div>
 <div class="hud" id="room">
   <button class="ghost" id="copyLink" title="Copy invite link">🔗 Invite</button>
   <button class="ghost" id="soundBtn" title="Sound on/off">🔊</button>
   <button id="dashBtn" title="Dash (Space)">⚡ Dash</button>
 </div>
 <div class="hud" id="emotes"></div>
-<canvas id="minimap" width="120" height="120"></canvas>
-<div id="hint">Move: mouse / WASD / drag &nbsp;•&nbsp; Dash: Space / ⚡ &nbsp;•&nbsp; Eat smaller blobs, dodge bigger ones</div>
+<canvas id="minimap" width="116" height="116"></canvas>
+<div id="hint">Mouse / WASD / drag to move · Space to dash · 3-min rounds — biggest blob takes the crown</div>
+<div id="banner"><div class="inner"><h2 id="bannerTitle">🏆</h2><p id="bannerSub"></p></div></div>
 <div id="menu">
   <div class="card">
-    <h1>🟣 NEON<br/>BLOB ARENA</h1>
-    <p>Eat pellets. Dash through rivals. Knock them flying.<br/>25 players per arena · no signup · <span id="pcount">…</span> online</p>
-    <input id="name" maxlength="14" placeholder="your blob name…" />
+    <div style="font-size:52px;letter-spacing:-6px;filter:drop-shadow(0 6px 0 #2A1740)">💗💛💚</div>
+    <div class="badge">⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS</div>
+    <h1>BLOB<br/>ARENA</h1>
+    <p class="sub">Eat. Dash. Streak. Get crowned before the clock hits zero.<br/>No signup — playing in under 5 seconds.</p>
+    <div class="chips"><span>👥 25-player FFA</span><span>⚡ dash physics</span><span>🔥 kill streaks</span><span>😂 taunts</span></div>
+    <input id="name" maxlength="14" placeholder="your blob name…" autocomplete="off" />
     <div class="row">
-      <button id="play">▶ &nbsp;PLAY</button>
-      <button id="newRoom" class="ghost" style="background:#ffffff14" title="Create private room for friends">+ Private room</button>
+      <button id="play">▶ &nbsp;PLAY NOW</button>
+      <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
     </div>
-    <p style="margin-top:12px;font-size:12px" id="roomLabel"></p>
+    <div id="menuMeta"><span id="pcount">… online</span><span id="bestLine">🏅 best: —</span><span id="roomPill">🎲 public arena</span></div>
+    <p id="roomLabel"></p>
+    <p id="inviteCta">🔗 heads-up: copy your invite link BEFORE the round ends — friends land straight in</p>
   </div>
 </div>
-<div id="dead"><div class="card"><h2 id="deadTitle">💥 Eaten!</h2><p id="deadSub"></p><button id="respawn" style="margin-top:12px;border:1px solid #ffffff33;background:#7c3aed;color:#fff;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer">Respawn</button></div></div>
+<div id="dead"><div class="card"><h2 id="deadTitle">💥 Eaten!</h2><p id="deadSub"></p><button id="respawn">Respawn</button></div></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

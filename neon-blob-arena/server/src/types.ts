@@ -12,6 +12,7 @@ export interface PlayerState {
   hue: number;
   kills: number;
   score: number;
+  streak: number; // consecutive eats without dying (resets on death)
   alive: boolean;
   isBot: boolean;
   dashCdUntil: number; // tick index when dash ready again
@@ -40,12 +41,13 @@ export interface ServerSnapshot {
   t: 'snap';
   tick: number;
   you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; respawnIn?: number };
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; respawnIn?: number };
   players: SnapPlayer[];
   pellets: Pellet[];
   leaders: { n: string; s: number }[];
   feed: string[];
   taunts: { id: string; e: number }[]; // active emote taunts (server-pruned, 2s life)
+  round: number; // seconds left in the current 3-min round (urgency engine)
 }
 
 export const EMOTES = ['😂', '😈', '💪', '😱', '👋'] as const; // must match client

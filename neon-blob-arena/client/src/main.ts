@@ -3,12 +3,13 @@
 
 type Snap = {
   t: string; tick: number; you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; respawnIn?: number };
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; respawnIn?: number };
   players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number }[];
   pellets: { id: number; x: number; y: number; hue: number }[];
   leaders: { n: string; s: number }[];
   feed: string[];
   taunts: { id: string; e: number }[];
+  round: number; // seconds left in the 3-min round
 };
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -36,7 +37,7 @@ let myName = localStorage.getItem('blob-name') || '';
 if (myName) (el('name') as HTMLInputElement).value = myName;
 if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining this link land here`;
 
-let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0 };
+let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
 const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number }>();
 let pellets: { x: number; y: number; hue: number }[] = [];
@@ -78,6 +79,8 @@ let rings: { x: number; y: number; r: number; max: number; life: number; hue: nu
 const EMOTES = ['😂', '😈', '💪', '😱', '👋'];
 let liveTaunts: { id: string; e: number }[] = [];
 let lastTauntAt = 0;
+let best = Number(localStorage.getItem('blob-best') || 0); // personal best (motivation loop)
+let lastBanner = '';
 function ring(x: number, y: number, max: number, hue: number) {
   rings.push({ x, y, r: 8, max, life: 0.45, hue });
   if (rings.length > 24) rings.shift();
@@ -159,7 +162,8 @@ function connect(name: string) {
     if (m.t === 'hello') {
       myId = m.you; roomId = m.room;
       history.replaceState(null, '', `?room=${roomId}`);
-      el('roomLabel').textContent = `Room: ${roomId} — share the link to squad up`;
+      el('roomLabel').textContent = `Room: ${roomId} — friends with this link land straight in`;
+      el('roomPill').textContent = `🎲 room ${roomId}`;
       el('menu').style.display = 'none';
       return;
     }
@@ -172,6 +176,12 @@ function connect(name: string) {
       spectateId = null;
       el('deadTitle').textContent = '💥 Eaten!';
       el('deadSub').textContent = `Eaten by ${m.by}. Spectating…`;
+      if (me.score > best && me.score > 0) {
+        best = Math.floor(me.score);
+        localStorage.setItem('blob-best', String(best));
+        el('bestLine').textContent = `🏅 best: ${best}`;
+        el('deadSub').textContent += ` 🎉 New best!`;
+      }
       el('dead').style.display = 'flex';
       return;
     }
@@ -204,7 +214,7 @@ function onSnap(s: Snap) {
     if (err > 220) { me.x = m.x; me.y = m.y; } // big desync: hard snap
     else { me.x += (m.x - me.x) * 0.45; me.y += (m.y - me.y) * 0.45; }
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
-    me.alive = m.alive; me.score = m.score; me.kills = m.kills;
+    me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak;
     // eat detect: sudden mass gain = chomp (juice only — server owns truth)
     if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
     if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); }
@@ -237,8 +247,29 @@ function onSnap(s: Snap) {
   liveTaunts = s.taunts || [];
   el('lleaders').innerHTML = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
   el('feed').innerHTML = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
-  el('me').textContent = `mass ${me.mass} · kills ${me.kills} · ${me.dashReady ? '⚡ dash ready' : '…charging'}`;
-  el('pcount').textContent = `${s.players.length + 1} in room`;
+  el('me').textContent = `🟣${me.mass} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${me.dashReady ? '⚡' : '…'}`;
+  el('pcount').textContent = `${s.players.length + 1} online`;
+  // round urgency pill
+  const mm = Math.floor(s.round / 60), ss = String(s.round % 60).padStart(2, '0');
+  const pill = el('roundPill');
+  pill.textContent = `⏱ ${mm}:${ss} to crown`;
+  pill.classList.toggle('danger', s.round <= 30);
+  // winner banner (once per crown)
+  const top = s.feed[0] || '';
+  if (top.startsWith('🏆') && top !== lastBanner) {
+    lastBanner = top;
+    el('bannerTitle').textContent = top;
+    el('bannerSub').textContent = 'Next round is already running — invite friends now 🔗';
+    el('banner').style.display = 'block';
+    sfx('kill');
+    setTimeout(() => { el('banner').style.display = 'none'; }, 4500);
+  }
+  // invite nudge (urgency to squad up while the room is quiet)
+  const count = s.players.length + 1;
+  const nudge = el('nudge');
+  nudge.style.display = 'block';
+  nudge.classList.toggle('hot', count < 8);
+  nudge.textContent = count < 8 ? `👥 ${count}/25 — quiet! 🔗 invite friends` : `👥 ${count}/25 in this arena`;
 }
 
 function renderX(id: string) { const r = remotes.get(id); if (!r) return 0; const k = Math.min(1, (performance.now() - r.t) / 100); return r.ax + (r.bx - r.ax) * k; }
@@ -268,21 +299,14 @@ function frame(now: number) {
   const shx = trauma * trauma * 14 * (Math.random() * 2 - 1);
   const shy = trauma * trauma * 14 * (Math.random() * 2 - 1);
 
-  ctx.fillStyle = '#070714'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1E1033'; ctx.fillRect(0, 0, W, H);
+  paintDoodles();
   ctx.save();
   ctx.translate(W / 2 - cam.x + shx, H / 2 - cam.y + shy);
 
-  // grid
-  const gs = 160;
-  ctx.strokeStyle = 'rgba(139,92,246,.13)'; ctx.lineWidth = 1;
-  const x0 = Math.max(0, Math.floor((cam.x - W / 2) / gs) * gs), x1 = Math.min(WORLD, cam.x + W / 2);
-  const y0 = Math.max(0, Math.floor((cam.y - H / 2) / gs) * gs), y1 = Math.min(WORLD, cam.y + H / 2);
-  ctx.beginPath();
-  for (let x = x0; x <= x1; x += gs) { ctx.moveTo(x, Math.max(0, cam.y - H / 2)); ctx.lineTo(x, Math.min(WORLD, cam.y + H / 2)); }
-  for (let y = y0; y <= y1; y += gs) { ctx.moveTo(Math.max(0, cam.x - W / 2), y); ctx.lineTo(Math.min(WORLD, cam.x + W / 2), y); }
-  ctx.stroke();
-  // arena border
-  ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 6; ctx.strokeRect(0, 0, WORLD, WORLD);
+  // (doodle tile painted pre-transform; no grid — sticker style)
+  // arena border (candy rope)
+  ctx.strokeStyle = '#FFE93C'; ctx.lineWidth = 8; ctx.strokeRect(0, 0, WORLD, WORLD);
 
   // pellets (cheap circles, viewport-culled already by server)
   for (const p of pellets) {
@@ -346,40 +370,124 @@ function frame(now: number) {
   drawMini();
 }
 
-// pre-rendered glow sprites: kills per-frame createRadialGradient (the #1 Canvas cost)
-const glowCache = new Map<number, HTMLCanvasElement>();
-function glowSprite(hue: number): HTMLCanvasElement {
-  const b = Math.round(hue / 15) % 24;
-  let c = glowCache.get(b);
-  if (!c) {
-    c = document.createElement('canvas'); c.width = c.height = 128;
-    const g = c.getContext('2d')!;
-    const grad = g.createRadialGradient(64, 64, 8, 64, 64, 64);
-    grad.addColorStop(0, `hsla(${b * 15} 90% 60% / .9)`);
-    grad.addColorStop(1, `hsla(${b * 15} 90% 50% / 0)`);
-    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
-    glowCache.set(b, c);
+// (glowSprite retired in the gummy-goth pass — stickerSprite bakes outline+face+highlight)
+
+// ---------- gummy-goth sticker blobs (baked sprites, zero per-frame gradients) ----------
+const GUMMY = [
+  { h: 335, c: '#FF6B9D' }, // gummy-pink
+  { h: 42, c: '#FFC94D' },  // mango
+  { h: 155, c: '#51E8A2' }, // mint
+  { h: 200, c: '#4DC6FF' }, // glacier
+  { h: 265, c: '#B78CFF' }, // grape-soda
+  { h: 18, c: '#FF7A45' },  // tang
+];
+function gummyIdx(hue: number): number {
+  let bi = 0, bd = 1e9;
+  for (let i = 0; i < GUMMY.length; i++) {
+    const d = Math.min(Math.abs(GUMMY[i].h - hue), 360 - Math.abs(GUMMY[i].h - hue));
+    if (d < bd) { bd = d; bi = i; }
   }
+  return bi;
+}
+const stickerCache = new Map<string, HTMLCanvasElement>();
+function stickerSprite(hue: number, r: number): HTMLCanvasElement {
+  const gi = gummyIdx(hue);
+  const rb = r < 20 ? 14 : r < 30 ? 24 : r < 44 ? 36 : 52; // radius buckets
+  const face = rb <= 14 ? 0 : rb <= 24 ? 1 : rb <= 36 ? 2 : 3; // baby, kid, chonk, boss
+  const key = gi + '-' + rb + '-' + face;
+  let c = stickerCache.get(key);
+  if (c) return c;
+  const S = 160, R = 64;
+  c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d')!;
+  // sticker outline (thick white = readable at 2cm on phones)
+  g.fillStyle = '#FFFFFF';
+  g.beginPath(); g.arc(S / 2, S / 2, R, 0, 7); g.fill();
+  // flat gummy body
+  g.fillStyle = GUMMY[gi].c;
+  g.beginPath(); g.arc(S / 2, S / 2, R * 0.86, 0, 7); g.fill();
+  // glossy highlight (pre-baked)
+  g.fillStyle = 'rgba(255,255,255,.85)';
+  g.beginPath(); g.ellipse(S / 2 - 24, S / 2 - 28, 16, 10, -0.6, 0, 7); g.fill();
+  // faces
+  g.fillStyle = '#2A1740';
+  if (face <= 1) { // baby/kid: dot eyes + smile
+    g.beginPath(); g.arc(S / 2 - 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.arc(S / 2 + 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.fill();
+    g.strokeStyle = '#2A1740'; g.lineWidth = 4; g.lineCap = 'round';
+    g.beginPath(); g.arc(S / 2, S / 2 + 10, 12, 0.3, Math.PI - 0.3); g.stroke();
+    if (face === 1) { // blush
+      g.fillStyle = 'rgba(255,80,130,.55)';
+      g.beginPath(); g.arc(S / 2 - 28, S / 2 + 10, 8, 0, 7); g.arc(S / 2 + 28, S / 2 + 10, 8, 0, 7); g.fill();
+    }
+  } else if (face === 2) { // chonk: blush + open :O mouth
+    g.beginPath(); g.arc(S / 2 - 17, S / 2 - 6, 7, 0, 7); g.arc(S / 2 + 17, S / 2 - 6, 7, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,80,130,.6)';
+    g.beginPath(); g.arc(S / 2 - 30, S / 2 + 10, 9, 0, 7); g.arc(S / 2 + 30, S / 2 + 10, 9, 0, 7); g.fill();
+    g.fillStyle = '#2A1740';
+    g.beginPath(); g.ellipse(S / 2, S / 2 + 16, 9, 12, 0, 0, 7); g.fill();
+  } else { // boss: angled brows + fangs + crown
+    g.strokeStyle = '#2A1740'; g.lineWidth = 7; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(S / 2 - 30, S / 2 - 26); g.lineTo(S / 2 - 8, S / 2 - 16); g.stroke();
+    g.beginPath(); g.moveTo(S / 2 + 30, S / 2 - 26); g.lineTo(S / 2 + 8, S / 2 - 16); g.stroke();
+    g.fillStyle = '#2A1740';
+    g.beginPath(); g.arc(S / 2 - 15, S / 2 + 0, 7, 0, 7); g.arc(S / 2 + 15, S / 2 + 0, 7, 0, 7); g.fill();
+    g.fillStyle = '#fff';
+    g.beginPath(); g.moveTo(S / 2 - 14, S / 2 + 18); g.lineTo(S / 2 - 6, S / 2 + 18); g.lineTo(S / 2 - 10, S / 2 + 28); g.fill();
+    g.beginPath(); g.moveTo(S / 2 + 14, S / 2 + 18); g.lineTo(S / 2 + 6, S / 2 + 18); g.lineTo(S / 2 + 10, S / 2 + 28); g.fill();
+    g.fillStyle = '#FFE93C'; // stubby crown
+    g.beginPath();
+    g.moveTo(S / 2 - 22, S / 2 - 40); g.lineTo(S / 2 - 22, S / 2 - 56); g.lineTo(S / 2 - 11, S / 2 - 46);
+    g.lineTo(S / 2, S / 2 - 58); g.lineTo(S / 2 + 11, S / 2 - 46); g.lineTo(S / 2 + 22, S / 2 - 56); g.lineTo(S / 2 + 22, S / 2 - 40);
+    g.closePath(); g.fill();
+  }
+  stickerCache.set(key, c);
   return c;
 }
 
+// doodle tile background (baked once, parallax-scrolled)
+let doodlePat: CanvasPattern | null = null;
+function paintDoodles() {
+  if (!doodlePat) {
+    const t = document.createElement('canvas'); t.width = t.height = 256;
+    const g = t.getContext('2d')!;
+    g.fillStyle = 'rgba(255,255,255,.10)';
+    const dots: [number, number, number][] = [[32, 40, 3], [120, 24, 2], [200, 70, 3], [70, 120, 2], [160, 150, 3], [230, 200, 2], [40, 210, 3], [110, 230, 2]];
+    for (const [x, y, r] of dots) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+    // one sticker star per tile
+    g.strokeStyle = 'rgba(255,233,60,.35)'; g.lineWidth = 3; g.lineCap = 'round';
+    const sx = 190, sy = 130, sr = 12;
+    g.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
+      const px = sx + Math.cos(a) * sr, py = sy + Math.sin(a) * sr;
+      if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+    }
+    g.closePath(); g.stroke();
+    doodlePat = ctx.createPattern(t, 'repeat');
+  }
+  if (!doodlePat) return;
+  const offX = -(((cam.x * 0.5) % 256 + 256) % 256), offY = -(((cam.y * 0.5) % 256 + 256) % 256);
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.fillStyle = doodlePat;
+  ctx.fillRect(-256, -256, W + 512, H + 512);
+  ctx.restore();
+}
+
 function drawBlob(x: number, y: number, r: number, hue: number, name: string, isMe: boolean) {
-  // glow (cached sprite, scaled)
-  const gs = r * 3.2;
-  ctx.drawImage(glowSprite(hue), x - gs / 2, y - gs / 2, gs, gs);
-  // body
-  ctx.fillStyle = `hsl(${hue} 85% 58%)`;
-  ctx.strokeStyle = isMe ? '#fff' : `hsl(${hue} 90% 75%)`;
-  ctx.lineWidth = isMe ? 3 : 2;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
-  // eyes (juice, cheap)
-  const ex = Math.min(r * 0.35, 10);
-  ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(x - ex, y - r * 0.15, r * 0.22, 0, 7); ctx.arc(x + ex, y - r * 0.15, r * 0.22, 0, 7); ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.beginPath(); ctx.arc(x - ex, y - r * 0.1, r * 0.1, 0, 7); ctx.arc(x + ex, y - r * 0.1, r * 0.1, 0, 7); ctx.fill();
+  // sticker body (single baked drawImage + squash wobble)
+  const wob = 1 + 0.05 * Math.sin(performance.now() / 300 + x * 0.05 + y * 0.03);
+  const d = r * 2;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(wob, 1 / wob);
+  ctx.drawImage(stickerSprite(hue, r), -r, -r, d, d);
+  ctx.restore();
+  if (isMe) { // you-ring: star-yellow picker so YOU reads instantly
+    ctx.strokeStyle = '#FFE93C'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 7); ctx.stroke();
+  }
   // name
-  ctx.fillStyle = '#fff'; ctx.font = `${Math.max(11, Math.min(15, r * 0.42))}px sans-serif`; ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFFDF5'; ctx.font = `700 ${Math.max(11, Math.min(15, r * 0.42))}px sans-serif`; ctx.textAlign = 'center';
   ctx.fillText(name, x, y + r + 14);
 }
 
@@ -423,6 +531,9 @@ EMOTES.forEach((e, i) => {
   });
   el('emotes').appendChild(b);
 });
+el('inviteCta').addEventListener('click', () => el('copyLink').click());
+el('nudge').addEventListener('click', () => el('copyLink').click());
+el('bestLine').textContent = `🏅 best: ${best > 0 ? best : '—'}`;
 
 // preload leaderboard count
 fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => {
