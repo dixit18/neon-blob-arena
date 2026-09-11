@@ -52,3 +52,10 @@
 **Leo:** Painted: sticker blobs + squash wobble + YOU-ring, doodle parallax bg, candy-yellow arena rope, CSS vignette, sticker menu (hero 💗💛💚, chips, PLAY NOW), round countdown pill (pulses ≤30s), crown banner + invite CTA, personal-best loop (menu + HUD + 🎉), quiet-room invite nudge. Mobile pass: 46px+ targets, safe-area, compact HUD, hidden minimap/hint on small screens. Client still 15KB.
 **Vikram:** Builds green both sides. Headless round/streak test green. NOT restarting user's live servers — user runs `.\start-local.ps1 -Restart` to pick this up. Loadtest re-run still queued behind live traffic (won't stomp user's room).
 **Kai:** Committing + pushing now.
+
+## 2026-09-11 — v0.5: Mira joins + GSAP motion + Pinterest sprite glow-up
+**Aarav:** User orders: GSAP for animation, Pinterest for illustration, +1 agent for real R&D. Hired **Mira "Muse" Nair — Motion & Illustration R&D** (7th agent, in ORG + graph + animation law: GSAP lazy-only for DOM, canvas loop stays hand-rolled).
+**Mira (R&D, first day):** GSAP verdict = scalpel not hammer: menu stagger, crown timeline, death pop, button squish — core-only import, lazy, never in-loop, never layout props. Pinterest 2026 `Gimme Gummy`: drips, crescent gloss + sparkles, dither-dot cheeks — all baked, 0 runtime.
+**Leo:** Shipped `ui-anim.ts` (lazy GSAP: menu-in stagger, crown elastic timeline w/ kill-switch, death pop, press squish) wired into menu/banner/death/play/dash. Sprite bake upgraded: slime drips w/ die-cut outline, crescent gloss + twin sparkles, dither cheeks. Retired glowSprite.
+**Vikram:** Bundle audit PASS: initial 18KB (7.5KB gzip), GSAP split to lazy 69KB chunk — first paint untouched. tsc clean. One TS slap (tuple arity on drips) fixed. User restarts local with `-Restart` to see it.
+**Kai:** Committing + pushing.

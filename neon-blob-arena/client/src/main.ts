@@ -1,5 +1,7 @@
 // Neon Blob Arena client — Canvas2D 60fps, prediction + interpolation, juice.
 // No engine. <150KB. Mobile joystick + desktop mouse/WASD.
+// UI animation (menu/banner/overlays) loads GSAP lazily; canvas loop stays hand-rolled.
+import { uiMenuIn, uiCrownPop, uiDeathIn, uiPressify } from './ui-anim';
 
 type Snap = {
   t: string; tick: number; you: string;
@@ -175,6 +177,7 @@ function connect(name: string) {
       buzz([40, 40, 80]);
       spectateId = null;
       el('deadTitle').textContent = '💥 Eaten!';
+      void uiDeathIn();
       el('deadSub').textContent = `Eaten by ${m.by}. Spectating…`;
       if (me.score > best && me.score > 0) {
         best = Math.floor(me.score);
@@ -260,9 +263,8 @@ function onSnap(s: Snap) {
     lastBanner = top;
     el('bannerTitle').textContent = top;
     el('bannerSub').textContent = 'Next round is already running — invite friends now 🔗';
-    el('banner').style.display = 'block';
+    void uiCrownPop();
     sfx('kill');
-    setTimeout(() => { el('banner').style.display = 'none'; }, 4500);
   }
   // invite nudge (urgency to squad up while the room is quiet)
   const count = s.players.length + 1;
@@ -381,6 +383,22 @@ const GUMMY = [
   { h: 265, c: '#B78CFF' }, // grape-soda
   { h: 18, c: '#FF7A45' },  // tang
 ];
+function sparkle4(g: CanvasRenderingContext2D, x: number, y: number, s: number, color: string) {
+  // four-point sticker sparkle (baked, zero runtime cost)
+  g.fillStyle = color;
+  g.beginPath();
+  g.moveTo(x, y - s);
+  g.quadraticCurveTo(x, y, x + s, y); g.quadraticCurveTo(x, y, x, y + s);
+  g.quadraticCurveTo(x, y, x - s, y); g.quadraticCurveTo(x, y, x, y - s);
+  g.fill();
+}
+function ditherCheek(g: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  // gradient-free jelly blush: Bayer-ish dot dither (cheap on Mali GPUs)
+  g.fillStyle = 'rgba(255,70,120,.8)';
+  for (let yy = -r; yy <= r; yy += 4) for (let xx = -r; xx <= r; xx += 4) {
+    if (xx * xx + yy * yy <= r * r && ((xx + yy + 40) % 8 === 0)) g.fillRect(cx + xx, cy + yy, 2.4, 2.4);
+  }
+}
 function gummyIdx(hue: number): number {
   let bi = 0, bd = 1e9;
   for (let i = 0; i < GUMMY.length; i++) {
@@ -400,29 +418,41 @@ function stickerSprite(hue: number, r: number): HTMLCanvasElement {
   const S = 160, R = 64;
   c = document.createElement('canvas'); c.width = c.height = S;
   const g = c.getContext('2d')!;
+  // slime drips (white die-cut + body color, baked)
+  const drips: [number, number][] = [[58, 10], [80, 14], [102, 10]];
+  for (const [dx, dh] of drips) {
+    g.fillStyle = '#FFFFFF';
+    g.beginPath(); g.arc(dx, 128, dx === 80 ? 11 : 8, 0, 7); g.fill();
+    g.fillRect(dx - (dx === 80 ? 11 : 8), 118, (dx === 80 ? 11 : 8) * 2, 12 + dh);
+  }
   // sticker outline (thick white = readable at 2cm on phones)
   g.fillStyle = '#FFFFFF';
   g.beginPath(); g.arc(S / 2, S / 2, R, 0, 7); g.fill();
+  for (const [dx, dh] of drips) {
+    g.fillStyle = GUMMY[gi].c;
+    g.beginPath(); g.arc(dx, 128, dx === 80 ? 8 : 5.5, 0, 7); g.fill();
+    g.fillRect(dx - (dx === 80 ? 8 : 5.5), 118, (dx === 80 ? 8 : 5.5) * 2, 10 + dh);
+  }
   // flat gummy body
   g.fillStyle = GUMMY[gi].c;
   g.beginPath(); g.arc(S / 2, S / 2, R * 0.86, 0, 7); g.fill();
-  // glossy highlight (pre-baked)
-  g.fillStyle = 'rgba(255,255,255,.85)';
-  g.beginPath(); g.ellipse(S / 2 - 24, S / 2 - 28, 16, 10, -0.6, 0, 7); g.fill();
+  // chunky crescent gloss + twin sparkles (pre-baked, no canvas gradients)
+  g.fillStyle = 'rgba(255,255,255,.9)';
+  g.beginPath(); g.ellipse(S / 2 - 26, S / 2 - 30, 17, 10, -0.6, 0, 7); g.fill();
+  g.fillStyle = GUMMY[gi].c;
+  g.beginPath(); g.ellipse(S / 2 - 22, S / 2 - 27, 13, 7, -0.6, 0, 7); g.fill();
+  sparkle4(g, S / 2 + 30, S / 2 - 34, 9, 'rgba(255,255,255,.95)');
+  sparkle4(g, S / 2 + 42, S / 2 - 16, 5.5, 'rgba(255,255,255,.8)');
   // faces
   g.fillStyle = '#2A1740';
   if (face <= 1) { // baby/kid: dot eyes + smile
     g.beginPath(); g.arc(S / 2 - 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.arc(S / 2 + 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.fill();
     g.strokeStyle = '#2A1740'; g.lineWidth = 4; g.lineCap = 'round';
     g.beginPath(); g.arc(S / 2, S / 2 + 10, 12, 0.3, Math.PI - 0.3); g.stroke();
-    if (face === 1) { // blush
-      g.fillStyle = 'rgba(255,80,130,.55)';
-      g.beginPath(); g.arc(S / 2 - 28, S / 2 + 10, 8, 0, 7); g.arc(S / 2 + 28, S / 2 + 10, 8, 0, 7); g.fill();
-    }
+    if (face === 1) ditherCheek(g, S / 2 - 28, S / 2 + 10, 8), ditherCheek(g, S / 2 + 28, S / 2 + 10, 8);
   } else if (face === 2) { // chonk: blush + open :O mouth
     g.beginPath(); g.arc(S / 2 - 17, S / 2 - 6, 7, 0, 7); g.arc(S / 2 + 17, S / 2 - 6, 7, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,80,130,.6)';
-    g.beginPath(); g.arc(S / 2 - 30, S / 2 + 10, 9, 0, 7); g.arc(S / 2 + 30, S / 2 + 10, 9, 0, 7); g.fill();
+    ditherCheek(g, S / 2 - 30, S / 2 + 10, 9); ditherCheek(g, S / 2 + 30, S / 2 + 10, 9);
     g.fillStyle = '#2A1740';
     g.beginPath(); g.ellipse(S / 2, S / 2 + 16, 9, 12, 0, 0, 7); g.fill();
   } else { // boss: angled brows + fangs + crown
@@ -534,6 +564,9 @@ EMOTES.forEach((e, i) => {
 el('inviteCta').addEventListener('click', () => el('copyLink').click());
 el('nudge').addEventListener('click', () => el('copyLink').click());
 el('bestLine').textContent = `🏅 best: ${best > 0 ? best : '—'}`;
+void uiMenuIn();
+uiPressify('#play');
+uiPressify('#dashBtn');
 
 // preload leaderboard count
 fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => {
