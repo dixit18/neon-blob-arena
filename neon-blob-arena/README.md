@@ -46,6 +46,13 @@ Steps:
 5. UptimeRobot -> Add Monitor (HTTP) on `https://<render-host>/health`, 10-min interval
    (free tier sleeps after ~15 min idle; the pinger keeps one game room warm).
 
+## Client alternative: Vercel (also $0, auto-deploys on push)
+
+The client is plain static Vite output — it runs anywhere. Pages workflow is wired;
+for Vercel instead: import the repo → set **Root Directory** to `neon-blob-arena/client` →
+add env **`VITE_SERVER`** = `wss://<your-render-host>` → Deploy. Same rule: changing
+`VITE_SERVER` needs a rebuild (push an empty commit or hit Redeploy).
+
 Limits of free stage (by design — upgrade only when crowded):
 single Render instance (~50–150 CCU comfortably, 25/room), cold start ~30–60s after long idle,
 no cross-process rooms yet. Phase 1 when needed: 2+ instances + Upstash Redis free tier
