@@ -246,3 +246,37 @@ only uncovered surface left is real humans. No flaws filed. First time this proj
 has zero open items that don't need the user's hands.
 **Kai:** Pushing silently. User, the ball is entirely yours now: feel number, 2-tab,
 friends, pinger, branch protection.
+
+## 2026-09-14 — marketplace + POLAR PANIC (user: "gaming marketplace, creative 3D games, R&D questioned")
+**Aarav:** New hiring + new rules: Kabir "Cross" Rao joins as Nova's RedTeam (Rule 10:
+uncontradicted R&D is a rumor). Research duel is now structural, and `MARKET.md` is
+the ledger — sources, scores, counter-memos, picks.
+**Nova (sweep, cited):** .io formula re-validated (instant/single-verb/growth/3-min/
+permadeath/TikTok-readable); 2026 gaps: magnet lane holds ONLY game-jam toys, hook
+locomotion unserved in 3D, growordie's remove-the-loop lens, live-ops cadence wins.
+Proposed 6, scored: Polar 33, Black-Hole 31, Hook 30, rest cut.
+**Kabir (counter-memos, first day):** polarity readable in 1s (binary + colored
+rings), griefing self-balances (victim chooses charge; flip = escape), clip beats
+reuse (buffet reads "agar with holes"; flip is a NEW verb), hooks break one-turn
+ship (40% reuse). Verdict stands: POLAR NOW, buffet next, hooks later. Sparring with
+Nova continues per loop.
+**Zara:** PolarRoom shipped (~300 lines, own sim, shared transport): flip (1s cd,
+free), pellet vacuum by id-parity charge (ZERO extra bytes), mutual attract/repel,
+opposite-only eats, escape-flip bot AI, same rounds/streaks/backfill. `?game=`
+routing with per-game namespaces + same-game matchmaking, one shared Conn/handler.
+**Leo:** Client reuses World3D (same draw calls): charge rings blue/red, parity
+pellet recolor in place, ⇄ Flip button (fire hidden in polar), per-game tutorials,
+arcade select cards + hero swap, game-aware share cards + invite links. Initial
+bundle 23.4KB — marketplace cost ~3KB.
+**Mira:** Same mochi universe, new verb — garden-fresh, not reskinned. Buffet and
+hooks inherit the shell free.
+**Riya (receipts):** server tsc clean, 49 tests green (32 combat + 17 polar), polar
+smoke OK over real WS (hello.game, charges, backfill live), mochi soak 30/30 @14.3
+tickAvg 0.15 through the new router, client build green. New QA shape: every game
+needs its headless suite + smoke before listing.
+**Vikram:** 2 flaws: 1) polar eat threshold sits deep inside merge overlap — big
+gaps need sustained contact; chaser attract + no-separation sustains it, ACCEPTED
+(proven by opposite-eats test, tune later with playtest masses). 2) two games share
+one Node proc — a polar tick blowup would lag mochi rooms, ACCEPTED (tickAvg 0.15,
+25ms slow-tick tripwire + per-room try/catch already isolate).
+**Kai:** Pushing silently.

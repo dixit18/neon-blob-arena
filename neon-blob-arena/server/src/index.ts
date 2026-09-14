@@ -6,7 +6,8 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Room } from './game.js';
-import { TUNE } from './types.js';
+import { PolarRoom } from './polar.js';
+import { TUNE, parseGame, type GameId } from './types.js';
 import { validateInput } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
 
@@ -14,23 +15,30 @@ const PORT = Number(process.env.PORT || 8080);
 const ORIGIN = (process.env.ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 const REGION = process.env.REGION || 'local';
 
-const rooms = new Map<string, Room>();
+// Marketplace: rooms namespaced per game (`polar:ABCD` vs `mochi:ABCD` map keys;
+// room codes users share stay plain). Tick/snap loops treat them uniformly.
+const rooms = new Map<string, Room | PolarRoom>();
 let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
 function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 
-function getOrCreateRoom(id?: string): Room {
-  if (id && rooms.has(id)) return rooms.get(id)!;
+function getOrCreateRoom(game: GameId, id?: string): Room | PolarRoom {
+  const mapKey = id ? game + ':' + id : undefined;
+  if (mapKey && rooms.has(mapKey)) return rooms.get(mapKey)!;
   if (id && /^[A-Z0-9]{4,8}$/.test(id)) {
-    const r = new Room(id); rooms.set(id, r); return r;
+    const r = game === 'polar' ? new PolarRoom(id) : new Room(id);
+    rooms.set(mapKey!, r); return r;
   }
-  // matchmake: least-loaded room with humans < max, else new
-  let best: Room | null = null;
+  // matchmake: least-loaded room OF THE SAME GAME, else new
+  let best: Room | PolarRoom | null = null;
+  let bestHumans = Infinity;
   for (const r of rooms.values()) {
+    if ((game === 'polar') !== (r instanceof PolarRoom)) continue;
     const humans = [...r.players.values()].filter(p => !p.isBot).length;
-    if (humans < TUNE.MAX_HUMANS_PER_ROOM && (!best || humans < [...best.players.values()].filter(p => !p.isBot).length)) best = r;
+    if (humans < TUNE.MAX_HUMANS_PER_ROOM && humans < bestHumans) { best = r; bestHumans = humans; }
   }
   if (best) return best;
-  const r = new Room(code()); rooms.set(r.id, r); return r;
+  const fresh = game === 'polar' ? new PolarRoom(code()) : new Room(code());
+  rooms.set(game + ':' + fresh.id, fresh); return fresh;
 }
 
 function cleanName(n: string) {
@@ -46,7 +54,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (url.pathname === '/rooms') {
-    res.end(JSON.stringify([...rooms.values()].map(r => ({ id: r.id, players: r.size, humans: [...r.players.values()].filter(p => !p.isBot).length }))));
+    res.end(JSON.stringify([...rooms.values()].map(r => ({ id: r.id, game: r instanceof PolarRoom ? 'polar' : 'mochi', players: r.size, humans: [...r.players.values()].filter(p => !p.isBot).length }))));
     return;
   }
   if (url.pathname === '/leaderboard') {
@@ -72,18 +80,19 @@ wss.on('connection', (ws: WebSocket, req) => {
   if (ORIGIN.length > 0 && origin && !ORIGIN.includes(origin)) { ws.close(4403, 'bad origin'); return; }
 
   const url = new URL(req.url || '/', 'http://x');
-  const room = getOrCreateRoom((url.searchParams.get('room') || '').toUpperCase() || undefined);
+  const game = parseGame(url.searchParams.get('game'));
+  const room = getOrCreateRoom(game, (url.searchParams.get('room') || '').toUpperCase() || undefined);
   const humans = [...room.players.values()].filter(p => !p.isBot).length;
   if (humans >= TUNE.MAX_HUMANS_PER_ROOM + 5) { ws.close(4400, 'room full'); return; }
 
   const id = crypto.randomUUID();
   const name = cleanName(url.searchParams.get('name') || '');
   room.addPlayer(id, name);
-  const conn = { ws, playerId: id, room, msgTimes: [] as number[], lastSeq: 0 };
+  const conn = { ws, playerId: id, msgTimes: [] as number[], lastSeq: 0 };
   room.conns.set(id, conn);
   joinsTotal++;
   room.pushFeed(`✨ ${name} joined`);
-  ws.send(JSON.stringify({ t: 'hello', you: id, room: room.id, world: TUNE.WORLD }));
+  ws.send(JSON.stringify({ t: 'hello', you: id, room: room.id, game, world: TUNE.WORLD }));
 
   ws.on('message', (buf) => {
     const now = Date.now();
@@ -99,8 +108,13 @@ wss.on('connection', (ws: WebSocket, req) => {
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
       if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
-      room.handleInput(id, clean.dx, clean.dy, clean.dash);
-      if (clean.fire) room.tryFire(id);
+      if (room instanceof PolarRoom) {
+        room.handleInput(id, clean.dx, clean.dy);
+        if (clean.flip) room.tryFlip(id);
+      } else {
+        room.handleInput(id, clean.dx, clean.dy, clean.dash);
+        if (clean.fire) room.tryFire(id);
+      }
     } catch { /* ignore malformed */ }
   });
   ws.on('close', () => room.removePlayer(id));

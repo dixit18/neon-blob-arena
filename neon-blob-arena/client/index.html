@@ -93,6 +93,16 @@
   @media (prefers-reduced-motion:reduce) { .mochi { animation:none; } #nudge.hot, #roundPill.danger { animation:none; } }
   .ticker { display:inline-block; font-weight:800; font-size:12px; background:var(--mint); color:#fff;
     border:2px solid var(--line); border-radius:999px; padding:5px 14px; margin-bottom:12px; box-shadow:2px 2px 0 var(--ink); }
+  .gamesLabel { font-family:Fredoka,sans-serif; font-size:13px; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:6px; }
+  .games { display:flex; gap:8px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
+  .gcard { pointer-events:auto; cursor:pointer; flex:1 1 140px; max-width:210px; background:#fff; color:var(--ink);
+    border:2px solid var(--line); border-radius:14px; padding:10px 8px; font-family:Nunito,sans-serif;
+    box-shadow:var(--shadow); }
+  .gcard:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .gcard .emo { font-size:26px; display:block; }
+  .gcard b { display:block; font-family:Fredoka,sans-serif; font-size:15px; font-weight:600; }
+  .gcard span { font-size:11px; font-weight:800; color:var(--ink-soft); }
+  .gcard.sel { background:var(--gold); transform:rotate(-1deg); }
   .howto { display:flex; gap:8px; justify-content:center; margin-bottom:14px; flex-wrap:wrap; }
   .howto div { flex:1 1 120px; max-width:150px; background:#fff; border:2px solid var(--line); border-radius:14px;
     padding:8px 6px; font-size:12px; font-weight:800; box-shadow:var(--shadow); }
@@ -200,9 +210,14 @@
         <path d="M36 59 Q43 64 50 59" stroke="#2B2144" stroke-width="3.5" fill="none" stroke-linecap="round"/>
       </svg>
     </div>
-    <div class="badge">⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS</div>
-    <h1>MOCHI<br/>PANIC</h1>
-    <p class="sub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
+    <div class="badge" id="gameBadge">⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS</div>
+    <h1 id="gameTitle">MOCHI<br/>PANIC</h1>
+    <p class="sub" id="gameSub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
+    <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
+    <div class="games" id="gamePick">
+      <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span></button>
+      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic ✨NEW</b><span>Flip charge · Attract</span></button>
+    </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
     <div class="howto">
       <div><b>1 · Munch 🍩</b>Eat dots, outgrow rivals</div>

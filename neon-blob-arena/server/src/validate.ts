@@ -9,6 +9,7 @@ const InputSchema = Schema.Struct({
   dy: Schema.Number,
   dash: Schema.optional(Schema.Boolean),
   fire: Schema.optional(Schema.Boolean),
+  flip: Schema.optional(Schema.Boolean), // polar: charge flip (ignored by mochi)
 });
 
 export interface CleanInput {
@@ -17,6 +18,7 @@ export interface CleanInput {
   dy: number;
   dash: boolean;
   fire: boolean;
+  flip: boolean;
 }
 
 const decode = Schema.decodeUnknownEither(InputSchema);
@@ -26,5 +28,5 @@ export function validateInput(raw: unknown): CleanInput | null {
   if (r._tag === 'Left') return null;
   const v = r.right;
   if (!Number.isFinite(v.dx) || !Number.isFinite(v.dy)) return null;
-  return { seq: v.seq, dx: v.dx, dy: v.dy, dash: v.dash === true, fire: v.fire === true };
+  return { seq: v.seq, dx: v.dx, dy: v.dy, dash: v.dash === true, fire: v.fire === true, flip: v.flip === true };
 }

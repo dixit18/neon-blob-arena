@@ -4,7 +4,8 @@ import { TUNE, PlayerState, Pellet, Projectile, SnapPlayer, ServerSnapshot, mass
 import { integrate, resolveCollision } from './physics.js';
 import { persistScore } from './db.js';
 
-export interface Conn { ws: WebSocket; playerId: string; room: Room; msgTimes: number[]; lastSeq: number }
+export interface Conn { ws: WebSocket; playerId: string; msgTimes: number[]; lastSeq: number }
+// NOTE: no room backref (nothing reads it) — shared with PolarRoom (see polar.ts).
 
 let pelletId = 1;
 const ROUND_TICKS = 180 * 20; // 3-minute rounds: the urgency engine
@@ -454,7 +455,7 @@ export class Room {
     for (const p of this.players.values()) {
       if (!p.alive || p.id === forId) continue;
       if (Math.abs(p.x - vx) > R || Math.abs(p.y - vy) > R) continue;
-      players.push({ id: p.id, n: p.name, x: Math.round(p.x * 2) / 2, y: Math.round(p.y * 2) / 2, r: Math.round(p.r * 10) / 10, h: p.hue, k: p.kills, s: Math.floor(p.mass), b: p.isBot ? 1 : 0, ht: p.hunter ? 1 : 0 });
+      players.push({ id: p.id, n: p.name, x: Math.round(p.x * 2) / 2, y: Math.round(p.y * 2) / 2, r: Math.round(p.r * 10) / 10, h: p.hue, k: p.kills, s: Math.floor(p.mass), b: p.isBot ? 1 : 0, ht: p.hunter ? 1 : 0, c: 0 });
     }
     const pellets: Pellet[] = [];
     const PR = 1100;

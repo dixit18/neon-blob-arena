@@ -121,6 +121,7 @@ function floorTexture(): THREE.CanvasTexture {
 export interface DrawPlayer {
   id: string; x: number; y: number; r: number; hue: number;
   name: string; isMe: boolean; hunter: boolean; shielded: boolean;
+  charge?: number; // polar: +1 blue ring / −1 red ring / 0|undefined none
 }
 export interface DrawOrb { i: number; x: number; y: number; hue: number }
 export interface DrawPellet { x: number; y: number; hue: number }
@@ -149,6 +150,8 @@ export class World3D {
   private ptPos = new Float32Array(MAXPT * 3);
   private ptCol = new Float32Array(MAXPT * 3);
   private ringPool: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; col: THREE.Color }[] = [];
+  private chargeRings = new Map<string, THREE.Mesh>(); // polar polarity rings (blue + / red −)
+  private seenChargePool = new Set<string>(); // hoisted charged-membership (no alloc)
   private hunterRings = new Map<string, THREE.Mesh>();
   private youRing!: THREE.Mesh;
   private shieldShell!: THREE.Mesh;
@@ -463,11 +466,29 @@ export class World3D {
       this.blobs.delete(id);
     }
 
-    // hunter rings + YOU ring + shield
+    // hunter rings + YOU ring + shield + polar charge rings
     for (const [id, mesh] of this.hunterRings) {
       if (!seen.has(id)) { this.scene.remove(mesh); (mesh.material as THREE.Material).dispose(); mesh.geometry.dispose(); this.hunterRings.delete(id); }
     }
     for (const p of v.players) {
+      // polar charge ring: blue + / raspberry − (same 1-draw-call-each pattern as hunters)
+      if (p.charge === 1 || p.charge === -1) {
+        this.seenChargePool.add(p.id);
+        let cring = this.chargeRings.get(p.id);
+        if (!cring) {
+          cring = new THREE.Mesh(
+            new THREE.RingGeometry(0.9, 1, 40),
+            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false }),
+          );
+          cring.rotation.x = -Math.PI / 2;
+          this.scene.add(cring);
+          this.chargeRings.set(p.id, cring);
+        }
+        const pulse = 1 + 0.07 * Math.sin(v.time / 220 + p.x * 0.01);
+        cring.position.set(p.x, 2.5, p.y);
+        cring.scale.set((p.r + 12) * pulse, (p.r + 12) * pulse, 1);
+        (cring.material as THREE.MeshBasicMaterial).color.set(p.charge > 0 ? '#2FA8E0' : '#E84393');
+      }
       if (p.hunter) {
         let ring = this.hunterRings.get(p.id);
         if (!ring) {
@@ -502,6 +523,12 @@ export class World3D {
     }
     if (!hasMe) this.youRing.visible = false;
     if (!meShielded) this.shieldShell.visible = false;
+    for (const [id, mesh] of this.chargeRings) {
+      if (!seen.has(id) || !this.seenChargePool.has(id)) {
+        this.scene.remove(mesh); (mesh.material as THREE.Material).dispose(); mesh.geometry.dispose(); this.chargeRings.delete(id);
+      }
+    }
+    this.seenChargePool.clear();
 
     // pellets (instanced mochi drops with a gentle bob)
     const np = Math.min(MAXP, v.pellets.length);

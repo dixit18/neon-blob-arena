@@ -20,10 +20,16 @@ async function ensureWorld(): Promise<World3D | null> {
   }
 }
 
+type GameId = 'mochi' | 'polar';
+const GAME_TITLES: Record<GameId, string> = { mochi: 'Mochi Panic', polar: 'Polar Panic' };
+// Marketplace: ?game= selects the arena (default mochi). Server confirms via hello.
+let game: GameId = new URLSearchParams(location.search).get('game') === 'polar' ? 'polar' : 'mochi';
+let myCharge: 1 | -1 = 1;
+
 type Snap = {
   t: string; tick: number; you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; respawnIn?: number };
-  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number }[];
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; ch?: number; respawnIn?: number };
+  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number; c: number }[];
   pellets: { id: number; x: number; y: number; hue: number }[];
   orbs: { i: number; x: number; y: number; h: number }[];
   leaders: { n: string; s: number }[];
@@ -76,7 +82,7 @@ if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining t
 
 let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, sh: 0, pvx: 0, pvy: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
-const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number }>();
+const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number; ch: number }>();
 const snapIds = new Set<string>(); // hoisted: per-snap membership without alloc
 type Orb2D = { i: number; x: number; y: number; hue: number };
 const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
@@ -84,7 +90,7 @@ const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
 const plist: DrawPlayer[] = [];
 function plistSlot(pi: number): DrawPlayer {
   let d = plist[pi];
-  if (!d) { d = { id: '', x: 0, y: 0, r: 0, hue: 0, name: '', isMe: false, hunter: false, shielded: false }; plist[pi] = d; }
+  if (!d) { d = { id: '', x: 0, y: 0, r: 0, hue: 0, name: '', isMe: false, hunter: false, shielded: false, charge: 0 }; plist[pi] = d; }
   return d;
 }
 const projOut = { x: 0, y: 0, behind: false }; // hoisted toScreen target
@@ -115,10 +121,11 @@ function tone(f0: number, f1: number, dur: number, type: OscillatorType, vol: nu
   o.connect(g); g.connect(ac.destination);
   o.start(t); o.stop(t + dur + 0.02);
 }
-function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click') {
+function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click' | 'flip') {
   if (!soundOn) return;
   switch (kind) {
     case 'dash': tone(300, 900, 0.18, 'sawtooth', 0.08); break;
+    case 'flip': tone(500, 1200, 0.09, 'sine', 0.09); break; // magnetic snap chirp
     case 'eat': tone(400 + Math.random() * 200, 900, 0.09, 'sine', 0.10); break;
     case 'kill': tone(500, 1000, 0.12, 'square', 0.07); tone(750, 1500, 0.14, 'square', 0.05, 0.07); break;
     case 'die': tone(400, 60, 0.4, 'sawtooth', 0.12); break;
@@ -185,6 +192,7 @@ let joy = { active: false, dx: 0, dy: 0, id: -1, ox: 0, oy: 0 };
 let dashQueued = false;
 let seq = 0;
 let fireQueued = false; // tap FIRE / click to shoot toward facing (server-authoritative orbs)
+let flipQueued = false; // polar: flip charge (Space / ⇄ button)
 let inputTimer: ReturnType<typeof setInterval> | null = null; // single input loop (reconnects must not stack)
 let conFails = 0; // consecutive WS failures (reset on hello) — drives menu status
 function conStatus(msg: string) {
@@ -194,8 +202,8 @@ function conStatus(msg: string) {
 
 window.addEventListener('keydown', e => {
   keys.add(e.key.toLowerCase());
-  if (e.code === 'Space') { dashQueued = true; e.preventDefault(); }
-  if (e.code === 'KeyF' || e.code === 'Enter') { fireQueued = true; }
+  if (e.code === 'Space') { if (game === 'polar') flipQueued = true; else dashQueued = true; e.preventDefault(); }
+  if (e.code === 'KeyF' || e.code === 'Enter') { if (game === 'mochi') fireQueued = true; }
 });
 window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 canvas.addEventListener('pointermove', e => {
@@ -204,7 +212,7 @@ canvas.addEventListener('pointermove', e => {
 });
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch') { joy.active = true; joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.dx = 0; joy.dy = 0; }
-  else { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; fireQueued = true; } // click = shoot
+  else { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; if (game === 'mochi') fireQueued = true; } // click = shoot (mochi only)
 });
 el('fireBtn').addEventListener('click', () => { fireQueued = true; buzz(15); });
 window.addEventListener('pointermove', e => {
@@ -218,7 +226,7 @@ window.addEventListener('pointermove', e => {
   }
 });
 window.addEventListener('pointerup', e => { if (e.pointerId === joy.id) { joy.active = false; joy.dx = joy.dy = 0; } });
-el('dashBtn').addEventListener('click', () => { dashQueued = true; });
+el('dashBtn').addEventListener('click', () => { if (game === 'polar') { flipQueued = true; } else dashQueued = true; });
 el('soundBtn').addEventListener('click', () => {
   soundOn = !soundOn;
   localStorage.setItem('blob-sound', soundOn ? 'on' : 'off');
@@ -226,7 +234,7 @@ el('soundBtn').addEventListener('click', () => {
   if (soundOn) sfx('click');
 });
 el('copyLink').addEventListener('click', async () => {
-  const link = location.origin + location.pathname + '?room=' + (roomId || 'lobby');
+  const link = location.origin + location.pathname + `?game=${game}&room=` + (roomId || 'lobby');
   try { await navigator.clipboard.writeText(link); el('copyLink').textContent = '✅ Copied!'; }
   catch { prompt('Share this link:', link); }
   setTimeout(() => (el('copyLink').textContent = '🔗 Invite'), 1500);
@@ -262,17 +270,25 @@ function connect(name: string) {
   conStatus(conFails === 0 ? '⏳ Connecting to the arena…' : `🔄 Reconnecting… (attempt ${conFails + 1})`);
   const q = new URLSearchParams({ name });
   if (roomId) q.set('room', roomId);
+  q.set('game', game); // marketplace routing: server opens the matching arena
   ws = new WebSocket(`${SERVER}?${q.toString()}`);
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
     if (m.t === 'hello') {
       myId = m.you; roomId = m.room;
+      if (m.game === 'polar' || m.game === 'mochi') game = m.game; // server is truth
+      applyGameMode();
       conFails = 0; // connected: silence any retry warnings
-      history.replaceState(null, '', `?room=${roomId}`);
-      el('roomLabel').textContent = `Room: ${roomId} — friends with this link land straight in`;
+      history.replaceState(null, '', `?game=${game}&room=${roomId}`);
+      el('roomLabel').textContent = `${GAME_TITLES[game]} · Room ${roomId} — friends with this link land straight in`;
       el('roomPill').textContent = `🎲 room ${roomId}`;
       el('menu').style.display = 'none';
-      if (!localStorage.getItem('blob-seen')) { // first-timer concept tutorial
+      if (game === 'polar' && !localStorage.getItem('polar-seen')) {
+        localStorage.setItem('polar-seen', '1');
+        setTimeout(() => coach('🧲 Opposite charges attract — blue + red pellets vacuum to you'), 600);
+        setTimeout(() => coach('⇄ SPACE flips your charge — same charge repels, flip to escape!'), 4200);
+        setTimeout(() => coach('👑 Biggest mochi when ⏱ hits 0 wins the round!'), 7800);
+      } else if (game === 'mochi' && !localStorage.getItem('blob-seen')) { // first-timer concept tutorial
         localStorage.setItem('blob-seen', '1');
         const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         setTimeout(() => coach(touch ? '👆 Drag anywhere to move & grow' : '🍩 Eat the glowing dots to grow big'), 600);
@@ -329,10 +345,11 @@ function connect(name: string) {
     me.x += me.pvx * (1 / 30); me.y += me.pvy * (1 / 30);
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
-    ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued, fire: fireQueued }));
-    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
-    if (fireQueued) burst(me.x, me.y, 3, 45);
-    dashQueued = false; fireQueued = false;
+    ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued, fire: fireQueued, flip: flipQueued }));
+    if (dashQueued && me.dashReady && game === 'mochi') { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
+    if (fireQueued && game === 'mochi') burst(me.x, me.y, 3, 45);
+    if (flipQueued && me.dashReady && game === 'polar') { ring(me.x, me.y, me.r + 60, myCharge > 0 ? 200 : 335); sfx('flip'); buzz(12); }
+    dashQueued = false; fireQueued = false; flipQueued = false;
   }, 1000 / 30);
 }
 
@@ -350,6 +367,7 @@ function onSnap(s: Snap) {
     }
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
     me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak; me.sh = m.sh;
+    if (game === 'polar' && typeof m.ch === 'number') myCharge = m.ch > 0 ? 1 : -1;
     // eat detect: sudden mass gain = chomp (juice only — server owns truth)
     if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
     if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); trauma = Math.min(1, trauma + 0.35); world?.kick(false, true); }
@@ -373,8 +391,8 @@ function onSnap(s: Snap) {
   const now = performance.now();
   for (const p of s.players) {
     const r = remotes.get(p.id);
-    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now, ht: p.ht });
-    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; r.ht = p.ht; }
+    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now, ht: p.ht, ch: p.c });
+    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; r.ht = p.ht; r.ch = p.c; }
   }
   // fade-out, not pop-out: AOI edge used to blink blobs in/out every frame
   snapIds.clear();
@@ -391,6 +409,11 @@ function onSnap(s: Snap) {
     spectateId = best;
   }
   pellets = s.pellets;
+  if (game === 'polar') {
+    // pellet charge rides id parity (even=+1 soda / odd=−1 raspberry): recolor
+    // in place, zero alloc. Mirrors server pelletCharge().
+    for (const pl of s.pellets) pl.hue = pl.id % 2 === 0 ? 200 : 335;
+  }
   // orbs: in-place slot reuse (no per-snap .map garbage; array only grows to max)
   const mapped = s.orbs || [];
   for (let i = 0; i < mapped.length; i++) {
@@ -409,7 +432,9 @@ function onSnap(s: Snap) {
     if (lh !== lastLeadHtml) { lastLeadHtml = lh; el('lleaders').innerHTML = lh; }
     const fh = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
     if (fh !== lastFeedHtml) { lastFeedHtml = fh; el('feed').innerHTML = fh; }
-    const meHtml = `🟣${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms · ${me.dashReady ? '⚡' : '…'}`;
+    const modeChip = game === 'polar' ? (myCharge > 0 ? '🔵' : '🔴') : '🟣';
+    const readyChip = game === 'polar' ? (me.dashReady ? '⇄' : '…') : (me.dashReady ? '⚡' : '…');
+    const meHtml = `${modeChip}${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms · ${readyChip}`;
     if (meHtml !== lastMeHtml) { lastMeHtml = meHtml; el('me').textContent = meHtml; }
     const pcTxt = `${s.players.length + 1} online`;
     if (pcTxt !== lastPcount) {
@@ -513,11 +538,13 @@ function frame(now: number) {
     const d = plistSlot(pi++);
     d.id = id; d.x = renderX(id, fnow); d.y = renderY(id, fnow);
     d.r = r.r; d.hue = r.h; d.name = r.n; d.isMe = false; d.hunter = r.ht === 1; d.shielded = false;
+    d.charge = r.ch;
   }
   if (me.alive) {
     const d = plistSlot(pi++);
-    d.id = myId; d.x = me.x; d.y = me.y; d.r = me.r; d.hue = 275;
+    d.id = myId; d.x = me.x; d.y = me.y; d.r = me.r; d.hue = game === 'polar' ? (myCharge > 0 ? 200 : 335) : 275;
     d.name = myName || 'YOU'; d.isMe = true; d.hunter = false; d.shielded = me.sh === 1;
+    d.charge = game === 'polar' ? myCharge : 0;
   }
   plist.length = pi;
   if (world) {
@@ -596,7 +623,7 @@ function shareCard() {
   g.strokeStyle = '#2B2144'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
   g.textAlign = 'center';
   g.fillStyle = '#E84393'; g.font = '700 46px Fredoka, sans-serif';
-  g.fillText('MOCHI PANIC', 300, 80);
+  g.fillText(game === 'polar' ? 'POLAR PANIC' : 'MOCHI PANIC', 300, 80);
   g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
   g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
   g.fillStyle = '#5b4f7e'; g.font = '700 26px Nunito, sans-serif';
@@ -627,6 +654,42 @@ function shareCard() {
 }
 
 // ---------- menu ----------
+// Marketplace: per-game buttons (⇄ Flip replaces ⚡Dash + 🔥Fire in polar).
+function applyGameMode() {
+  const polar = game === 'polar';
+  const dashBtn = el('dashBtn');
+  dashBtn.textContent = polar ? '⇄ Flip' : '⚡ Dash';
+  dashBtn.title = polar ? 'Flip charge (Space)' : 'Dash (Space)';
+  el('fireBtn').style.display = polar ? 'none' : '';
+  document.title = polar ? 'Polar Panic — 3-min magnetic rounds' : 'Mochi Panic — 3-min squishy multiplayer rounds';
+  const title = document.getElementById('gameTitle');
+  if (title) { title.innerHTML = polar ? 'POLAR<br/>PANIC' : 'MOCHI<br/>PANIC'; (title as HTMLElement).style.color = polar ? '#2FA8E0' : '#E84393'; }
+  const sub = document.getElementById('gameSub');
+  if (sub) sub.innerHTML = polar
+    ? 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.'
+    : 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.';
+  const badge = document.getElementById('gameBadge');
+  if (badge) badge.textContent = polar ? '🧲 FLIP · ATTRACT · DISCHARGE' : '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS';
+  document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
+    b.classList.toggle('sel', b.dataset.game === game);
+  });
+  history.replaceState(null, '', `?game=${game}${roomId ? `&room=${roomId}` : ''}`);
+}
+function pickGame(g: GameId) {
+  game = g;
+  try { localStorage.setItem('mp-game', g); } catch { /* private mode */ }
+  applyGameMode();
+}
+// restore last arena (URL wins over storage)
+{
+  const stored = (() => { try { return localStorage.getItem('mp-game'); } catch { return null; } })();
+  if (new URLSearchParams(location.search).get('game') !== 'polar' && stored === 'polar') game = 'polar';
+  if (new URLSearchParams(location.search).get('game') === 'mochi') game = 'mochi';
+}
+document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
+  b.addEventListener('click', () => { pickGame(b.dataset.game === 'polar' ? 'polar' : 'mochi'); sfx('click'); });
+});
+applyGameMode();
 let connecting = false; // double-click guard: one PLAY = one socket, one world
 el('play').addEventListener('click', async () => {
   if (connecting) return;

@@ -1,6 +1,17 @@
 // Shared types + tuning constants. Server is source of truth.
 export interface Vec { x: number; y: number }
 
+// Marketplace: game ids ride `?game=<id>` (default mochi). Rooms are namespaced
+// per game; snapshot transport shape is shared, games add optional fields.
+export type GameId = 'mochi' | 'polar';
+export const GAMES: Record<GameId, { title: string; blurb: string }> = {
+  mochi: { title: 'Mochi Panic', blurb: 'Munch · Dash · Splat · Crown' },
+  polar: { title: 'Polar Panic', blurb: 'Flip charge · Attract · Repel' },
+};
+export function parseGame(raw: unknown): GameId {
+  return raw === 'polar' ? 'polar' : 'mochi';
+}
+
 export interface PlayerState {
   id: string;
   num: number; // small numeric id: GC-free pair keys now, binary protocol next
@@ -47,6 +58,16 @@ export interface SnapPlayer {
   k: number; s: number;
   b: number; // 1 if bot
   ht: number; // 1 if hunter (violent AI)
+  c: number; // charge: +1/-1 in polar, 0 in mochi (polarity ring + vacuum logic)
+}
+
+// Polar pellets carry charge by id parity (even=+1, odd=-1): zero extra bytes.
+// Client mirrors with the same rule — see polarCharge().
+export function pelletCharge(id: number): 1 | -1 { return id % 2 === 0 ? 1 : -1; }
+
+export interface PolarPlayer extends PlayerState {
+  charge: 1 | -1;
+  flipCdUntil: number; // tick index when next flip allowed (20 ticks = 1s)
 }
 
 export interface ServerSnapshot {
