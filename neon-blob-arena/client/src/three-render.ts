@@ -112,14 +112,15 @@ export class World3D {
   private faceTex: THREE.CanvasTexture[] = [];
   private shadowGeo = new THREE.CircleGeometry(1, 24);
   private shadowMat = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.35, depthWrite: false });
-  private nameTex = new Map<string, THREE.CanvasTexture>();
+  private seenPool = new Set<string>(); // hoisted per-frame membership (no alloc)
+  private seenOrbPool = new Set<number>(); // hoisted orb membership (no alloc)
   private pellets!: THREE.InstancedMesh;
   private orbs!: THREE.InstancedMesh;
   private orbPrev = new Map<number, { x: number; y: number }>();
   private pts!: THREE.Points;
   private ptPos = new Float32Array(MAXPT * 3);
   private ptCol = new Float32Array(MAXPT * 3);
-  private ringPool: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial }[] = [];
+  private ringPool: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; col: THREE.Color }[] = [];
   private hunterRings = new Map<string, THREE.Mesh>();
   private youRing!: THREE.Mesh;
   private shieldShell!: THREE.Mesh;
@@ -270,7 +271,7 @@ export class World3D {
       mesh.position.y = 3;
       mesh.visible = false;
       this.scene.add(mesh);
-      this.ringPool.push({ mesh, mat });
+      this.ringPool.push({ mesh, mat, col: new THREE.Color('#ffffff') });
     }
     // YOU ring + shield shell
     const youMat = new THREE.MeshBasicMaterial({ color: '#FFE93C', transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false });
@@ -294,31 +295,36 @@ export class World3D {
     this.renderer.setSize(w, h, false);
   }
 
+  setPixelRatio(dpr: number) { this.renderer.setPixelRatio(dpr); } // quality governor
+
   private faceFor(r: number): number { return r < 20 ? 0 : r < 30 ? 1 : r < 44 ? 2 : 3; }
 
   private nameSprite(name: string, hunter: boolean): THREE.Sprite {
-    const key = (hunter ? 'H' : 'Y') + name;
-    let s: THREE.Sprite | undefined;
-    const texKey = key;
-    let tex = this.nameTex.get(texKey);
-    if (!tex) {
-      tex = new THREE.CanvasTexture(nameCanvas(name, hunter));
-      tex.colorSpace = THREE.SRGBColorSpace;
-      if (this.nameTex.size > 60) { const first = this.nameTex.keys().next().value; if (first !== undefined) { this.nameTex.get(first)?.dispose(); this.nameTex.delete(first); } }
-      this.nameTex.set(texKey, tex);
-    }
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
-    s = new THREE.Sprite(mat);
-    return s;
+    // Per-blob ownership: texture dies WITH its sprite (dispose both together).
+    // The old global cache leaked textures on rename AND could evict textures
+    // still on screen. 26 small canvases is nothing; correctness is everything.
+    const tex = new THREE.CanvasTexture(nameCanvas(name, hunter));
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  }
+
+  private disposeName(s: THREE.Sprite) {
+    const m = s.material as THREE.SpriteMaterial;
+    if (m.map) m.map.dispose();
+    m.dispose();
+  }
+
+  toScreenInto(x: number, y: number, lift: number, out: { x: number; y: number; behind: boolean }): void {
+    this.tmpV.set(x, lift, y).project(this.camera);
+    out.x = (this.tmpV.x * 0.5 + 0.5) * this.W;
+    out.y = (-this.tmpV.y * 0.5 + 0.5) * this.H;
+    out.behind = this.tmpV.z > 1;
   }
 
   toScreen(x: number, y: number, lift = 0): { x: number; y: number; behind: boolean } {
-    this.tmpV.set(x, lift, y).project(this.camera);
-    return {
-      x: (this.tmpV.x * 0.5 + 0.5) * this.W,
-      y: (-this.tmpV.y * 0.5 + 0.5) * this.H,
-      behind: this.tmpV.z > 1,
-    };
+    const out = { x: 0, y: 0, behind: false };
+    this.toScreenInto(x, y, lift, out);
+    return out;
   }
 
   kick(dash: boolean, killFlash: boolean) {
@@ -338,7 +344,9 @@ export class World3D {
     this.dashKick = Math.max(0, this.dashKick - 0.06);
     this.flashLvl = Math.max(0, this.flashLvl - 0.05);
     const sh = v.trauma * v.trauma * 16;
-    const jx = (Math.random() * 2 - 1) * sh, jz = (Math.random() * 2 - 1) * sh;
+    // smooth-noise shake (sine mix) — white Math.random per frame buzzed and read as jitter
+    const jx = (Math.sin(v.time * 0.043 + 1.7) * 0.6 + Math.sin(v.time * 0.013 + 0.4) * 0.4) * sh;
+    const jz = (Math.sin(v.time * 0.037 + 4.2) * 0.6 + Math.sin(v.time * 0.011 + 2.1) * 0.4) * sh;
     this.camera.position.set(v.camX + jx, 950 * f * zoom, v.camY + 640 * f * zoom + jz);
     this.camera.lookAt(v.camX + jx * 0.5, 0, v.camY);
     const wantFov = 55 + this.dashKick * 9;
@@ -352,8 +360,10 @@ export class World3D {
     // floor shimmer drift (cheap life cue, no extra draw calls)
     this.floorTex.offset.set((v.time / 90000) % 1, (v.time / 120000) % 1);
 
-    // blobs
-    const seen = new Set<string>();
+    // blobs (membership set hoisted; Map delete-during-iterate is safe)
+    const seen = this.seenPool;
+    seen.clear();
+    let hasMe = false, meShielded = false;
     for (const p of v.players) {
       seen.add(p.id);
       let grp = this.blobs.get(p.id);
@@ -383,7 +393,7 @@ export class World3D {
       if (u.nm !== nmKey) {
         const old = u.name as THREE.Sprite;
         grp.remove(old);
-        (old.material as THREE.Material).dispose();
+        this.disposeName(old);
         const fresh = this.nameSprite(p.name, p.hunter);
         fresh.name = 'name';
         u.name = fresh;
@@ -416,17 +426,17 @@ export class World3D {
       }
       u.ringPulse = ((v.time / 500) % 1);
     }
-    for (const [id, grp] of [...this.blobs]) {
+    for (const [id, grp] of this.blobs) {
       if (seen.has(id)) continue;
       this.scene.remove(grp);
       const u = grp.userData;
       ((u.face as THREE.Sprite).material as THREE.Material).dispose();
-      ((u.name as THREE.Sprite).material as THREE.Material).dispose();
+      this.disposeName(u.name as THREE.Sprite);
       this.blobs.delete(id);
     }
 
     // hunter rings + YOU ring + shield
-    for (const [id, mesh] of [...this.hunterRings]) {
+    for (const [id, mesh] of this.hunterRings) {
       if (!seen.has(id)) { this.scene.remove(mesh); (mesh.material as THREE.Material).dispose(); mesh.geometry.dispose(); this.hunterRings.delete(id); }
     }
     for (const p of v.players) {
@@ -446,6 +456,8 @@ export class World3D {
         ring.scale.set((p.r + 12) * pulse, (p.r + 12) * pulse, 1);
       }
       if (p.isMe) {
+        hasMe = true;
+        if (p.shielded) meShielded = true;
         this.youRing.visible = true;
         this.youRing.position.set(p.x, 2, p.y);
         const youPulse = 1 + 0.06 * Math.sin(v.time / 260);
@@ -460,8 +472,8 @@ export class World3D {
         }
       }
     }
-    if (!v.players.some((p) => p.isMe)) this.youRing.visible = false;
-    if (!v.players.some((p) => p.isMe && p.shielded)) this.shieldShell.visible = false;
+    if (!hasMe) this.youRing.visible = false;
+    if (!meShielded) this.shieldShell.visible = false;
 
     // pellets (instanced gummy domes with a gentle bob)
     const np = Math.min(MAXP, v.pellets.length);
@@ -480,7 +492,8 @@ export class World3D {
 
     // orbs (stretched along travel, motion-estimated from ids)
     const no = Math.min(MAXO, v.orbs.length);
-    const seenOrb = new Set<number>();
+    const seenOrb = this.seenOrbPool;
+    seenOrb.clear();
     for (let i = 0; i < no; i++) {
       const o = v.orbs[i];
       seenOrb.add(o.i);
@@ -495,7 +508,7 @@ export class World3D {
       this.orbs.setMatrixAt(i, this.dummy.matrix);
       this.orbs.setColorAt(i, this.tmpColor.set(GUMMY3D[gummyIdx(o.hue)]));
     }
-    for (const k of [...this.orbPrev.keys()]) if (!seenOrb.has(k)) this.orbPrev.delete(k);
+    for (const k of this.orbPrev.keys()) if (!seenOrb.has(k)) this.orbPrev.delete(k);
     this.orbs.count = no;
     this.orbs.instanceMatrix.needsUpdate = true;
     if (this.orbs.instanceColor) this.orbs.instanceColor.needsUpdate = true;
@@ -516,7 +529,7 @@ export class World3D {
     (this.pts.geometry.getAttribute('color') as THREE.BufferAttribute).needsUpdate = true;
     this.pts.geometry.setDrawRange(0, npt);
 
-    // shockwave rings
+    // shockwave rings (color via preallocated THREE.Color — no hsl() string parse per frame)
     for (let i = 0; i < this.ringPool.length; i++) {
       const slot = this.ringPool[i];
       const rg = v.rings[i];
@@ -526,7 +539,8 @@ export class World3D {
       const rr = rg.r + (rg.max - rg.r) * 0.5;
       slot.mesh.scale.set(rr, rr, 1);
       slot.mat.opacity = Math.min(1, rg.life * 2.5);
-      slot.mat.color.set(`hsl(${rg.hue},95%,65%)`);
+      slot.col.setHSL((((rg.hue % 360) + 360) % 360) / 360, 0.95, 0.65);
+      slot.mat.color.copy(slot.col);
     }
 
     this.renderer.render(this.scene, this.camera);

@@ -39,15 +39,30 @@ const mini = document.getElementById('minimap') as HTMLCanvasElement;
 const mctx = mini.getContext('2d')!;
 const el = (id: string) => document.getElementById(id)!;
 
+// Adaptive quality: DPR ladder capped by device; governor (below) steps down on slow p95
+const DPR_LADDER = [1.5, 1.25, 1.0].filter(d => d <= Math.min(window.devicePixelRatio || 1, 1.5));
+
 const WORLD = 4000;
-let W = 0, H = 0, DPR = 1;
-function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+let W = 0, H = 0, DPR = DPR_LADDER[0] ?? 1;
+function applySize() {
   W = window.innerWidth; H = window.innerHeight;
   fxCanvas.width = Math.floor(W * DPR); fxCanvas.height = Math.floor(H * DPR);
   fxCanvas.style.width = W + 'px'; fxCanvas.style.height = H + 'px';
   octx.setTransform(DPR, 0, 0, DPR, 0, 0);
   world?.resize(W, H);
+}
+function resize() { applySize(); }
+function applyQuality() {
+  DPR = DPR_LADDER[Math.min(qTier, DPR_LADDER.length - 1)] ?? 1;
+  applySize();
+  world?.setPixelRatio(DPR);
+}
+function governQuality(now: number) {
+  if (!world || now - lastQAt < 2000) return; // decide at most every 2s, never pre-boot
+  lastQAt = now;
+  if (ftP95() > 22 && qTier < DPR_LADDER.length - 1) { qTier++; qGood = 0; applyQuality(); }
+  else if (ftP95() < 12 && qTier > 0) { if (++qGood >= 3) { qTier--; qGood = 0; applyQuality(); } }
+  else qGood = 0;
 }
 window.addEventListener('resize', resize); resize();
 
@@ -62,11 +77,23 @@ if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining t
 let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, sh: 0, pvx: 0, pvy: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
 const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number }>();
-let orbs: { i: number; x: number; y: number; hue: number }[] = [];
+const snapIds = new Set<string>(); // hoisted: per-snap membership without alloc
+type Orb2D = { i: number; x: number; y: number; hue: number };
+const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
+// draw-list pool: one DrawPlayer object per slot, reused every frame (no per-frame garbage)
+const plist: DrawPlayer[] = [];
+function plistSlot(pi: number): DrawPlayer {
+  let d = plist[pi];
+  if (!d) { d = { id: '', x: 0, y: 0, r: 0, hue: 0, name: '', isMe: false, hunter: false, shielded: false }; plist[pi] = d; }
+  return d;
+}
+const projOut = { x: 0, y: 0, behind: false }; // hoisted toScreen target
 let pellets: { x: number; y: number; hue: number }[] = [];
 let cam = { x: me.x, y: me.y };
 let trauma = 0;
-let particles: { x: number; y: number; vx: number; vy: number; life: number; hue: number; r: number }[] = [];
+type Particle = { x: number; y: number; vx: number; vy: number; life: number; hue: number; r: number };
+const particles: Particle[] = [];
+const particleFree: Particle[] = []; // freelist: bursts reuse objects, never churn GC
 let lastSnapAt = performance.now();
 
 // ---------- juice: procedural SFX + shockwave rings + hit-stop + spectate ----------
@@ -98,7 +125,9 @@ function sfx(kind: 'dash' | 'eat' | 'die' | 'kill' | 'click') {
     case 'click': tone(600, 800, 0.06, 'sine', 0.06); break;
   }
 }
-let rings: { x: number; y: number; r: number; max: number; life: number; hue: number }[] = [];
+type Ring2D = { x: number; y: number; r: number; max: number; life: number; hue: number };
+const rings: Ring2D[] = [];
+const ringFree: Ring2D[] = []; // freelist: shockwaves reuse objects
 const EMOTES = ['😂', '😈', '💪', '😱', '👋'];
 let liveTaunts: { id: string; e: number }[] = [];
 let lastTauntAt = 0;
@@ -106,7 +135,25 @@ let best = Number(localStorage.getItem('blob-best') || 0); // personal best (mot
 let lastBanner = '';
 // QA-mandated throttles: DOM writes were the #1 local jank source (15Hz innerHTML)
 let lastDomAt = 0, lastLeadHtml = '', lastFeedHtml = '';
+let lastMeHtml = '', lastPcount = '', lastPillTxt = '', lastPillDanger = false;
+let lastNudgeTxt = '', lastNudgeHot = false, nudgeShown = false;
 let frameNo = 0, fpsEma = 60;
+// Phase-0 probe: frame-time ring + longtask counter (measure-first, both devices)
+const FT_N = 120;
+const ftRing = new Float32Array(FT_N);
+let ftIdx = 0, ftFilled = 0, longTasks = 0;
+try {
+  const po = new PerformanceObserver((list) => { longTasks += list.getEntries().length; });
+  po.observe({ entryTypes: ['longtask'] });
+} catch { /* Firefox/Safari lack longtask: p95 still works */ }
+function ftPush(ms: number) { ftRing[ftIdx] = ms; ftIdx = (ftIdx + 1) % FT_N; if (ftFilled < FT_N) ftFilled++; }
+function ftP95(): number {
+  if (ftFilled === 0) return 0;
+  const a = Array.from(ftRing.subarray(0, ftFilled));
+  a.sort((x, y) => x - y);
+  return a[Math.min(a.length - 1, Math.floor(a.length * 0.95))];
+}
+let qTier = 0, qGood = 0, lastQAt = 0;
 const LEVELS: [string, number][] = [['Minnow', 0], ['Nibbler', 25], ['Chonk', 50], ['Brute', 90], ['Titan', 140], ['BLOB GOD', 200]];
 let myLevel = 0;
 function levelFor(mass: number): number { let li = 0; for (let i = 0; i < LEVELS.length; i++) if (mass >= LEVELS[i][1]) li = i; return li; }
@@ -120,8 +167,10 @@ function coach(msg: string, ms = 2800) {
   coachTO = setTimeout(() => { c.style.display = 'none'; }, ms);
 }
 function ring(x: number, y: number, max: number, hue: number) {
-  rings.push({ x, y, r: 8, max, life: 0.45, hue });
-  if (rings.length > 24) rings.shift();
+  const g = ringFree.pop() ?? { x: 0, y: 0, r: 0, max: 0, life: 0, hue: 0 };
+  g.x = x; g.y = y; g.r = 8; g.max = max; g.life = 0.45; g.hue = hue;
+  rings.push(g);
+  if (rings.length > 24) { const old = rings.shift(); if (old) ringFree.push(old); }
 }
 let hitstop = 0;
 let spectateId: string | null = null;
@@ -273,11 +322,15 @@ function connect(name: string) {
 function onSnap(s: Snap) {
   lastSnapAt = performance.now();
   if (s.me) {
-    // reconcile: server wins, but smooth-snap to avoid teleport pop
+    // reconcile: server wins, but gently — the old 0.45 yank fought 30Hz
+    // prediction every snapshot and read as constant micro-jitter on your own blob
     const m = s.me;
     const err = Math.hypot(m.x - me.x, m.y - me.y);
-    if (err > 220) { me.x = m.x; me.y = m.y; } // big desync: hard snap
-    else { me.x += (m.x - me.x) * 0.45; me.y += (m.y - me.y) * 0.45; }
+    if (err > 220) { me.x = m.x; me.y = m.y; me.pvx = 0; me.pvy = 0; } // big desync: hard snap, prediction restarts
+    else {
+      const pull = 1 - Math.exp(-6 / 15); // critically-damped-ish follow per snap
+      me.x += (m.x - me.x) * pull; me.y += (m.y - me.y) * pull;
+    }
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
     me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak; me.sh = m.sh;
     // eat detect: sudden mass gain = chomp (juice only — server owns truth)
@@ -307,9 +360,10 @@ function onSnap(s: Snap) {
     else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; r.ht = p.ht; }
   }
   // fade-out, not pop-out: AOI edge used to blink blobs in/out every frame
-  const ids = new Set(s.players.map(p => p.id));
+  snapIds.clear();
+  for (const p of s.players) snapIds.add(p.id);
   for (const [k, r] of remotes) {
-    if (ids.has(k)) continue;
+    if (snapIds.has(k)) continue;
     if (r.gone === undefined) r.gone = now;
     else if (now - r.gone > 800) remotes.delete(k);
   }
@@ -320,23 +374,44 @@ function onSnap(s: Snap) {
     spectateId = best;
   }
   pellets = s.pellets;
-  orbs = (s.orbs || []).map(o => ({ i: o.i, x: o.x, y: o.y, hue: o.h })); // remap once per snap, not per frame
+  // orbs: in-place slot reuse (no per-snap .map garbage; array only grows to max)
+  const mapped = s.orbs || [];
+  for (let i = 0; i < mapped.length; i++) {
+    const o = mapped[i];
+    const d = orbs[i];
+    if (d) { d.i = o.i; d.x = o.x; d.y = o.y; d.hue = o.h; }
+    else orbs.push({ i: o.i, x: o.x, y: o.y, hue: o.h });
+  }
+  orbs.length = mapped.length;
   liveTaunts = s.taunts || [];
-  // throttled DOM (2Hz max, only on change) — was 15Hz innerHTML jank
+  // throttled DOM (2Hz max, only on change) — EVERYTHING lives here now.
+  // These used to write per-snapshot (~15Hz): layout thrash was a top jank source.
   if (now - lastDomAt > 500) {
     lastDomAt = now;
     const lh = s.leaders.map((l, i) => `<div>${i + 1}. ${escapeHtml(l.n)} — ${l.s}</div>`).join('') || '…';
     if (lh !== lastLeadHtml) { lastLeadHtml = lh; el('lleaders').innerHTML = lh; }
     const fh = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
     if (fh !== lastFeedHtml) { lastFeedHtml = fh; el('feed').innerHTML = fh; }
+    const meHtml = `🟣${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms · ${me.dashReady ? '⚡' : '…'}`;
+    if (meHtml !== lastMeHtml) { lastMeHtml = meHtml; el('me').textContent = meHtml; }
+    const pcTxt = `${s.players.length + 1} online`;
+    if (pcTxt !== lastPcount) { lastPcount = pcTxt; el('pcount').textContent = pcTxt; }
+    // round urgency pill
+    const mm = Math.floor(s.round / 60), ss = String(s.round % 60).padStart(2, '0');
+    const pill = el('roundPill');
+    const pillTxt = `⏱ ${mm}:${ss} to crown`;
+    if (pillTxt !== lastPillTxt) { lastPillTxt = pillTxt; pill.textContent = pillTxt; }
+    const danger = s.round <= 30;
+    if (danger !== lastPillDanger) { lastPillDanger = danger; pill.classList.toggle('danger', danger); }
+    // invite nudge (urgency to squad up while the room is quiet)
+    const count = s.players.length + 1;
+    const nudge = el('nudge');
+    if (!nudgeShown) { nudgeShown = true; nudge.style.display = 'block'; }
+    const nudgeTxt = count < 8 ? `👥 ${count}/25 — quiet! 🔗 invite friends` : `👥 ${count}/25 in this arena`;
+    if (nudgeTxt !== lastNudgeTxt) { lastNudgeTxt = nudgeTxt; nudge.textContent = nudgeTxt; }
+    const hot = count < 8;
+    if (hot !== lastNudgeHot) { lastNudgeHot = hot; nudge.classList.toggle('hot', hot); }
   }
-  el('me').textContent = `🟣${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps · ${me.dashReady ? '⚡' : '…'}`;
-  el('pcount').textContent = `${s.players.length + 1} online`;
-  // round urgency pill
-  const mm = Math.floor(s.round / 60), ss = String(s.round % 60).padStart(2, '0');
-  const pill = el('roundPill');
-  pill.textContent = `⏱ ${mm}:${ss} to crown`;
-  pill.classList.toggle('danger', s.round <= 30);
   // winner banner (once per crown)
   const top = s.feed[0] || '';
   if (top.startsWith('🏆') && top !== lastBanner) {
@@ -355,30 +430,35 @@ function onSnap(s: Snap) {
     void uiCrownPop();
     sfx('kill');
   }
-  // invite nudge (urgency to squad up while the room is quiet)
-  const count = s.players.length + 1;
-  const nudge = el('nudge');
-  nudge.style.display = 'block';
-  nudge.classList.toggle('hot', count < 8);
-  nudge.textContent = count < 8 ? `👥 ${count}/25 — quiet! 🔗 invite friends` : `👥 ${count}/25 in this arena`;
 }
 
-function renderX(id: string) { const r = remotes.get(id); if (!r) return 0; const k = Math.min(1, (performance.now() - r.t) / 100); return r.ax + (r.bx - r.ax) * k; }
-function renderY(id: string) { const r = remotes.get(id); if (!r) return 0; const k = Math.min(1, (performance.now() - r.t) / 100); return r.ay + (r.by - r.ay) * k; }
+function renderX(id: string, now = performance.now()) { const r = remotes.get(id); if (!r) return 0; const k = Math.min(1, (now - r.t) / 100); return r.ax + (r.bx - r.ax) * k; }
+function renderY(id: string, now = performance.now()) { const r = remotes.get(id); if (!r) return 0; const k = Math.min(1, (now - r.t) / 100); return r.ay + (r.by - r.ay) * k; }
 function escapeHtml(s: string) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!)); }
 function burst(x: number, y: number, n: number, hue: number) {
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 260;
-    particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.5 + Math.random() * 0.5, hue: hue + Math.random() * 40 - 20, r: 2 + Math.random() * 3 });
+    const p = particleFree.pop() ?? { x: 0, y: 0, vx: 0, vy: 0, life: 0, hue: 0, r: 0 };
+    p.x = x; p.y = y; p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp;
+    p.life = 0.5 + Math.random() * 0.5; p.hue = hue + Math.random() * 40 - 20; p.r = 2 + Math.random() * 3;
+    particles.push(p);
   }
-  if (particles.length > 240) particles.splice(0, particles.length - 240);
+  if (particles.length > 240) {
+    const extra = particles.length - 240;
+    for (let i = 0; i < extra; i++) particleFree.push(particles[i]);
+    particles.splice(0, extra);
+  }
 }
 
-// ---------- render loop ----------
+// ---------- render loop (single instance, guarded — the "render twice" fix) ----------
 let last = performance.now();
+let loopLive = false;
+function kickLoop() { if (!loopLive) { loopLive = true; requestAnimationFrame(frame); } }
 function frame(now: number) {
+  if (!loopLive) return; // paused (hidden tab) or superseded (HMR/dev double-mount)
   requestAnimationFrame(frame);
   const rawDt = Math.min(0.05, (now - last) / 1000); last = now;
+  ftPush(rawDt * 1000); // Phase-0 probe feeds the quality governor + HUD p95
   if (rawDt > 0) fpsEma += ((1 / rawDt) - fpsEma) * 0.05; // QA fps meter (see HUD)
   const dt = hitstop > 0 ? 0 : rawDt; // hit-stop: world freezes, render continues
   if (hitstop > 0) hitstop -= rawDt;
@@ -389,27 +469,35 @@ function frame(now: number) {
   cam.y += (ty - cam.y) * Math.min(1, rawDt * 6);
   trauma = Math.max(0, trauma - dt * 1.6);
   const mobile = Math.min(W, H) < 640;
+  governQuality(now); // cheap timestamp gate inside; steps DPR down/up on p95
 
   // particle + shockwave SIM (positions only — three.js draws them)
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.life -= dt; if (p.life <= 0) { particles.splice(i, 1); continue; }
+    p.life -= dt; if (p.life <= 0) { particleFree.push(p); particles.splice(i, 1); continue; }
     p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96;
   }
   for (let i = rings.length - 1; i >= 0; i--) {
     const g = rings[i];
-    g.life -= rawDt; if (g.life <= 0) { rings.splice(i, 1); continue; }
+    g.life -= rawDt; if (g.life <= 0) { ringFree.push(g); rings.splice(i, 1); continue; }
     g.r += (g.max - g.r) * Math.min(1, rawDt * 9);
   }
 
-  // draw lists for three (interp stays here; WebGL draws)
-  const plist: DrawPlayer[] = [];
+  // draw lists for three (interp stays here; WebGL draws) — pooled, zero alloc
   const fnow = performance.now();
+  let pi = 0;
   for (const [id, r] of remotes) {
     if (r.gone !== undefined && fnow - r.gone > 800) continue;
-    plist.push({ id, x: renderX(id), y: renderY(id), r: r.r, hue: r.h, name: r.n, isMe: false, hunter: r.ht === 1, shielded: false });
+    const d = plistSlot(pi++);
+    d.id = id; d.x = renderX(id, fnow); d.y = renderY(id, fnow);
+    d.r = r.r; d.hue = r.h; d.name = r.n; d.isMe = false; d.hunter = r.ht === 1; d.shielded = false;
   }
-  if (me.alive) plist.push({ id: myId, x: me.x, y: me.y, r: me.r, hue: 275, name: myName || 'YOU', isMe: true, hunter: false, shielded: me.sh === 1 });
+  if (me.alive) {
+    const d = plistSlot(pi++);
+    d.id = myId; d.x = me.x; d.y = me.y; d.r = me.r; d.hue = 275;
+    d.name = myName || 'YOU'; d.isMe = true; d.hunter = false; d.shielded = me.sh === 1;
+  }
+  plist.length = pi;
   if (world) {
     world.frame({
       camX: cam.x, camY: cam.y, trauma, mobile, time: now,
@@ -427,13 +515,13 @@ function frame(now: number) {
     if (!emo) continue;
     let tx2: number | null = null, ty2: number | null = null, tr = 20;
     if (t.id === myId && me.alive) { tx2 = me.x; ty2 = me.y; tr = me.r; }
-    else { const r = remotes.get(t.id); if (r) { tx2 = renderX(t.id); ty2 = renderY(t.id); tr = r.r; } }
+    else { const r = remotes.get(t.id); if (r) { tx2 = renderX(t.id, fnow); ty2 = renderY(t.id, fnow); tr = r.r; } }
     if (tx2 === null || ty2 === null) continue;
     // perspective-correct projection (fixed-yaw chase cam); fallback to ortho pre-boot
     let sx = tx2 - cam.x + W / 2, sy = ty2 - cam.y + H / 2;
     if (world) {
-      const pr = world.toScreen(tx2, ty2, tr * 1.4 + 26);
-      if (!pr.behind) { sx = pr.x; sy = pr.y; }
+      world.toScreenInto(tx2, ty2, tr * 1.4 + 26, projOut);
+      if (!projOut.behind) { sx = projOut.x; sy = projOut.y; }
     }
     octx.font = '26px sans-serif';
     octx.fillText(emo, sx, sy + Math.sin(bobT + i * 1.7) * 5);
@@ -462,13 +550,21 @@ function drawMini() {
   mctx.fillStyle = '#ffffff10'; mctx.fillRect(0, 0, 120, 120);
   const k = 120 / WORLD;
   mctx.fillStyle = '#4ade80';
-  for (const p of pellets.slice(0, 120)) mctx.fillRect(p.x * k, p.y * k, 1.5, 1.5);
+  const pn = Math.min(120, pellets.length);
+  for (let i = 0; i < pn; i++) { const p = pellets[i]; mctx.fillRect(p.x * k, p.y * k, 1.5, 1.5); }
   mctx.fillStyle = '#f472b6';
   for (const [id] of remotes) mctx.fillRect(renderX(id) * k - 1, renderY(id) * k - 1, 2.5, 2.5);
   mctx.fillStyle = '#fff';
   mctx.beginPath(); mctx.arc(me.x * k, me.y * k, 3, 0, 7); mctx.fill();
 }
-requestAnimationFrame(frame);
+// single loop instance: hidden tabs pause (GPU idles), HMR kills the stale loop
+kickLoop();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) loopLive = false;
+  else { last = performance.now(); kickLoop(); }
+});
+const viteHot = (import.meta as unknown as { hot?: { dispose(fn: () => void): void } }).hot;
+viteHot?.dispose(() => { loopLive = false; });
 
 // share-result card (invite loop): 1-tap PNG score flex with room link baked in
 function shareCard() {
@@ -509,30 +605,37 @@ function shareCard() {
 }
 
 // ---------- menu ----------
+let connecting = false; // double-click guard: one PLAY = one socket, one world
 el('play').addEventListener('click', async () => {
-  audio(); sfx('click'); // unlock WebAudio on user gesture
-  const btn = el('play') as HTMLButtonElement;
-  const n = ((el('name') as HTMLInputElement).value || 'Blob' + Math.floor(Math.random() * 99)).slice(0, 14);
-  localStorage.setItem('blob-name', n);
-  myName = n;
-  // lazy 3D: menu stays instant, three.js chunk loads on first PLAY
-  if (!world && !worldFailed) {
-    const old = btn.textContent;
-    btn.textContent = '⏳ LOADING 3D…';
-    btn.disabled = true;
-    await ensureWorld();
-    btn.disabled = false;
-    btn.textContent = old;
+  if (connecting) return;
+  connecting = true;
+  try {
+    audio(); sfx('click'); // unlock WebAudio on user gesture
+    const btn = el('play') as HTMLButtonElement;
+    const n = ((el('name') as HTMLInputElement).value || 'Blob' + Math.floor(Math.random() * 99)).slice(0, 14);
+    localStorage.setItem('blob-name', n);
+    myName = n;
+    // lazy 3D: menu stays instant, three.js chunk loads on first PLAY
+    if (!world && !worldFailed) {
+      const old = btn.textContent;
+      btn.textContent = '⏳ LOADING 3D…';
+      btn.disabled = true;
+      await ensureWorld();
+      btn.disabled = false;
+      btn.textContent = old;
+      if (!world) {
+        coach('⚠️ 3D failed to load — check connection & retry');
+        return;
+      }
+    }
     if (!world) {
       coach('⚠️ 3D failed to load — check connection & retry');
       return;
     }
+    connect(n);
+  } finally {
+    connecting = false;
   }
-  if (!world) {
-    coach('⚠️ 3D failed to load — check connection & retry');
-    return;
-  }
-  connect(n);
 });
 el('newRoom').addEventListener('click', () => {
   roomId = Math.random().toString(36).slice(2, 6).toUpperCase();
