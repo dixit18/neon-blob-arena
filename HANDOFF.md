@@ -18,12 +18,20 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   ALSO verified fixed test compiles under floating 5.9.3 (belt + suspenders).
 - Bounce closed: combat.test.ts 28/28 (wall bounce flips + budgets, spent orb dies,
   life expiry). Client FE build on Render now `npm ci` too (was floating install).
+-Determinism war: root `workspaces` REMOVED (it made nested `npm ci` fail with EUSAGE
+  everywhere while adding nothing — services build from their own dirs). Both services
+  verified clean-room: `npm ci` → build → 28 tests green. Root note kept as `_note`
+  (raw `//` comments break vite's parent-package.json parse — learned the hard way).
+- CI gate live: `.github/workflows/ci.yml` (server build+test, client build, fire-spam
+  soak + tickAvgMs<5 gate). Pages workflow hardened to bare `npm ci`.
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Pick from "Next up".
+- CI gate loop (in progress); files: `neon-blob-arena/server/package.json`,
+  `.github/workflows/ci.yml`, `.github/workflows/pages.yml`, `QA.md`,
+  `HANDOFF.md`, `AGENT_CHAT.md`.
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + whether jitter/double-render is gone.

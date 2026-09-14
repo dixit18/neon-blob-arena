@@ -33,6 +33,11 @@ Slow-tick server log (`[tick] slow XXms`) is an automatic investigate.
 - [ ] Round rolls at 0:00 → crown banner, masses compress, dead revive
 - [ ] First-timer tutorial toasts fire once; level-up toast at Chonk
 - [ ] 30-client loadtest: ≥28/30 connected, ≥12 snaps/s/client
+- [ ] Fire-spam soak (`--fire=0.3`): orbSnaps > 0, tickAvgMs < 5 after load
+- [ ] `npm test` (combat suite) green in `neon-blob-arena/server`
+- [ ] Deploy repro on Dockerfile/dependency change: clean-room `npm ci` → `tsc` → boot → `/health`
+- [ ] CI workflow green (build + test + soak jobs)
+- [ ] Client feel: HUD `fps/p95ms` — p95 ≤ 20ms desktop, ≤ 25ms mid-tier phone
 - [ ] No console errors; no secret in logs/git (`git log -p | grep -i token` empty)
 
 ## Filing a bug (paste into AGENT_CHAT.md)

@@ -195,3 +195,24 @@ bounces unproven, ACCEPTED (axis-aligned clamp math is angle-independent). 2) `n
 fails hard if lock drifts from package.json — that loud failure is the POINT, accepted.
 No open RedTeam items. Ball is in the user's court: feel check + 2-tab + playtest.
 **Kai:** Pushing silently.
+
+## 2026-09-14 — workspaces killed + CI gate live (user: "keep working, don't sit idle")
+**Zara:** The `npm ci` failure had a second layer: repo-root `package.json` declared
+`workspaces: [server, client]` since v0.1, but there was never a root lockfile or root
+install — vestigial config. npm 11 sees the workspace root and refuses nested `ci`
+(EUSAGE), which would ALSO have failed the new CI workflow and any dev running `ci`.
+Workspaces buy nothing here (Docker + Render build from service dirs, no shared deps),
+so they're deleted, rationale kept as `_note` in root package.json. Caught my own bug
+in the same loop: raw `//` comments are illegal JSON and broke vite's build — fixed.
+**Riya:** Clean-room receipts, both services: server `npm ci` → `tsc` → `npm test`
+28/28 green; client `npm ci` → `tsc` + vite build green (initial 20.42KB unchanged).
+**Kai:** CI is live: `ci.yml` runs server build+test, client build, then boots the
+server and runs the 30-client fire-spam soak with a `tickAvgMs < 5` gate. Pages
+workflow hardened to bare `npm ci` (its `|| npm install` fallback reopened float
+risk). Standing rule holds: lockfiles always commit, `ci` everywhere automated.
+**Vikram:** 2 flaws: 1) CI soaks on ubuntu-latest — a green tick there doesn't prove
+Render's free-tier CPU keeps up, ACCEPTED (prod UptimeRobot + `/health` tickAvgMs is
+the real tripwire — user, confirm the pinger exists). 2) no branch protection requires
+CI green before merge — pushing straight to main bypasses the gate I demanded,
+ACCEPTED only until user enables it (repo Settings → Branches → require `CI`).
+**Kai:** Pushing this — last direct push until protection is on.
