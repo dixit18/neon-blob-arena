@@ -145,6 +145,17 @@ room.orbs.push({ id: 9002, owner: 'shooter', x: 2000, y: 3000, vx: TUNE.ORB_SPEE
 room.stepOrbs();
 check('orb-expires', room.orbs.length === 0);
 
+// 11b — angled bounces: diagonal wall keeps tangential velocity, corner eats 2 budget
+room.orbs.push({ id: 9003, owner: 'shooter', x: 30, y: 2000, vx: -TUNE.ORB_SPEED, vy: 200, hue: 0, bounces: 1, life: 70, grace: 0 });
+room.stepOrbs();
+const angled = room.orbs[0];
+check('orb-angle-bounce', room.orbs.length === 1 && (angled?.vx ?? 0) > 0 && Math.abs((angled?.vy ?? -1) - 200) < 1, `vx=${angled?.vx} vy=${angled?.vy}`);
+room.orbs.length = 0;
+room.orbs.push({ id: 9004, owner: 'shooter', x: 30, y: 30, vx: -TUNE.ORB_SPEED, vy: -TUNE.ORB_SPEED, hue: 0, bounces: 2, life: 70, grace: 0 });
+room.stepOrbs();
+const corner = room.orbs[0];
+check('orb-corner-bounce', room.orbs.length === 1 && (corner?.vx ?? 0) > 0 && (corner?.vy ?? 0) > 0 && (corner?.bounces ?? -1) === 0, `vx=${corner?.vx} vy=${corner?.vy} bounces=${corner?.bounces}`);
+
 // 12 — backfill: a solo joiner gets a full room fast (anti-idle: 3-per-1s bursts).
 // Thresholds leave room for bots chomping each other mid-test (same sim, honest).
 {

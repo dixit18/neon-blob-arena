@@ -26,15 +26,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   soak + tickAvgMs<5 gate). Pages workflow hardened to bare `npm ci`.
 - Anti-idle (`eb5842d`+): prod probe proved WS healthy but rooms start EMPTY and bots
   trickled 1-per-2s (14s of dead air). Backfill now bursts 3-per-1s (7 bots in ~3s,
-  capped, tested 30/30). Menu shows connect/retry/waking status instead of silence.
+  capped, tested 32/32). Menu shows connect/retry/waking status instead of silence.
+- Soak re-run post-backfill: 30/30 @14.1 snaps/s, tickAvg 0.19/max 2.4. Green.
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- CI gate loop (in progress); files: `neon-blob-arena/server/package.json`,
-  `.github/workflows/ci.yml`, `.github/workflows/pages.yml`, `QA.md`,
-  `HANDOFF.md`, `AGENT_CHAT.md`.
+- None. Pick from "Next up".
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + whether jitter/double-render is gone.

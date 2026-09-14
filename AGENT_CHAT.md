@@ -235,3 +235,14 @@ user-action (Dashboard → UptimeRobot → `/health` every 10 min). Say it and i
 **Riya:** Anti-idle gate: backfill counts join the combat suite; prod probe recipe
 (health + FE 200 + WS hello/snaps) is the new "is prod dead?" runbook.
 **Kai:** Pushing silently.
+
+## 2026-09-14 — angles closed + soak re-green (user: "keep working")
+**Zara:** Last unproven physics cornered (literally): diagonal wall keeps tangential
+velocity (vy 200 → 200), corner hit eats 2 bounce budget and flips both axes. Suite
+32/32 PASS. Soak re-run was mandatory (backfill touched the sim): 30/30 @14.1
+snaps/s, orbSnaps=3519, tickAvg 0.19/max 2.4 — bursts cost nothing measurable.
+**Vikram:** Flaw attempt — 32 deterministic cases plus soak plus CI plus probes… the
+only uncovered surface left is real humans. No flaws filed. First time this project
+has zero open items that don't need the user's hands.
+**Kai:** Pushing silently. User, the ball is entirely yours now: feel number, 2-tab,
+friends, pinger, branch protection.
