@@ -131,3 +131,25 @@ baseline — ACCEPTED, new baseline is 14.1 and the old ≥12 gate still holds.
 **Riya:** Soak gate ADDED to the bible path: fire-spam numbers join the 30-client line.
 Still open (human hands needed): 2-tab eat/dash/fire/death→spectate, hunter sighting,
 360px portrait. Nothing ships red.
+
+## 2026-09-14 — git auth fixed + kill-path proven (user: "use the token, no account picker")
+**Kai:** The picker wasn't a code bug: Windows Credential Manager holds THREE GitHub
+logins (`github.com`, `dixit18@github.com`, `x-access-token@github.com`), so GCM asked
+which account every time. Fix (local config, no secret touched): pinned
+`credential.https://github.com.username x-access-token`, verified live with a
+non-interactive `ls-remote` (exit 0, origin HEAD = our HEAD). No token pasted, none
+stored in git — the picker is gone and pushes are silent.
+**Zara:** Kill-path test DONE (`server/src/combat.test.ts`, headless, no sockets/DB):
+23/23 PASS — orb spawn + mass cost + direction, cooldown block/release, damage
+(30→24 in 2 orb-steps) + knockback (vx 52.0) + orb consumed, kill (credit, streak,
+`💥 Shooter blasted Victim`, respawn at tick+60), shield eats orb, owner grace,
+min-mass gate, snapshot carries orbs, hunter spawns + fires at 300px, full
+respawn cycle (mass 12 + fresh shield). Run: `npx tsx src/combat.test.ts`.
+**Nova (data, not vibes):** byte profile from the same run — full-room snapshot
+(25 players, 88 pellets, 3 orbs) = 8527B vs the 12KB green budget. Verdict: binary
+snapshots STAY deferred; JSON has ~40% headroom. Re-profile only if entity counts grow.
+**Vikram:** 2 flaws: 1) test never calls `step()` with live orbs near walls — bounce
+path unproven, ACCEPTED (bounded: 1 bounce, 3.5s life, worst case a visual fizzle).
+2) crowd bots in the profile stand still — real rooms move, but movement doesn't change
+byte size, ACCEPTED as representative.
+**Kai:** Committed + pushed silently. Tree clean, origin in sync.

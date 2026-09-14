@@ -5,20 +5,31 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 
 ## Where we are (update every work unit)
 - Shipped: v1.0 full-3D arena + orb combat + hunters (commit `be2be05`).
+- Protocol: `HANDOFF.md` + Rule 9 (commit `7a0c912`) — PUSHED to `origin/main`.
 - Soak-verified: fire-spam loadtest (`--fire=0.3`, 30 clients) → 30/30, 14.1 snaps/s,
   orbSnaps=3407, tickAvgMs 0.13 / tickMaxMs 1.5. Orb path holds under load.
-- Tree state: CLEAN (everything committed). Verify with `git status --short` (must be empty).
+- Kill-path verified: `server/src/combat.test.ts` — 23/23 PASS headless
+  (damage, knockback, kill credit + feed + respawn, shield, owner grace,
+  cooldown, min-mass gate, hunter fire, snapshot orbs).
+- Byte profile: full-room snapshot (25 players, 88 pellets, 3 orbs) = 8527B → GREEN,
+  binary protocol DEFERRED (only if >12KB signal).
+- Git auth: pinned `credential.https://github.com.username x-access-token`
+  (3 stored logins were causing the account picker; token entry verified live).
+- Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Pick from "Next up".
+- v2 jitter war Phase 0+1 (in progress); files: `neon-blob-arena/client/src/main.ts`,
+  `HANDOFF.md`, `AGENT_CHAT.md`.
 
 ## Next up (priority order)
-1. Manual 2-tab checklist per `QA.md`: eat/dash/fire/death→spectate, hunter feed
-   sighting, 360px portrait targets.
-2. Binary snapshots (DataView) — profile JSON bytes first, only if >12KB signal.
-3. Playtest: 3 friends + `?room=` link, collect PMF numbers (`/stats`).
+1. JITTER WAR (user verdict: laggy, bad landing, render-twice) — v2 rebuild:
+   Phase 0 measure (frame p95 + longtasks) → Phase 1 feel (reconcile, DOM throttle,
+   loop guards, shake, quality governor) → Phase 2 memory (pools, no per-frame garbage)
+   → Phase 3 MOCHI PANIC re-theme (light candy-pop, new creatures, everything).
+2. Manual 2-tab checklist per `QA.md` (needs human hands).
+3. Playtest: 3 friends + `?room=` link, PMF numbers (`/stats`).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.
