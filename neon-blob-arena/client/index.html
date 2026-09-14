@@ -3,91 +3,121 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Neon Blob Arena — 3-min multiplayer rounds</title>
-<meta name="description" content="3-minute rounds. Eat, dash, streak, get crowned. 25-player browser arena — no signup, invite friends with one link." />
-<meta name="theme-color" content="#05060f" />
+<title>Mochi Panic — 3-min squishy multiplayer rounds</title>
+<meta name="description" content="3-minute rounds. Munch, dash, splat, get crowned. 25-player browser arena — no signup, invite friends with one link." />
+<meta name="theme-color" content="#FFF4DE" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" href="./icon.svg" type="image/svg+xml" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#140A24; --panel:rgba(20,12,36,.8); --line:#ffffff1f; --cyan:#22d3ee; --pink:#f0abfc; --violet:#8b5cf6; --gold:#fbbf24; }
+  :root {
+    --bg:#FFF4DE; --paper:#FFFDF6; --ink:#2B2144; --ink-soft:#5b4f7e;
+    --rasp:#E84393; --tang:#FB9039; --soda:#2FA8E0; --mint:#00C2A8; --gold:#FFC93C;
+    --panel:#FFFDF6; --line:#2B2144;
+    --shadow:3px 3px 0 var(--ink);
+  }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { -webkit-user-select:none; user-select:none; }
-  html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:#fff;
-    font-family:"Avenir Next","Segoe UI",ui-sans-serif,system-ui,Roboto,sans-serif; }
+  html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--ink);
+    font-family:"Nunito","Avenir Next","Segoe UI",ui-sans-serif,system-ui,Roboto,sans-serif; }
   #game3d, #fx2d { position:fixed; inset:0; display:block; touch-action:none; }
   #fx2d { z-index:4; pointer-events:none; }
   #vig { position:fixed; inset:0; z-index:4; pointer-events:none;
-    background:radial-gradient(120% 120% at 50% 50%, transparent 55%, rgba(10,4,20,.55)); }
+    background:radial-gradient(120% 120% at 50% 42%, transparent 60%, rgba(43,33,68,.16)); }
   .hud { position:fixed; z-index:5; }
-  .pill { background:var(--panel); border:1px solid var(--line); border-radius:14px; backdrop-filter:blur(8px); }
+  .pill { background:var(--panel); border:2px solid var(--line); border-radius:16px; box-shadow:var(--shadow); }
   #leaders { top:calc(10px + env(safe-area-inset-top)); right:10px; padding:10px 12px; min-width:164px; }
-  #leaders h3 { font-size:11px; letter-spacing:.14em; opacity:.65; margin-bottom:6px; }
-  #leaders div { font-size:13px; padding:1.5px 0; font-variant-numeric:tabular-nums; }
+  #leaders h3 { font-family:Fredoka,sans-serif; font-size:12px; letter-spacing:.12em; color:var(--ink-soft); margin-bottom:6px; }
+  #leaders div { font-size:13px; font-weight:700; padding:1.5px 0; font-variant-numeric:tabular-nums; }
   #lleaders { display:block; min-height:118px; } /* no layout jump when ranks reorder */
-  #nudge { margin-top:8px; font-size:12px; padding:6px 9px; border-radius:10px; background:rgba(139,92,246,.18);
-    border:1px solid rgba(139,92,246,.5); cursor:pointer; pointer-events:auto; }
+  #nudge { margin-top:8px; font-size:12px; font-weight:800; padding:6px 9px; border-radius:10px; background:#FFE9A8;
+    border:2px solid var(--line); cursor:pointer; pointer-events:auto; color:var(--ink); }
   #nudge.hot { animation:pulse 1.2s infinite; }
-  @keyframes pulse { 50% { transform:scale(1.05); box-shadow:0 0 18px #8b5cf6aa; } }
+  @keyframes pulse { 50% { transform:scale(1.05) rotate(-1deg); } }
   #feed { top:calc(10px + env(safe-area-inset-top)); left:10px; display:flex; flex-direction:column; gap:5px; max-width:46vw; pointer-events:none; }
-  #feed span { background:var(--panel); border:1px solid var(--line); padding:5px 11px; border-radius:999px; font-size:12px; }
+  #feed span { background:var(--panel); border:2px solid var(--line); box-shadow:2px 2px 0 var(--ink); padding:5px 11px; border-radius:999px; font-size:12px; font-weight:800; }
   #roundPill { top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); padding:7px 16px;
-    font-weight:800; font-size:15px; font-variant-numeric:tabular-nums; letter-spacing:.04em; pointer-events:none;
-    border-color:rgba(34,211,238,.45); box-shadow:0 0 16px rgba(34,211,238,.25); }
-  #roundPill.danger { border-color:#f87171; box-shadow:0 0 18px #f8717188; animation:pulse .8s infinite; }
-  #me { bottom:calc(12px + env(safe-area-inset-bottom)); left:10px; padding:9px 13px; font-size:13px; pointer-events:none;
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:15px; font-variant-numeric:tabular-nums; letter-spacing:.04em; pointer-events:none;
+    background:var(--gold); }
+  #roundPill.danger { background:var(--rasp); color:#fff; -webkit-text-stroke:0; animation:pulse .8s infinite; }
+  #me { bottom:calc(12px + env(safe-area-inset-bottom)); left:10px; padding:9px 13px; font-size:13px; font-weight:800; pointer-events:none;
     font-variant-numeric:tabular-nums; }
-  #me .streak { color:var(--gold); font-weight:800; }
   #room { bottom:calc(12px + env(safe-area-inset-bottom)); right:10px; display:flex; gap:8px; pointer-events:auto; align-items:center; }
-  #room button { pointer-events:auto; cursor:pointer; border:1px solid #ffffff2e; background:linear-gradient(135deg,#7c3aed,#4f46e5);
-    color:#fff; border-radius:12px; padding:10px 15px; font-weight:800; font-size:14px; min-height:44px; }
-  #room button.ghost { background:rgba(255,255,255,.08); }
+  #room button { pointer-events:auto; cursor:pointer; border:2px solid var(--line); box-shadow:var(--shadow);
+    background:var(--panel); color:var(--ink); border-radius:14px; padding:10px 15px; font-weight:800; font-size:14px; min-height:44px;
+    font-family:Fredoka,sans-serif; }
+  #room button:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  #dashBtn { background:var(--gold) !important; }
+  #fireBtn { background:var(--rasp) !important; color:#fff !important; }
   #emotesToggle { display:none; } /* mobile drawer toggle only */
   #emotes { bottom:calc(66px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); display:flex; gap:7px; pointer-events:auto; }
-  #emotes button { cursor:pointer; font-size:19px; background:var(--panel); border:1px solid var(--line);
+  #emotes button { cursor:pointer; font-size:19px; background:var(--panel); border:2px solid var(--line); box-shadow:2px 2px 0 var(--ink);
     border-radius:999px; width:42px; height:42px; }
   #coach { bottom:calc(122px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); padding:9px 18px;
-    font-weight:800; font-size:14px; pointer-events:none; border-color:rgba(255,233,60,.55);
+    font-weight:800; font-size:14px; pointer-events:none; background:var(--ink); color:#fff; border-color:var(--ink);
     white-space:nowrap; max-width:94vw; overflow:hidden; text-overflow:ellipsis; }
   #minimap { position:fixed; right:10px; bottom:calc(66px + env(safe-area-inset-bottom)); width:116px; height:116px;
-    border-radius:14px; border:1px solid var(--line); background:rgba(12,14,32,.6); z-index:5; }
-  #hint { position:fixed; bottom:calc(116px + env(safe-area-inset-bottom)); width:100%; text-align:center; font-size:12px;
-    opacity:.55; pointer-events:none; z-index:5; }
+    border-radius:14px; border:2px solid var(--line); box-shadow:var(--shadow); background:#FFEFC7; z-index:5; }
+  #hint { position:fixed; bottom:calc(116px + env(safe-area-inset-bottom)); width:100%; text-align:center; font-size:12px; font-weight:700;
+    color:var(--ink-soft); pointer-events:none; z-index:5; }
   #banner { position:fixed; top:22%; width:100%; text-align:center; z-index:9; display:none; pointer-events:none; }
-  #banner .inner { display:inline-block; background:rgba(20,12,4,.88); border:1px solid var(--gold); border-radius:18px;
-    padding:16px 30px; box-shadow:0 0 40px #fbbf2455; }
-  #banner h2 { font-size:26px; }
-  #banner p { font-size:13px; opacity:.85; margin-top:6px; }
+  #banner .inner { display:inline-block; background:var(--gold); border:2px solid var(--line); border-radius:20px;
+    padding:16px 30px; box-shadow:4px 4px 0 var(--ink); }
+  #banner h2 { font-family:Fredoka,sans-serif; font-size:26px; }
+  #banner p { font-size:13px; font-weight:700; margin-top:6px; }
+  /* ---------- menu / landing ---------- */
   #menu { position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; padding:16px;
-    background:radial-gradient(900px 500px at 50% 12%, #3b1a5ed9, #140a24f2), #140a24; overflow-y:auto; }
-  #menu .card { text-align:center; padding:26px 22px; max-width:520px; width:100%; }
-  .badge { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.1em; color:#03181d;
-    background:linear-gradient(90deg,var(--cyan),var(--pink)); border-radius:999px; padding:6px 14px; margin-bottom:12px; }
-  #menu h1 { font-size:54px; line-height:.95; margin-bottom:10px; font-weight:900; font-style:italic;
-    font-family:ui-rounded,"SF Pro Rounded","Segoe UI",Trebuchet MS,sans-serif; transform:rotate(-2deg);
-    color:#FFFDF5; -webkit-text-stroke:2px #fff; text-shadow:0 4px 0 #2A1740, 0 0 34px #e879f988; }
-  #menu .sub { opacity:.85; margin-bottom:12px; font-size:14px; }
-  .chips { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
-  .chips span { font-size:12px; background:#ffffff10; border:1px solid var(--line); border-radius:999px; padding:5px 11px; }
-  #menu input { pointer-events:auto; width:100%; padding:13px; border-radius:12px; border:1px solid #ffffff2e;
-    background:#ffffff0d; color:#fff; font-size:17px; text-align:center; margin-bottom:10px; }
+    background:var(--bg); overflow-y:auto;
+    background-image:radial-gradient(rgba(43,33,68,.10) 2px, transparent 2.4px);
+    background-size:26px 26px; }
+  #menu .card { text-align:center; padding:26px 22px; max-width:560px; width:100%; background:var(--paper);
+    border:3px solid var(--line); border-radius:28px; box-shadow:6px 6px 0 var(--ink); }
+  .badge { display:inline-block; font-family:Fredoka,sans-serif; font-size:12px; font-weight:600; letter-spacing:.08em; color:#fff;
+    background:var(--rasp); border:2px solid var(--line); border-radius:999px; padding:6px 14px; margin-bottom:12px;
+    box-shadow:2px 2px 0 var(--ink); }
+  #menu h1 { font-family:Fredoka,"Arial Rounded MT Bold",sans-serif; font-size:58px; line-height:.95; margin-bottom:8px; font-weight:700;
+    color:var(--rasp); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill;
+    text-shadow:4px 4px 0 var(--gold); transform:rotate(-2deg); letter-spacing:.01em; }
+  #menu .sub { color:var(--ink-soft); font-weight:700; margin-bottom:12px; font-size:14px; }
+  /* signature: sticker-bomb mascot diorama */
+  .diorama { display:flex; align-items:flex-end; justify-content:center; gap:6px; margin:2px 0 10px; min-height:118px; }
+  .diorama svg { overflow:visible; filter:drop-shadow(3px 3px 0 rgba(43,33,68,.9)); }
+  .mochi { transform-origin:50% 90%; animation:squish 1.6s ease-in-out infinite; }
+  .mochi.m2 { animation-delay:-.5s; } .mochi.m3 { animation-delay:-1s; }
+  @keyframes squish { 0%,100% { transform:scale(1,1); } 30% { transform:scale(1.08,.9); } 55% { transform:scale(.94,1.08) translateY(-8px); } 75% { transform:scale(1.03,.96); } }
+  @media (prefers-reduced-motion:reduce) { .mochi { animation:none; } #nudge.hot, #roundPill.danger { animation:none; } }
+  .ticker { display:inline-block; font-weight:800; font-size:12px; background:var(--mint); color:#fff;
+    border:2px solid var(--line); border-radius:999px; padding:5px 14px; margin-bottom:12px; box-shadow:2px 2px 0 var(--ink); }
+  .howto { display:flex; gap:8px; justify-content:center; margin-bottom:14px; flex-wrap:wrap; }
+  .howto div { flex:1 1 120px; max-width:150px; background:#fff; border:2px solid var(--line); border-radius:14px;
+    padding:8px 6px; font-size:12px; font-weight:800; box-shadow:var(--shadow); }
+  .howto b { display:block; font-family:Fredoka,sans-serif; font-size:13px; margin-bottom:2px; }
+  #menu input { pointer-events:auto; width:100%; padding:13px; border-radius:14px; border:2px solid var(--line);
+    background:#fff; color:var(--ink); font-size:17px; font-weight:700; text-align:center; margin-bottom:10px; font-family:Nunito,sans-serif; }
+  #menu input::placeholder { color:#a79fc4; }
   #menu .row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
-  #menu .row button { pointer-events:auto; cursor:pointer; border:none; border-radius:12px; padding:14px 26px;
-    font-weight:900; font-size:17px; color:#fff; background:linear-gradient(135deg,#06b6d4,#8b5cf6 60%,#d946ef); min-height:52px;
-    box-shadow:0 6px 30px #8b5cf666; }
-  #menu .row button.ghost { background:#ffffff12; border:1px solid #ffffff2e; box-shadow:none; font-size:15px; }
-  #menuMeta { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; font-size:12px; }
-  #menuMeta span { background:#ffffff0c; border:1px solid var(--line); padding:6px 12px; border-radius:999px; font-variant-numeric:tabular-nums; }
-  #roomLabel { margin-top:10px; font-size:12px; opacity:.75; }
-  #inviteCta { margin-top:10px; font-size:13px; color:var(--cyan); cursor:pointer; pointer-events:auto; font-weight:700; }
-  #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:#00000088; padding:16px; }
-  #dead .card { background:#14142bee; border:1px solid var(--line); padding:24px 30px; border-radius:18px; text-align:center; max-width:340px; }
-  #dead button { margin-top:12px; border:none; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff;
-    border-radius:12px; padding:12px 22px; font-weight:800; font-size:15px; cursor:pointer; min-height:48px; }
+  #menu .row button { pointer-events:auto; cursor:pointer; border:2px solid var(--line); box-shadow:var(--shadow); border-radius:14px; padding:14px 26px;
+    font-weight:600; font-size:18px; font-family:Fredoka,sans-serif; color:#fff; background:var(--rasp); min-height:52px; }
+  #menu .row button:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  #menu .row button.ghost { background:#fff; color:var(--ink); font-size:15px; }
+  #menuMeta { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; font-size:12px; font-weight:800; }
+  #menuMeta span { background:#fff; border:2px solid var(--line); box-shadow:2px 2px 0 var(--ink); padding:6px 12px; border-radius:999px; font-variant-numeric:tabular-nums; }
+  #roomLabel { margin-top:10px; font-size:12px; font-weight:700; color:var(--ink-soft); }
+  #inviteCta { margin-top:10px; font-size:13px; color:var(--rasp); cursor:pointer; pointer-events:auto; font-weight:800; }
+  #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:rgba(43,33,68,.35); padding:16px; }
+  #dead .card { background:var(--paper); border:3px solid var(--line); box-shadow:6px 6px 0 var(--ink); padding:24px 30px; border-radius:22px; text-align:center; max-width:340px; }
+  #dead h2 { font-family:Fredoka,sans-serif; }
+  #dead p { font-weight:700; color:var(--ink-soft); margin-top:6px; }
+  #dead button { margin-top:12px; border:2px solid var(--line); box-shadow:var(--shadow); background:var(--rasp); color:#fff;
+    border-radius:14px; padding:12px 22px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; min-height:48px; }
+  #shareBtn { margin-top:8px; width:100%; background:#fff !important; color:var(--ink) !important; }
   @media (max-width:640px) {
-    #menu h1 { font-size:40px; }
+    #menu h1 { font-size:42px; }
     #leaders { min-width:128px; padding:8px 10px; }
     #leaders div { font-size:12px; }
     #feed { max-width:52vw; }
@@ -106,6 +136,7 @@
     #emotes button { width:46px; height:46px; }
     #room button { min-height:48px; }
     #me { font-size:12px; max-width:44vw; }
+    .diorama { min-height:96px; }
   }
 </style>
 </head>
@@ -127,16 +158,58 @@
 <div class="hud" id="emotes"></div>
 <div class="hud pill" id="coach" style="display:none"></div>
 <canvas id="minimap" width="116" height="116"></canvas>
-<div id="hint">Mouse / WASD / drag to move · Space to dash · Click / F to fire · 3-min rounds — biggest blob takes the crown</div>
+<div id="hint">Drag / WASD to wobble · Space to dash · Click to splat · biggest mochi takes the crown</div>
 <div id="banner"><div class="inner"><h2 id="bannerTitle">🏆</h2><p id="bannerSub"></p></div></div>
 <div id="menu">
   <div class="card">
-    <div style="font-size:52px;letter-spacing:-6px;filter:drop-shadow(0 6px 0 #2A1740)">💗💛💚</div>
+    <div class="diorama" aria-hidden="true">
+      <svg class="mochi m1" width="86" height="96" viewBox="0 0 86 96">
+        <ellipse cx="43" cy="52" rx="34" ry="36" fill="#E84393" stroke="#2B2144" stroke-width="4"/>
+        <rect x="22" y="30" width="12" height="5" rx="2.5" fill="#FFC93C" transform="rotate(-24 28 32)"/>
+        <rect x="52" y="36" width="12" height="5" rx="2.5" fill="#2FA8E0" transform="rotate(20 58 38)"/>
+        <rect x="36" y="62" width="12" height="5" rx="2.5" fill="#00C2A8" transform="rotate(-12 42 64)"/>
+        <ellipse cx="28" cy="56" rx="6" ry="4" fill="#F9A8D4"/>
+        <ellipse cx="58" cy="56" rx="6" ry="4" fill="#F9A8D4"/>
+        <circle cx="34" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="52" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="35.5" cy="46.5" r="1.5" fill="#fff"/>
+        <circle cx="53.5" cy="46.5" r="1.5" fill="#fff"/>
+        <path d="M36 60 Q43 66 50 60" stroke="#2B2144" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <svg class="mochi m2" width="104" height="116" viewBox="0 0 86 96">
+        <ellipse cx="43" cy="52" rx="34" ry="36" fill="#FFC93C" stroke="#2B2144" stroke-width="4"/>
+        <rect x="24" y="28" width="12" height="5" rx="2.5" fill="#E84393" transform="rotate(18 30 30)"/>
+        <rect x="50" y="60" width="12" height="5" rx="2.5" fill="#2FA8E0" transform="rotate(-20 56 62)"/>
+        <ellipse cx="28" cy="56" rx="6" ry="4" fill="#F6AD55"/>
+        <ellipse cx="58" cy="56" rx="6" ry="4" fill="#F6AD55"/>
+        <circle cx="34" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="52" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="35.5" cy="46.5" r="1.5" fill="#fff"/>
+        <circle cx="53.5" cy="46.5" r="1.5" fill="#fff"/>
+        <ellipse cx="43" cy="62" rx="6" ry="7.5" fill="#2B2144"/>
+        <path d="M28 22 L32 10 L38 19 L43 8 L48 19 L54 10 L58 22 Z" fill="#FFC93C" stroke="#2B2144" stroke-width="3" stroke-linejoin="round"/>
+      </svg>
+      <svg class="mochi m3" width="72" height="82" viewBox="0 0 86 96">
+        <ellipse cx="43" cy="52" rx="34" ry="36" fill="#00C2A8" stroke="#2B2144" stroke-width="4"/>
+        <rect x="30" y="34" width="12" height="5" rx="2.5" fill="#fff" transform="rotate(-18 36 36)"/>
+        <rect x="48" y="52" width="12" height="5" rx="2.5" fill="#FFC93C" transform="rotate(24 54 54)"/>
+        <circle cx="34" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="52" cy="48" r="4.5" fill="#2B2144"/>
+        <circle cx="35.5" cy="46.5" r="1.5" fill="#fff"/>
+        <circle cx="53.5" cy="46.5" r="1.5" fill="#fff"/>
+        <path d="M36 59 Q43 64 50 59" stroke="#2B2144" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="badge">⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS</div>
-    <h1>BLOB<br/>ARENA</h1>
-    <p class="sub">Eat. Dash. Fire orbs. Streak. Get crowned before the clock hits zero.<br/>Full-3D arena — no signup, playing in under 5 seconds.</p>
-    <div class="chips"><span>✨ FULL 3D</span><span>👥 25-player FFA</span><span>⚡ dash physics</span><span>🔥 fire orbs</span><span>👹 hunters</span><span>🔥 kill streaks</span></div>
-    <input id="name" maxlength="14" placeholder="your blob name…" autocomplete="off" />
+    <h1>MOCHI<br/>PANIC</h1>
+    <p class="sub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
+    <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
+    <div class="howto">
+      <div><b>1 · Munch 🍩</b>Eat dots, outgrow rivals</div>
+      <div><b>2 · Dash ⚡ Splat 🔥</b>Burst &amp; blast back</div>
+      <div><b>3 · Crown 👑</b>Biggest when ⏱ hits 0 wins</div>
+    </div>
+    <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" />
     <div class="row">
       <button id="play">▶ &nbsp;PLAY NOW</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
@@ -146,7 +219,7 @@
     <p id="inviteCta">🔗 heads-up: copy your invite link BEFORE the round ends — friends land straight in</p>
   </div>
 </div>
-<div id="dead"><div class="card"><h2 id="deadTitle">💥 Eaten!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn" style="margin-top:8px;width:100%;background:#ffffff14;border:1px solid #ffffff2e;color:#fff;border-radius:12px;padding:12px 22px;font-weight:800;font-size:15px;cursor:pointer;min-height:48px">📤 Share score</button></div></div>
+<div id="dead"><div class="card"><h2 id="deadTitle">💥 Splatted!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn">📤 Share score</button></div></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

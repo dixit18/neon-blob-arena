@@ -2,46 +2,73 @@
 // world (x, y) maps to three (x, 0, z=y). Presentation only — never gameplay.
 import * as THREE from 'three';
 
-export const GUMMY3D = ['#E35BB0', '#F5A623', '#2ED9A3', '#2FA8E0', '#9B6BF3', '#F2622E'];
-const GUMMY_H = [335, 42, 155, 200, 265, 18];
-export function gummyIdx(hue: number): number {
+export const MOCHI3D = ['#E84393', '#FB9039', '#00C2A8', '#2FA8E0', '#8B5CF6', '#FFC93C'];
+const MOCHI_H = [335, 25, 170, 200, 262, 48];
+const INK = '#2B2144'; // die-cut outline + features (reads on cream)
+export function mochiIdx(hue: number): number {
   let bi = 0, bd = 1e9;
-  for (let i = 0; i < GUMMY_H.length; i++) {
-    const d = Math.min(Math.abs(GUMMY_H[i] - hue), 360 - Math.abs(GUMMY_H[i] - hue));
+  for (let i = 0; i < MOCHI_H.length; i++) {
+    const d = Math.min(Math.abs(MOCHI_H[i] - hue), 360 - Math.abs(MOCHI_H[i] - hue));
     if (d < bd) { bd = d; bi = i; }
   }
   return bi;
 }
 
-// ---- baked sprites (zero per-frame canvas work) ----
+// ---- baked faces: ink features + sprinkle toppings by tier (zero per-frame cost) ----
+const SPRINKLES = ['#E84393', '#2FA8E0', '#FFC93C', '#00C2A8', '#ffffff'];
+function sprinkle(g: CanvasRenderingContext2D, x: number, y: number, rot: number, color: string) {
+  g.save();
+  g.translate(x, y); g.rotate(rot);
+  g.fillStyle = color;
+  g.fillRect(-7, -2.5, 14, 5);
+  g.restore();
+}
 function faceCanvas(face: number): HTMLCanvasElement {
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#2A1740'; g.strokeStyle = '#2A1740'; g.lineCap = 'round';
+  g.fillStyle = INK; g.strokeStyle = INK; g.lineCap = 'round';
   if (face <= 1) {
     const r = face === 0 ? 9 : 10;
     g.beginPath(); g.arc(48, 56, r, 0, 7); g.arc(80, 56, r, 0, 7); g.fill();
-    g.lineWidth = 6;
+    g.fillStyle = '#fff';
+    g.beginPath(); g.arc(51, 53, 3, 0, 7); g.arc(83, 53, 3, 0, 7); g.fill();
+    g.strokeStyle = INK; g.lineWidth = 6;
     g.beginPath(); g.arc(64, 74, 15, 0.3, Math.PI - 0.3); g.stroke();
     if (face === 1) {
-      g.fillStyle = '#FF4E7E';
-      g.beginPath(); g.arc(30, 78, 9, 0, 7); g.arc(98, 78, 9, 0, 7); g.fill();
+      g.fillStyle = '#F9A8D4'; // baked dot blush
+      for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 3; xx++) {
+        g.fillRect(24 + xx * 5, 72 + yy * 5, 3, 3);
+        g.fillRect(92 + xx * 5, 72 + yy * 5, 3, 3);
+      }
+      sprinkle(g, 40, 30, -0.4, SPRINKLES[1]);
+      sprinkle(g, 90, 34, 0.5, SPRINKLES[2]);
     }
   } else if (face === 2) {
     g.beginPath(); g.arc(47, 52, 10, 0, 7); g.arc(81, 52, 10, 0, 7); g.fill();
-    g.fillStyle = '#FF4E7E';
-    g.beginPath(); g.arc(32, 74, 10, 0, 7); g.arc(96, 74, 10, 0, 7); g.fill();
-    g.fillStyle = '#2A1740';
+    g.fillStyle = '#fff';
+    g.beginPath(); g.arc(50, 49, 3, 0, 7); g.arc(84, 49, 3, 0, 7); g.fill();
+    g.fillStyle = '#F9A8D4';
+    for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 4; xx++) {
+      g.fillRect(22 + xx * 5, 70 + yy * 5, 3, 3);
+      g.fillRect(90 + xx * 5, 70 + yy * 5, 3, 3);
+    }
+    g.fillStyle = INK;
     g.beginPath(); g.ellipse(64, 84, 10, 13, 0, 0, 7); g.fill();
+    sprinkle(g, 34, 28, 0.4, SPRINKLES[0]);
+    sprinkle(g, 64, 22, -0.2, SPRINKLES[2]);
+    sprinkle(g, 94, 30, 0.7, SPRINKLES[3]);
   } else {
     g.lineWidth = 9;
     g.beginPath(); g.moveTo(32, 34); g.lineTo(54, 46); g.stroke();
     g.beginPath(); g.moveTo(96, 34); g.lineTo(74, 46); g.stroke();
-    g.fillStyle = '#2A1740';
+    g.fillStyle = INK;
     g.beginPath(); g.arc(49, 62, 10, 0, 7); g.arc(79, 62, 10, 0, 7); g.fill();
     g.fillStyle = '#fff';
     g.beginPath(); g.moveTo(42, 82); g.lineTo(54, 82); g.lineTo(48, 96); g.fill();
     g.beginPath(); g.moveTo(74, 82); g.lineTo(86, 82); g.lineTo(80, 96); g.fill();
+    sprinkle(g, 30, 60, 0.5, SPRINKLES[2]);
+    sprinkle(g, 98, 58, -0.5, SPRINKLES[0]);
+    sprinkle(g, 64, 24, 0.2, SPRINKLES[1]);
   }
   return c;
 }
@@ -49,10 +76,10 @@ function faceCanvas(face: number): HTMLCanvasElement {
 function nameCanvas(name: string, hunter: boolean): HTMLCanvasElement {
   const c = document.createElement('canvas'); c.width = 256; c.height = 64;
   const g = c.getContext('2d')!;
-  g.font = '800 30px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.lineWidth = 7; g.strokeStyle = '#140A1E';
+  g.font = '800 30px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 8; g.strokeStyle = '#ffffff';
   g.strokeText(name.slice(0, 14), 128, 32);
-  g.fillStyle = hunter ? '#FF8080' : '#FFFDF5';
+  g.fillStyle = hunter ? '#E84393' : INK;
   g.fillText(name.slice(0, 14), 128, 32);
   return c;
 }
@@ -70,12 +97,13 @@ function dotTexture(): THREE.CanvasTexture {
 function floorTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#170E22'; g.fillRect(0, 0, 256, 256);
-  g.strokeStyle = 'rgba(139,92,246,.20)'; g.lineWidth = 2;
+  g.fillStyle = '#FFF1D4'; g.fillRect(0, 0, 256, 256); // cream picnic blanket
+  g.strokeStyle = 'rgba(232,67,147,.28)'; g.lineWidth = 3; // raspberry gingham
   g.strokeRect(1, 1, 254, 254);
-  g.fillStyle = 'rgba(255,255,255,.10)';
-  g.beginPath(); g.arc(64, 200, 3, 0, 7); g.arc(200, 80, 2.5, 0, 7); g.fill();
-  g.strokeStyle = 'rgba(255,233,60,.30)'; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(128, 0); g.lineTo(128, 256); g.moveTo(0, 128); g.lineTo(256, 128); g.stroke();
+  g.fillStyle = 'rgba(47,168,224,.35)';
+  g.beginPath(); g.arc(64, 200, 4, 0, 7); g.arc(200, 80, 3.5, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(251,144,57,.55)'; g.lineWidth = 3;
   g.beginPath();
   for (let i = 0; i < 5; i++) {
     const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
@@ -108,10 +136,10 @@ export class World3D {
   private blobs = new Map<string, THREE.Group>();
   private blobMats: THREE.MeshStandardMaterial[] = [];
   private hullGeo = new THREE.SphereGeometry(1, 24, 18);
-  private hullMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF', side: THREE.BackSide });
+  private hullMat = new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide }); // ink die-cut outline
   private faceTex: THREE.CanvasTexture[] = [];
   private shadowGeo = new THREE.CircleGeometry(1, 24);
-  private shadowMat = new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.35, depthWrite: false });
+  private shadowMat = new THREE.MeshBasicMaterial({ color: '#2B2144', transparent: true, opacity: 0.22, depthWrite: false });
   private seenPool = new Set<string>(); // hoisted per-frame membership (no alloc)
   private seenOrbPool = new Set<number>(); // hoisted orb membership (no alloc)
   private pellets!: THREE.InstancedMesh;
@@ -140,72 +168,72 @@ export class World3D {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.12;
-    this.scene.background = new THREE.Color('#0d0618');
-    this.scene.fog = new THREE.Fog('#0d0618', 1700, 5200);
+    this.renderer.toneMappingExposure = 1.0;
+    this.scene.background = new THREE.Color('#BDE6FB'); // soda-sky day
+    this.scene.fog = new THREE.Fog('#BDE6FB', 1700, 5200);
     this.camera = new THREE.PerspectiveCamera(55, 1, 1, 14000);
     this.camera.position.set(0, 950, 640);
 
-    this.scene.add(new THREE.HemisphereLight('#B78CFF', '#140A24', 1.15));
-    const dir = new THREE.DirectionalLight('#ffffff', 1.7);
+    this.scene.add(new THREE.HemisphereLight('#FFF4DE', '#E8B4D8', 0.95));
+    const dir = new THREE.DirectionalLight('#ffffff', 1.25);
     dir.position.set(1000, 2200, 600);
     this.scene.add(dir);
-    const rim = new THREE.DirectionalLight('#22D3EE', 0.55);
+    const rim = new THREE.DirectionalLight('#2FA8E0', 0.4);
     rim.position.set(-1400, 900, -1200);
     this.scene.add(rim);
     this.flash.position.set(2000, 700, 2000);
     this.scene.add(this.flash);
 
-    // starfield dome (1 draw call, zero per-frame cost)
+    // confetti sky (1 draw call, zero per-frame cost) — candy dots over soda-sky
     {
-      const N = 700;
+      const N = 420;
       const pos = new Float32Array(N * 3);
       const col = new Float32Array(N * 3);
       const c = new THREE.Color();
       for (let i = 0; i < N; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 5200 + Math.random() * 2600;
-        const y = 900 + Math.random() * 3200;
+        const r = 3000 + Math.random() * 2800;
+        const y = 500 + Math.random() * 2000;
         pos[i * 3] = 2000 + Math.cos(a) * r;
         pos[i * 3 + 1] = y;
         pos[i * 3 + 2] = 2000 + Math.sin(a) * r;
-        c.set(Math.random() < 0.75 ? '#B78CFF' : '#22D3EE').multiplyScalar(0.35 + Math.random() * 0.65);
+        c.set(MOCHI3D[i % MOCHI3D.length]);
         col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
       }
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-      const stars = new THREE.Points(g, new THREE.PointsMaterial({
-        size: 26, vertexColors: true, map: dotTexture(), transparent: true,
-        opacity: 0.85, depthWrite: false, sizeAttenuation: true,
+      const confetti = new THREE.Points(g, new THREE.PointsMaterial({
+        size: 15, vertexColors: true, map: dotTexture(), transparent: true,
+        opacity: 0.9, depthWrite: false, sizeAttenuation: true,
       }));
-      stars.frustumCulled = false;
-      this.scene.add(stars);
+      confetti.frustumCulled = false;
+      this.scene.add(confetti);
     }
 
     // floor + candy walls
     this.floorTex = floorTexture();
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(4000, 4000),
-      new THREE.MeshStandardMaterial({ map: this.floorTex, roughness: 0.85, metalness: 0.05 }),
+      new THREE.MeshStandardMaterial({ map: this.floorTex, roughness: 0.9, metalness: 0 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.set(2000, 0, 2000);
     this.scene.add(floor);
-    // neon grid shimmer above the floor (cheap lines, huge depth cue)
-    const grid = new THREE.GridHelper(4000, 40, '#22D3EE', '#8B5CF6');
+    // candy grid shimmer above the floor (cheap lines, huge depth cue)
+    const grid = new THREE.GridHelper(4000, 40, '#E84393', '#2FA8E0');
     (grid.material as THREE.Material).transparent = true;
-    ((grid.material as unknown as { opacity: number }).opacity as number) = 0.14;
+    ((grid.material as unknown as { opacity: number }).opacity as number) = 0.22;
     grid.position.set(2000, 1.2, 2000);
     this.scene.add(grid);
-    // corner pylons: 4 emissive towers = instant 3D landmarking
+    // corner pylons: 4 candy towers = instant 3D landmarking
     const pylonGeo = new THREE.CylinderGeometry(26, 40, 420, 10);
-    const pylonCols = ['#E35BB0', '#22D3EE', '#FFE93C', '#2ED9A3'];
+    const pylonCols = ['#E84393', '#2FA8E0', '#FFC93C', '#00C2A8'];
     for (let i = 0; i < 4; i++) {
       const px = i % 2 === 0 ? -60 : 4060;
       const pz = i < 2 ? -60 : 4060;
       const mat = new THREE.MeshStandardMaterial({
-        color: '#140A24', emissive: pylonCols[i], emissiveIntensity: 1.4, roughness: 0.4,
+        color: '#FFFDF6', emissive: pylonCols[i], emissiveIntensity: 0.9, roughness: 0.5,
       });
       const py = new THREE.Mesh(pylonGeo, mat);
       py.position.set(px, 210, pz);
@@ -217,7 +245,7 @@ export class World3D {
       cap.position.set(px, 440, pz);
       this.scene.add(cap);
     }
-    const wallMat = new THREE.MeshStandardMaterial({ color: '#3a3200', emissive: '#FFE93C', emissiveIntensity: 0.9, roughness: 0.4 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: '#FFFDF6', emissive: '#FB9039', emissiveIntensity: 0.55, roughness: 0.5 });
     const mkWall = (w: number, d: number, x: number, z: number) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, 70, d), wallMat);
       m.position.set(x, 35, z);
@@ -226,9 +254,9 @@ export class World3D {
     mkWall(4040, 20, 2000, -10); mkWall(4040, 20, 2000, 4010);
     mkWall(20, 4040, -10, 2000); mkWall(20, 4040, 4010, 2000);
 
-    // body materials per gummy hue (emissive pop so blobs read on dark plum)
-    this.blobMats = GUMMY3D.map((col) => new THREE.MeshStandardMaterial({
-      color: col, emissive: col, emissiveIntensity: 0.38, roughness: 0.3, metalness: 0.08,
+    // body materials per mochi hue (soft emissive so bodies glow on cream)
+    this.blobMats = MOCHI3D.map((col) => new THREE.MeshStandardMaterial({
+      color: col, emissive: col, emissiveIntensity: 0.22, roughness: 0.35, metalness: 0.05,
     }));
     for (let f = 0; f < 4; f++) {
       const t = new THREE.CanvasTexture(faceCanvas(f));
@@ -236,16 +264,16 @@ export class World3D {
       this.faceTex.push(t);
     }
 
-    // pellets: instanced gummy domes (Basic = bright + cheap, no per-light cost)
+    // pellets: instanced mochi drops (Basic = bright + cheap, no per-light cost)
     const pelletGeo = new THREE.SphereGeometry(1, 10, 8);
     this.pellets = new THREE.InstancedMesh(pelletGeo, new THREE.MeshBasicMaterial({ toneMapped: false }), MAXP);
     this.pellets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     for (let i = 0; i < MAXP; i++) this.pellets.setColorAt(i, this.tmpColor.set('#ffffff'));
     this.scene.add(this.pellets);
 
-    // orbs: instanced burning shots (additive = hot glow, still 1 draw call)
+    // orbs: instanced splat-shots (solid hot cores — additive washes out on cream)
     this.orbs = new THREE.InstancedMesh(pelletGeo, new THREE.MeshBasicMaterial({
-      toneMapped: false, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false,
+      toneMapped: false, transparent: true, opacity: 0.95, depthWrite: false,
     }), MAXO);
     this.orbs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     for (let i = 0; i < MAXO; i++) this.orbs.setColorAt(i, this.tmpColor.set('#ffffff'));
@@ -257,7 +285,7 @@ export class World3D {
     pg.setAttribute('color', new THREE.BufferAttribute(this.ptCol, 3).setUsage(THREE.DynamicDrawUsage));
     this.pts = new THREE.Points(pg, new THREE.PointsMaterial({
       size: 11, vertexColors: true, map: dotTexture(), transparent: true,
-      opacity: 0.95, depthWrite: false, sizeAttenuation: true, blending: THREE.AdditiveBlending,
+      opacity: 0.95, depthWrite: false, sizeAttenuation: true,
     }));
     this.pts.frustumCulled = false;
     this.scene.add(this.pts);
@@ -367,7 +395,7 @@ export class World3D {
     for (const p of v.players) {
       seen.add(p.id);
       let grp = this.blobs.get(p.id);
-      const gi = gummyIdx(p.hue);
+      const gi = mochiIdx(p.hue);
       if (!grp) {
         grp = new THREE.Group();
         const hull = new THREE.Mesh(this.hullGeo, this.hullMat);
@@ -475,7 +503,7 @@ export class World3D {
     if (!hasMe) this.youRing.visible = false;
     if (!meShielded) this.shieldShell.visible = false;
 
-    // pellets (instanced gummy domes with a gentle bob)
+    // pellets (instanced mochi drops with a gentle bob)
     const np = Math.min(MAXP, v.pellets.length);
     for (let i = 0; i < np; i++) {
       const pl = v.pellets[i];
@@ -484,7 +512,7 @@ export class World3D {
       this.dummy.rotation.set(0, 0, 0);
       this.dummy.updateMatrix();
       this.pellets.setMatrixAt(i, this.dummy.matrix);
-      this.pellets.setColorAt(i, this.tmpColor.set(GUMMY3D[gummyIdx(pl.hue)]));
+      this.pellets.setColorAt(i, this.tmpColor.set(MOCHI3D[mochiIdx(pl.hue)]));
     }
     this.pellets.count = np;
     this.pellets.instanceMatrix.needsUpdate = true;
@@ -506,7 +534,7 @@ export class World3D {
       this.dummy.scale.set(9 + Math.min(22, sp * 0.9), 7, 7);
       this.dummy.updateMatrix();
       this.orbs.setMatrixAt(i, this.dummy.matrix);
-      this.orbs.setColorAt(i, this.tmpColor.set(GUMMY3D[gummyIdx(o.hue)]));
+      this.orbs.setColorAt(i, this.tmpColor.set(MOCHI3D[mochiIdx(o.hue)]));
     }
     for (const k of this.orbPrev.keys()) if (!seenOrb.has(k)) this.orbPrev.delete(k);
     this.orbs.count = no;
@@ -520,7 +548,7 @@ export class World3D {
       this.ptPos[i * 3] = pt.x;
       this.ptPos[i * 3 + 1] = 10 + Math.max(0, pt.life) * 55;
       this.ptPos[i * 3 + 2] = pt.y;
-      this.tmpColor.set(GUMMY3D[gummyIdx(pt.hue)]);
+      this.tmpColor.set(MOCHI3D[mochiIdx(pt.hue)]);
       this.ptCol[i * 3] = this.tmpColor.r;
       this.ptCol[i * 3 + 1] = this.tmpColor.g;
       this.ptCol[i * 3 + 2] = this.tmpColor.b;

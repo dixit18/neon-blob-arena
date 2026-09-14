@@ -281,9 +281,9 @@ function connect(name: string) {
       sfx('die');
       buzz([40, 40, 80]);
       spectateId = null;
-      el('deadTitle').textContent = '💥 Eaten!';
+      el('deadTitle').textContent = '💥 Splatted!';
       void uiDeathIn();
-      el('deadSub').textContent = `Eaten by ${m.by}. Spectating…`;
+      el('deadSub').textContent = `Splatted by ${m.by}. Spectating…`;
       if (me.score > best && me.score > 0) {
         best = Math.floor(me.score);
         localStorage.setItem('blob-best', String(best));
@@ -395,7 +395,12 @@ function onSnap(s: Snap) {
     const meHtml = `🟣${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms · ${me.dashReady ? '⚡' : '…'}`;
     if (meHtml !== lastMeHtml) { lastMeHtml = meHtml; el('me').textContent = meHtml; }
     const pcTxt = `${s.players.length + 1} online`;
-    if (pcTxt !== lastPcount) { lastPcount = pcTxt; el('pcount').textContent = pcTxt; }
+    if (pcTxt !== lastPcount) {
+      lastPcount = pcTxt;
+      el('pcount').textContent = pcTxt;
+      const hero = document.getElementById('pcountHero');
+      if (hero) hero.textContent = pcTxt; // landing ticker mirrors live count
+    }
     // round urgency pill
     const mm = Math.floor(s.round / 60), ss = String(s.round % 60).padStart(2, '0');
     const pill = el('roundPill');
@@ -547,15 +552,15 @@ function frame(now: number) {
 
 function drawMini() {
   mctx.clearRect(0, 0, 120, 120);
-  mctx.fillStyle = '#ffffff10'; mctx.fillRect(0, 0, 120, 120);
   const k = 120 / WORLD;
-  mctx.fillStyle = '#4ade80';
+  mctx.fillStyle = '#E84393';
   const pn = Math.min(120, pellets.length);
   for (let i = 0; i < pn; i++) { const p = pellets[i]; mctx.fillRect(p.x * k, p.y * k, 1.5, 1.5); }
-  mctx.fillStyle = '#f472b6';
+  mctx.fillStyle = '#2B2144';
   for (const [id] of remotes) mctx.fillRect(renderX(id) * k - 1, renderY(id) * k - 1, 2.5, 2.5);
   mctx.fillStyle = '#fff';
-  mctx.beginPath(); mctx.arc(me.x * k, me.y * k, 3, 0, 7); mctx.fill();
+  mctx.beginPath(); mctx.arc(me.x * k, me.y * k, 3.5, 0, 7); mctx.fill();
+  mctx.strokeStyle = '#2B2144'; mctx.lineWidth = 1.2; mctx.stroke();
 }
 // single loop instance: hidden tabs pause (GPU idles), HMR kills the stale loop
 kickLoop();
@@ -570,21 +575,21 @@ viteHot?.dispose(() => { loopLive = false; });
 function shareCard() {
   const c = document.createElement('canvas'); c.width = 600; c.height = 380;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#1E1033'; g.fillRect(0, 0, 600, 380);
-  g.strokeStyle = '#FFE93C'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
+  g.fillStyle = '#FFF4DE'; g.fillRect(0, 0, 600, 380);
+  g.strokeStyle = '#2B2144'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
   g.textAlign = 'center';
-  g.fillStyle = '#FFFDF5'; g.font = '900 44px sans-serif';
-  g.fillText('BLOB ARENA', 300, 80);
-  g.fillStyle = '#F0ABFC'; g.font = '800 30px sans-serif';
-  g.fillText(`${myName || 'Blob'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
-  g.fillStyle = '#CBBFE0'; g.font = '700 26px sans-serif';
+  g.fillStyle = '#E84393'; g.font = '700 46px Fredoka, sans-serif';
+  g.fillText('MOCHI PANIC', 300, 80);
+  g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
+  g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
+  g.fillStyle = '#5b4f7e'; g.font = '700 26px Nunito, sans-serif';
   g.fillText(`best ${best} · ${LEVELS[myLevel][0]}`, 300, 195);
-  g.fillStyle = '#22D3EE'; g.font = '800 30px sans-serif';
-  g.fillText('revenge me 👇', 300, 250);
-  g.fillStyle = '#FFFDF5'; g.font = '700 24px sans-serif';
+  g.fillStyle = '#00C2A8'; g.font = '800 30px Nunito, sans-serif';
+  g.fillText('come get splatted 👇', 300, 250);
+  g.fillStyle = '#2B2144'; g.font = '700 24px Nunito, sans-serif';
   const link = location.origin + location.pathname + '?room=' + (roomId || 'lobby');
   g.fillText(link.length > 42 ? link.slice(0, 42) + '…' : link, 300, 290);
-  g.fillStyle = '#8b8cf6'; g.font = '700 22px sans-serif';
+  g.fillStyle = '#E84393'; g.font = '700 22px Nunito, sans-serif';
   g.fillText('no signup · 3-min rounds · bots never sleep', 300, 335);
   c.toBlob((blob) => {
     if (!blob) return;
@@ -592,7 +597,7 @@ function shareCard() {
     const file = new File([b], 'blob-arena.png', { type: 'image/png' });
     const nav = navigator as Navigator & { share?: (d: { files?: File[]; title?: string; text?: string }) => Promise<void>; canShare?: (d: { files?: File[] }) => boolean };
     if (nav.canShare?.({ files: [file] }) && nav.share) {
-      nav.share({ files: [file], title: 'Blob Arena', text: `I dropped ${me.score} mass — revenge? ${link}` }).catch(() => download());
+      nav.share({ files: [file], title: 'Mochi Panic', text: `I munched ${me.score} mass — splat me? ${link}` }).catch(() => download());
     } else download();
     function download() {
       const a = document.createElement('a');
@@ -669,7 +674,10 @@ uiPressify('#play');
 uiPressify('#dashBtn');
 uiPressify('#fireBtn');
 
-// preload leaderboard count
+// preload leaderboard count (+ landing ticker)
 fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => {
-  el('pcount').textContent = `${h.players ?? 0} online`;
+  const t = `${h.players ?? 0} online`;
+  el('pcount').textContent = t;
+  const hero = document.getElementById('pcountHero');
+  if (hero) hero.textContent = t;
 }).catch(() => {});
