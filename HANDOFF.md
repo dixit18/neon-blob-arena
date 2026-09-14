@@ -11,6 +11,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   steps 1.5→1.25→1.0 on p95>22ms. USER: play 30s and report `fps/p95` from HUD.
 - Verified: client build green (initial 20.42KB/8.9KB gzip), landing serves 200 with
   all new IDs, combat 23/23 PASS, soak 30/30 @14.2 snaps/s tickAvg 0.3/max 2.3.
+- Deploy fix: Render docker build failed on floating latest-TS (5.9.3 narrowed a
+  literal dev-TS 5.5 accepted in combat.test.ts) + unpinned deps. Fixed test to be
+  narrowing-proof, Dockerfile now `npm ci` from lockfile (pinned, devDeps for
+  compile, prune after). Proven: pinned install → tsc 0 → prune → boot → /health ok.
+  ALSO verified fixed test compiles under floating 5.9.3 (belt + suspenders).
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.

@@ -162,3 +162,23 @@ byte size, ACCEPTED as representative.
 **Riya (receipts):** client build green (initial 20.42KB/8.9KB gzip — still tiny), landing serves 200 with all new IDs, combat 23/23 PASS, soak 30/30 @14.2 snaps/s, tickAvg 0.3/max 2.3. OPEN: user's 30s feel check (report HUD p95!) + 2-tab manual + phone portrait.
 **Vikram (2 flaws):** 1) Google Fonts is a runtime dependency — offline first-paint falls back to system rounded, ACCEPTED (fallback stack specified, no layout shift: same metrics class). 2) governor only helps fill-rate-bound slowness; if user's jitter was network (their WiFi), p95 stays flat and we chase the wrong ghost — ACCEPTED, which is exactly why HUD p95 is now user-visible: flat p95 + felt jitter = network, high p95 = GPU.
 **Kai:** Pushing silently. User: hard-refresh + `.\start-local.ps1 -Restart` for local.
+
+## 2026-09-14 — deploy build fixed (user: "build fails on deploy server")
+**Zara:** Root-caused by reproducing Render's steps locally, not guessing. TWO faults:
+1) Dockerfile installed floating `typescript@latest` (5.9.3) while dev pins 5.5 — 5.9's
+tighter narrowing errors on `victim.alive === false` in combat.test.ts (assignment
+narrowing survives the opaque helper call). Local builds stayed green, deploy red.
+2) `package-lock.json` existed but was never copied — every deploy floated `effect`,
+`neon`, `ws` too. Next breakage was a matter of time.
+**Kai:** Fixes: test uses `!victim.alive` (narrowing-proof on both compilers, with a
+comment so nobody "cleans it up" back), Dockerfile now `COPY package-lock` + `npm ci`
++ compile with devDeps + `npm prune --omit=dev`. Proven thrice: fixed test green under
+floating 5.9.3 AND pinned 5.5, full image flow (ci → tsc 0 → prune → boot → `/health`
+`ok:true`) in a clean room. Runtime behavior unchanged — combat still 23/23.
+**Vikram:** 2 flaws: 1) client Render build still runs plain `npm install` — pinned by
+ITS lockfile today, but one uncommitted lock drift reopens this class, ACCEPTED with a
+standing rule: lockfiles always commit, `npm ci` everywhere automated. 2) no CI gate
+catches "compiles here, dies there" — ACCEPTED for now, the repro recipe above IS the
+manual gate until someone wires GitHub Actions.
+**Riya:** Deploy gate added: any Dockerfile/dependency change must pass the clean-room
+repro (copy package files + src, `npm ci`, `tsc`, boot, `/health`) before push.

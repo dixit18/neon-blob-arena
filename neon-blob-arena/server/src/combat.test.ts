@@ -59,7 +59,10 @@ victim.vx = victim.vy = 0; victim.shieldUntil = 0;
 room.tick += TUNE.ORB_COOLDOWN_TICKS;
 room.tryFire('shooter'); // shooter 24 -> 22
 stepOrbsUntil(() => !victim.alive);
-check('orb-kills', victim.alive === false);
+// NOTE: `!victim.alive`, never `=== false` — TS 5.9 narrows the line-57
+// assignment across the opaque helper call and errors on the literal compare.
+// Deploy builds on floating latest-TS, so test code must be narrowing-proof.
+check('orb-kills', !victim.alive);
 check('kill-credit', shooter.kills === 1 && shooter.streak === 1, `kills=${shooter.kills} streak=${shooter.streak}`);
 check('kill-feed', room.feed.some(f => f.includes('blasted')), `feed0=${room.feed[0] ?? 'empty'}`);
 check('respawn-scheduled', (room.respawns.get('victim') ?? -1) === room.tick + 60);
