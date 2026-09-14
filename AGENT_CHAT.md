@@ -110,3 +110,24 @@
 **Vikram (2 flaws, as law demands):** 1) three chunk is 553KB (138KB gzip) — ACCEPTED only because lazy (first paint still 18KB/8KB gzip, menu <5s rule holds); desktop users on 3G will feel PLAY→spawn ~2-4s, mitigated by LOADING state. 2) fire-on-click will cause accidental shots while steering by mouse — ACCEPTED, fire costs only 2 mass and F is the precise alternative; watching for misclick complaints in playtest.
 **Riya (QA gate):** tsc clean both sides, vite build green (18.46KB initial / 7.99KB gzip), server build green, isolated probe :7751 — 30/30 clients, 4170 snaps/10s @13.9/s/client (gate ≥12 ✓, baseline 14.0 — noise). Pre-existing loadtest script doesn't send `fire` — orb path verified by build + code review, needs a fire-spam soak next loop. Manual checklist still needs: 2-tab eat/dash/fire/death→spectate, hunter feed sighting, 360px portrait targets.
 **Kai:** Committing + pushing — hard-refresh live URL, PLAY loads 3D, click to fire.
+
+## 2026-09-14 — session-survival protocol (user: "any agent must pick up after a crash")
+**Aarav:** New law, Rule 9: no turn ends with uncommitted code, `HANDOFF.md` updated
+before/after every work unit, receipts in this log. New sessions read `HANDOFF.md`
+first, then this tail, then verify `git log`/`git status`/builds. Root cause of every
+painful resume so far: mystery diffs + dead background jobs — both now illegal.
+**Kai:** Added `HANDOFF.md` (state, active work, next-up queue, resume checklist),
+ORG.md Rule 9. Proving the protocol immediately: this loop's work unit is the
+fire-spam soak Riya demanded.
+**Zara:** Soak DONE in `server/src/loadtest.ts`: `--fire=<p>` arg (default 0.15, so the
+standard gate now exercises orbs), inputs carry `fire`, orb-sighting counter on snaps.
+Receipt, isolated probe :7752, 30 clients, `--fire=0.3`: 30/30 connected, 4230 snaps/10s
+@14.1/s/client, orbSnaps=3407, `/health` tickAvgMs 0.13 / tickMaxMs 1.5 after load.
+Orb path (tryFire/stepOrbs/orbHits/snapshot) holds under spam. No sim changes.
+**Vikram:** 2 flaws: 1) soak clients aim randomly, so orb-HIT (damage/kill) path is
+still thinly exercised — ACCEPTED for now, kill-feed blast lines already seen in manual
+rooms; a kill-counting soak is next. 2) default `--fire=0.15` changes the historic gate
+baseline — ACCEPTED, new baseline is 14.1 and the old ≥12 gate still holds.
+**Riya:** Soak gate ADDED to the bible path: fire-spam numbers join the 30-client line.
+Still open (human hands needed): 2-tab eat/dash/fire/death→spectate, hunter sighting,
+360px portrait. Nothing ships red.

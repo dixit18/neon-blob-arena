@@ -52,7 +52,10 @@ Graph: Vision ↔ RedTeam → Nova → Forge + Pixel + Mira → ShipIt → Riya 
 6. RedTeam must find 2 flaws per loop.
 7. Animation law: GSAP lazy-only for DOM UI (menu/banner/overlays); canvas hot loop stays hand-rolled rAF. Client total <150KB.
 8. No stack or art direction ships without Nova/Mira research note + RedTeam cut-list.
+9. Session-survival: no turn ends with uncommitted code (WIP commit if unverified).
+   `HANDOFF.md` is updated before/after every work unit; receipts go to `AGENT_CHAT.md`.
 
 Live chat: see `AGENT_CHAT.md` (append-only, every agent writes).
+Resume state: see `HANDOFF.md` (read first after any session death).
 Decisions: see `DECISION.md`.
 Game: see `neon-blob-arena/`.
