@@ -8,6 +8,7 @@ const InputSchema = Schema.Struct({
   dx: Schema.Number,
   dy: Schema.Number,
   dash: Schema.optional(Schema.Boolean),
+  fire: Schema.optional(Schema.Boolean),
 });
 
 export interface CleanInput {
@@ -15,6 +16,7 @@ export interface CleanInput {
   dx: number;
   dy: number;
   dash: boolean;
+  fire: boolean;
 }
 
 const decode = Schema.decodeUnknownEither(InputSchema);
@@ -24,5 +26,5 @@ export function validateInput(raw: unknown): CleanInput | null {
   if (r._tag === 'Left') return null;
   const v = r.right;
   if (!Number.isFinite(v.dx) || !Number.isFinite(v.dy)) return null;
-  return { seq: v.seq, dx: v.dx, dy: v.dy, dash: v.dash === true };
+  return { seq: v.seq, dx: v.dx, dy: v.dy, dash: v.dash === true, fire: v.fire === true };
 }

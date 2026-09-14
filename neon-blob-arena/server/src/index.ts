@@ -100,6 +100,7 @@ wss.on('connection', (ws: WebSocket, req) => {
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
       if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
       room.handleInput(id, clean.dx, clean.dy, clean.dash);
+      if (clean.fire) room.tryFire(id);
     } catch { /* ignore malformed */ }
   });
   ws.on('close', () => room.removePlayer(id));

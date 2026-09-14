@@ -1,6 +1,6 @@
 // Authoritative room sim: fixed 20Hz tick, 15Hz snapshots, spatial hash, bots.
 import { WebSocket } from 'ws';
-import { TUNE, PlayerState, Pellet, SnapPlayer, ServerSnapshot, massToRadius, speedForMass } from './types.js';
+import { TUNE, PlayerState, Pellet, Projectile, SnapPlayer, ServerSnapshot, massToRadius, speedForMass } from './types.js';
 import { integrate, resolveCollision } from './physics.js';
 import { persistScore } from './db.js';
 
@@ -29,6 +29,9 @@ export class Room {
   roundTick = 0;
   roundCount = 0; // PMF stat: rounds completed (see /stats)
   tauntCount = 0; // PMF stat: taunts sent (invite-loop proxy)
+  orbs: Projectile[] = [];
+  orbId = 1;
+  avgMass: number = TUNE.START_MASS; // comeback baseline (runts get +12% speed)
   grid = new Map<number, number[]>(); // spatial hash cell -> player indices (int keys, zero string garbage)
 
   constructor(id: string) {
@@ -53,6 +56,7 @@ export class Room {
       mass: TUNE.START_MASS, r: massToRadius(TUNE.START_MASS),
       hue, kills: 0, score: 0, alive: true, isBot,
       dashCdUntil: 0, spawnTick: this.tick, streak: 0,
+      fireCdUntil: 0, fx: 1, fy: 0, hunter: false, shieldUntil: this.tick + 60, // 3s spawn shield
     };
     this.players.set(id, st);
     return st;
@@ -80,8 +84,10 @@ export class Room {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     const len = Math.hypot(dx, dy);
     let nx = 0, ny = 0;
-    if (len > 0.01) { const c = Math.min(1, len) / len; nx = dx * c; ny = dy * c; }
-    const speed = speedForMass(p.mass);
+    if (len > 0.01) { const c = Math.min(1, len) / len; nx = dx * c; ny = dy * c; p.fx = nx; p.fy = ny; }
+    let speed = speedForMass(p.mass);
+    if (p.hunter) speed *= 0.86; // R&D: hunters angle-cut, never outrun prey
+    else if (!p.isBot && p.mass < this.avgMass * 0.5) speed *= 1.12; // runt comeback
     // steering: accelerate toward desired velocity (arcade feel)
     const k = 1 - Math.exp(-8 * (1 / TUNE.TICK_HZ));
     p.vx += (nx * speed - p.vx) * k;
@@ -104,6 +110,7 @@ export class Room {
       if (!p.isBot || !p.alive) continue;
       // cheap AI @10Hz
       if ((this.tick + p.hue) % 2 !== 0) continue;
+      if (p.hunter) { this.hunterAI(p); continue; }
       // find nearest pellet + threat/prey
       let tx = 0, ty = 0, threat: PlayerState | null = null, prey: PlayerState | null = null;
       let bestPel = Infinity;
@@ -154,6 +161,12 @@ export class Room {
     this.collide();
     this.eatPellets();
     this.eatPlayers();
+    this.stepOrbs();
+    if (this.tick % 20 === 0) { // comeback baseline, 1Hz is plenty
+      let m = 0, n = 0;
+      for (const p of this.players.values()) if (p.alive && !p.isBot) { m += p.mass; n++; }
+      this.avgMass = n > 0 ? m / n : TUNE.START_MASS;
+    }
     // respawn timers
     for (const [id, at] of this.respawns) {
       if (this.tick >= at) {
@@ -168,7 +181,7 @@ export class Room {
     // pellet upkeep
     while (this.pellets.length < TUNE.PELLETS) this.addPellet();
     this.botTimer++;
-    if (this.botTimer % 40 === 0) this.ensureBots();
+    if (this.botTimer % 40 === 0) { this.ensureBots(); this.ensureHunters(); }
     if (this.tick % 10 === 0 && this.taunts.length > 0) this.taunts = this.taunts.filter(t => t.until > this.tick);
   }
 
@@ -241,6 +254,7 @@ export class Room {
       if (!eater.alive) continue;
       for (const victim of list) {
         if (victim.id === eater.id || !victim.alive) continue;
+        if (this.tick < victim.shieldUntil) continue; // spawn shield blocks eats
         if (eater.r < victim.r * TUNE.EAT_RATIO) continue;
         const d = Math.hypot(eater.x - victim.x, eater.y - victim.y);
         if (d < eater.r - victim.r * 0.35) {
@@ -286,6 +300,7 @@ export class Room {
     p.x = s.x; p.y = s.y; p.vx = p.vy = 0;
     p.mass = TUNE.START_MASS; p.r = massToRadius(p.mass);
     p.alive = true; p.dashCdUntil = 0; p.streak = 0; p.spawnTick = this.tick;
+    p.fireCdUntil = 0; p.shieldUntil = this.tick + 60; // fresh 3s shield
   }
 
   endRound() {
@@ -310,6 +325,119 @@ export class Room {
     }
   }
 
+  // ---- combat: firing, orbs, hunters (R&D: diep/Mini-Militia numbers) ----
+  tryFire(id: string) {
+    const p = this.players.get(id);
+    if (!p || !p.alive) return;
+    if (this.tick < p.fireCdUntil) return;
+    if (p.mass < TUNE.FIRE_MIN_MASS) return;
+    let live = 0;
+    for (const o of this.orbs) if (o.owner === id && ++live >= TUNE.ORB_MAX_PER_PLAYER) return;
+    if (this.orbs.length >= TUNE.ORB_MAX_ROOM) return;
+    p.fireCdUntil = this.tick + (p.hunter ? TUNE.HUNTER_FIRE_CD : TUNE.ORB_COOLDOWN_TICKS);
+    p.mass = Math.max(6, p.mass - TUNE.ORB_MASS_COST);
+    p.r = massToRadius(p.mass);
+    p.shieldUntil = 0; // firing breaks spawn shield (anti-camp)
+    const m = Math.hypot(p.fx, p.fy) || 1;
+    const nx = p.fx / m, ny = p.fy / m;
+    this.orbs.push({
+      id: this.orbId++, owner: id,
+      x: p.x + nx * (p.r + 10), y: p.y + ny * (p.r + 10),
+      vx: nx * TUNE.ORB_SPEED + p.vx * 0.35, vy: ny * TUNE.ORB_SPEED + p.vy * 0.35,
+      hue: p.hue, bounces: 1, life: TUNE.ORB_LIFE_TICKS, grace: 5,
+    });
+  }
+
+  stepOrbs() {
+    const W = TUNE.WORLD;
+    for (let i = this.orbs.length - 1; i >= 0; i--) {
+      const o = this.orbs[i];
+      o.life--;
+      if (o.grace > 0) o.grace--;
+      if (o.life <= 0) { this.orbs[i] = this.orbs[this.orbs.length - 1]; this.orbs.pop(); continue; }
+      let dead = false;
+      for (let s = 0; s < 2 && !dead; s++) { // 2 substeps: no tunneling small blobs
+        o.x += (o.vx * (1 / TUNE.TICK_HZ)) / 2;
+        o.y += (o.vy * (1 / TUNE.TICK_HZ)) / 2;
+        if (o.x < TUNE.ORB_R) { o.x = TUNE.ORB_R; o.vx = Math.abs(o.vx); if (o.bounces-- <= 0) dead = true; }
+        else if (o.x > W - TUNE.ORB_R) { o.x = W - TUNE.ORB_R; o.vx = -Math.abs(o.vx); if (o.bounces-- <= 0) dead = true; }
+        if (o.y < TUNE.ORB_R) { o.y = TUNE.ORB_R; o.vy = Math.abs(o.vy); if (o.bounces-- <= 0) dead = true; }
+        else if (o.y > W - TUNE.ORB_R) { o.y = W - TUNE.ORB_R; o.vy = -Math.abs(o.vy); if (o.bounces-- <= 0) dead = true; }
+        if (!dead) dead = this.orbHits(o);
+      }
+      if (dead) { this.orbs[i] = this.orbs[this.orbs.length - 1]; this.orbs.pop(); }
+    }
+  }
+
+  orbHits(o: Projectile): boolean {
+    for (const p of this.players.values()) {
+      if (!p.alive || (p.id === o.owner && o.grace > 0)) continue;
+      const dx = p.x - o.x, dy = p.y - o.y;
+      const rr = p.r + TUNE.ORB_R;
+      if (dx > rr || dx < -rr || dy > rr || dy < -rr) continue;
+      if (dx * dx + dy * dy > rr * rr) continue;
+      if (this.tick < p.shieldUntil) return true; // shield eats the orb
+      const m = Math.hypot(o.vx, o.vy) || 1;
+      p.vx += (o.vx / m) * TUNE.ORB_KNOCK * (TUNE.START_MASS / p.mass);
+      p.vy += (o.vy / m) * TUNE.ORB_KNOCK * (TUNE.START_MASS / p.mass);
+      if (p.mass - TUNE.ORB_DMG <= 6) {
+        const owner = this.players.get(o.owner);
+        p.alive = false; p.vx = p.vy = 0; p.streak = 0;
+        this.respawns.set(p.id, this.tick + 60);
+        if (owner && owner.id !== p.id) {
+          owner.kills++; owner.streak++;
+          this.pushFeed(`💥 ${owner.name} blasted ${p.name}`);
+          if (owner.streak >= 3) this.pushFeed(`🔥 ${owner.name} is on fire x${owner.streak}!`);
+        } else this.pushFeed(`💥 ${p.name} blew themself up`);
+        const c = this.conns.get(p.id);
+        if (c && !p.isBot) {
+          try { c.ws.send(JSON.stringify({ t: 'died', by: owner?.name ?? 'an orb', respawnIn: 3 })); } catch { /* gone */ }
+        }
+      } else {
+        p.mass -= TUNE.ORB_DMG;
+        p.r = massToRadius(p.mass);
+      }
+      return true; // orb dies on hit
+    }
+    return false;
+  }
+
+  hunterAI(p: PlayerState) {
+    // violent angle-cutter: stalks weakest human in 900px, fires mid-range, never dashes
+    let prey: PlayerState | null = null, bd = 900 * 900;
+    for (const o of this.players.values()) {
+      if (o.isBot || o.id === p.id || !o.alive) continue;
+      const d2 = (o.x - p.x) ** 2 + (o.y - p.y) ** 2;
+      if (d2 < bd) { bd = d2; prey = o; }
+    }
+    if (!prey) {
+      let tx = p.x, ty = p.y, best = Infinity;
+      for (const pl of this.pellets) {
+        const d2 = (pl.x - p.x) ** 2 + (pl.y - p.y) ** 2;
+        if (d2 < best) { best = d2; tx = pl.x; ty = pl.y; }
+      }
+      const dx = tx - p.x, dy = ty - p.y, l = Math.hypot(dx, dy) || 1;
+      this.handleInput(p.id, dx / l, dy / l, false);
+      return;
+    }
+    const dx = prey.x - p.x, dy = prey.y - p.y;
+    const d = Math.hypot(dx, dy) || 1;
+    this.handleInput(p.id, dx / d, dy / d, false);
+    if (d < 520 && d > 120 && this.tick >= p.fireCdUntil) this.tryFire(p.id);
+  }
+
+  ensureHunters() {
+    const humans = [...this.players.values()].filter(p => !p.isBot).length;
+    const hunters = [...this.players.values()].filter(p => p.hunter).length;
+    if (hunters < (humans >= 2 ? 2 : 0) && this.size < TUNE.MAX_HUMANS_PER_ROOM + 10) {
+      const names = ['👹RIPPER', '👹MAULER', '👹CHOMP'];
+      const st = this.addPlayer('hunter-' + Math.random().toString(36).slice(2, 8), names[Math.floor(Math.random() * names.length)], true);
+      st.hunter = true;
+      st.mass = 55; st.r = massToRadius(st.mass);
+      this.pushFeed(`👹 a HUNTER stalks the arena…`);
+    }
+  }
+
   snapshot(forId: string): ServerSnapshot {
     const me = this.players.get(forId);
     const leaders = [...this.players.values()].filter(p => p.alive)
@@ -321,7 +449,7 @@ export class Room {
     for (const p of this.players.values()) {
       if (!p.alive || p.id === forId) continue;
       if (Math.abs(p.x - vx) > R || Math.abs(p.y - vy) > R) continue;
-      players.push({ id: p.id, n: p.name, x: Math.round(p.x * 2) / 2, y: Math.round(p.y * 2) / 2, r: Math.round(p.r * 10) / 10, h: p.hue, k: p.kills, s: Math.floor(p.mass), b: p.isBot ? 1 : 0 });
+      players.push({ id: p.id, n: p.name, x: Math.round(p.x * 2) / 2, y: Math.round(p.y * 2) / 2, r: Math.round(p.r * 10) / 10, h: p.hue, k: p.kills, s: Math.floor(p.mass), b: p.isBot ? 1 : 0, ht: p.hunter ? 1 : 0 });
     }
     const pellets: Pellet[] = [];
     const PR = 1100;
@@ -330,17 +458,24 @@ export class Room {
       pellets.push(pl);
       if (pellets.length >= 220) break;
     }
+    const orbs: { i: number; x: number; y: number; h: number }[] = [];
+    for (const o of this.orbs) {
+      if (Math.abs(o.x - vx) > PR || Math.abs(o.y - vy) > PR) continue;
+      orbs.push({ i: o.id, x: Math.round(o.x), y: Math.round(o.y), h: o.hue });
+      if (orbs.length >= 80) break;
+    }
     return {
       t: 'snap', tick: this.tick, you: forId,
       me: me ? {
         x: me.x, y: me.y, r: me.r, mass: Math.floor(me.mass),
         dashReady: this.tick >= me.dashCdUntil, score: Math.floor(me.score),
-        kills: me.kills, alive: me.alive, streak: me.streak,
+        kills: me.kills, alive: me.alive, streak: me.streak, sh: this.tick < me.shieldUntil ? 1 : 0,
         respawnIn: me.alive ? undefined : Math.max(0, ((this.respawns.get(forId) ?? this.tick) - this.tick) / TUNE.TICK_HZ),
       } : undefined,
       players, pellets, leaders, feed: [...this.feed],
       taunts: this.taunts.map(t => ({ id: t.id, e: t.e })),
       round: Math.max(0, Math.ceil((ROUND_TICKS - this.roundTick) / TUNE.TICK_HZ)),
+      orbs,
     };
   }
 }

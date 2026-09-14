@@ -1,21 +1,40 @@
-// Neon Blob Arena client — Canvas2D 60fps, prediction + interpolation, juice.
-// No engine. <150KB. Mobile joystick + desktop mouse/WASD.
-// UI animation (menu/banner/overlays) loads GSAP lazily; canvas loop stays hand-rolled.
+// Neon Blob Arena client — FULL 3D (Three.js) presentation, authoritative 2D sim.
+// UI animation (menu/banner/overlays) loads GSAP lazily; render loop stays hand-rolled.
 import { uiMenuIn, uiCrownPop, uiDeathIn, uiPressify } from './ui-anim';
+import type { World3D, DrawPlayer } from './three-render';
+// Three.js loads lazily on PLAY (menu paints in ~22KB); canvas loop stays hand-rolled.
+let world: World3D | null = null;
+let worldFailed = false;
+async function ensureWorld(): Promise<World3D | null> {
+  if (world) return world;
+  if (worldFailed) return null;
+  try {
+    const m = await import('./three-render');
+    world = new m.World3D(canvas);
+    world.resize(W, H);
+    return world;
+  } catch (e) {
+    console.error('[3d] failed to load three.js chunk', e);
+    worldFailed = true;
+    return null;
+  }
+}
 
 type Snap = {
   t: string; tick: number; you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; respawnIn?: number };
-  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number }[];
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; respawnIn?: number };
+  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number }[];
   pellets: { id: number; x: number; y: number; hue: number }[];
+  orbs: { i: number; x: number; y: number; h: number }[];
   leaders: { n: string; s: number }[];
   feed: string[];
   taunts: { id: string; e: number }[];
   round: number; // seconds left in the 3-min round
 };
 
-const canvas = document.getElementById('game') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d')!;
+const canvas = document.getElementById('game3d') as HTMLCanvasElement;
+const fxCanvas = document.getElementById('fx2d') as HTMLCanvasElement;
+const octx = fxCanvas.getContext('2d')!; // 2D overlay: joystick + emote floaters only
 const mini = document.getElementById('minimap') as HTMLCanvasElement;
 const mctx = mini.getContext('2d')!;
 const el = (id: string) => document.getElementById(id)!;
@@ -25,9 +44,10 @@ let W = 0, H = 0, DPR = 1;
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   W = window.innerWidth; H = window.innerHeight;
-  canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
-  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  fxCanvas.width = Math.floor(W * DPR); fxCanvas.height = Math.floor(H * DPR);
+  fxCanvas.style.width = W + 'px'; fxCanvas.style.height = H + 'px';
+  octx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  world?.resize(W, H);
 }
 window.addEventListener('resize', resize); resize();
 
@@ -39,9 +59,10 @@ let myName = localStorage.getItem('blob-name') || '';
 if (myName) (el('name') as HTMLInputElement).value = myName;
 if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining this link land here`;
 
-let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, pvx: 0, pvy: 0 };
+let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, sh: 0, pvx: 0, pvy: 0 };
 // remote interpolation: id -> {a, b, t0} snapshots
-const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number }>();
+const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number }>();
+let orbs: { i: number; x: number; y: number; hue: number }[] = [];
 let pellets: { x: number; y: number; hue: number }[] = [];
 let cam = { x: me.x, y: me.y };
 let trauma = 0;
@@ -114,11 +135,13 @@ let mouse = { x: W / 2, y: H / 2, active: false };
 let joy = { active: false, dx: 0, dy: 0, id: -1, ox: 0, oy: 0 };
 let dashQueued = false;
 let seq = 0;
+let fireQueued = false; // tap FIRE / click to shoot toward facing (server-authoritative orbs)
 let inputTimer: ReturnType<typeof setInterval> | null = null; // single input loop (reconnects must not stack)
 
 window.addEventListener('keydown', e => {
   keys.add(e.key.toLowerCase());
   if (e.code === 'Space') { dashQueued = true; e.preventDefault(); }
+  if (e.code === 'KeyF' || e.code === 'Enter') { fireQueued = true; }
 });
 window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 canvas.addEventListener('pointermove', e => {
@@ -127,8 +150,9 @@ canvas.addEventListener('pointermove', e => {
 });
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch') { joy.active = true; joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.dx = 0; joy.dy = 0; }
-  else { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; }
+  else { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; fireQueued = true; } // click = shoot
 });
+el('fireBtn').addEventListener('click', () => { fireQueued = true; buzz(15); });
 window.addEventListener('pointermove', e => {
   if (joy.active && e.pointerId === joy.id) {
     // R&D tune: 75px base, 10px dead-zone, remapped — no drift, no jump
@@ -239,9 +263,10 @@ function connect(name: string) {
     me.x += me.pvx * (1 / 30); me.y += me.pvy * (1 / 30);
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
-    ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued }));
-    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); }
-    dashQueued = false;
+    ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued, fire: fireQueued }));
+    if (dashQueued && me.dashReady) { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
+    if (fireQueued) burst(me.x, me.y, 3, 45);
+    dashQueued = false; fireQueued = false;
   }, 1000 / 30);
 }
 
@@ -254,10 +279,10 @@ function onSnap(s: Snap) {
     if (err > 220) { me.x = m.x; me.y = m.y; } // big desync: hard snap
     else { me.x += (m.x - me.x) * 0.45; me.y += (m.y - me.y) * 0.45; }
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
-    me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak;
+    me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak; me.sh = m.sh;
     // eat detect: sudden mass gain = chomp (juice only — server owns truth)
     if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
-    if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); }
+    if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); trauma = Math.min(1, trauma + 0.35); world?.kick(false, true); }
     prevMass = m.mass; prevKills = m.kills;
     const li = levelFor(m.mass); // progression beyond leaderboard: titles per size
     if (li > myLevel) {
@@ -278,8 +303,8 @@ function onSnap(s: Snap) {
   const now = performance.now();
   for (const p of s.players) {
     const r = remotes.get(p.id);
-    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now });
-    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; }
+    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now, ht: p.ht });
+    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; r.ht = p.ht; }
   }
   // fade-out, not pop-out: AOI edge used to blink blobs in/out every frame
   const ids = new Set(s.players.map(p => p.id));
@@ -295,6 +320,7 @@ function onSnap(s: Snap) {
     spectateId = best;
   }
   pellets = s.pellets;
+  orbs = (s.orbs || []).map(o => ({ i: o.i, x: o.x, y: o.y, hue: o.h })); // remap once per snap, not per frame
   liveTaunts = s.taunts || [];
   // throttled DOM (2Hz max, only on change) — was 15Hz innerHTML jank
   if (now - lastDomAt > 500) {
@@ -362,43 +388,39 @@ function frame(now: number) {
   cam.x += (tx - cam.x) * Math.min(1, rawDt * 6);
   cam.y += (ty - cam.y) * Math.min(1, rawDt * 6);
   trauma = Math.max(0, trauma - dt * 1.6);
-  const shx = trauma * trauma * 14 * (Math.random() * 2 - 1);
-  const shy = trauma * trauma * 14 * (Math.random() * 2 - 1);
+  const mobile = Math.min(W, H) < 640;
 
-  ctx.fillStyle = '#170E22'; ctx.fillRect(0, 0, W, H); // R&D: darker plum, less washout
-  paintDoodles();
-  const ZOOM = Math.min(W, H) < 640 ? 0.82 : 1; // R&D: zoom out on phones (less blind)
-  ctx.save();
-  ctx.translate(W / 2, H / 2); ctx.scale(ZOOM, ZOOM); ctx.translate(-cam.x + shx, -cam.y + shy);
-
-  // (doodle tile painted pre-transform; no grid — sticker style)
-  // arena border (candy rope)
-  ctx.strokeStyle = '#FFE93C'; ctx.lineWidth = 8; ctx.strokeRect(0, 0, WORLD, WORLD);
-
-  // pellets (cheap circles, viewport-culled already by server)
-  for (const p of pellets) {
-    ctx.fillStyle = `hsl(${p.hue} 90% 60%)`;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, 7); ctx.fill();
+  // particle + shockwave SIM (positions only — three.js draws them)
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt; if (p.life <= 0) { particles.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96;
+  }
+  for (let i = rings.length - 1; i >= 0; i--) {
+    const g = rings[i];
+    g.life -= rawDt; if (g.life <= 0) { rings.splice(i, 1); continue; }
+    g.r += (g.max - g.r) * Math.min(1, rawDt * 9);
   }
 
-  // remotes (interpolated, fading out at AOI edge)
+  // draw lists for three (interp stays here; WebGL draws)
+  const plist: DrawPlayer[] = [];
+  const fnow = performance.now();
   for (const [id, r] of remotes) {
-    const x = renderX(id), y = renderY(id);
-    if (r.gone === undefined) drawBlob(x, y, r.r, r.h, r.n, false);
-    else {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, 1 - (performance.now() - r.gone) / 800);
-      drawBlob(x, y, r.r, r.h, r.n, false);
-      ctx.restore();
-    }
+    if (r.gone !== undefined && fnow - r.gone > 800) continue;
+    plist.push({ id, x: renderX(id), y: renderY(id), r: r.r, hue: r.h, name: r.n, isMe: false, hunter: r.ht === 1, shielded: false });
   }
-  // me on top
-  if (me.alive) drawBlob(me.x, me.y, me.r, 275, 'YOU', true);
-  else { ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('respawning…', cam.x, cam.y); }
+  if (me.alive) plist.push({ id: myId, x: me.x, y: me.y, r: me.r, hue: 275, name: myName || 'YOU', isMe: true, hunter: false, shielded: me.sh === 1 });
+  if (world) {
+    world.frame({
+      camX: cam.x, camY: cam.y, trauma, mobile, time: now,
+      players: plist, pellets, orbs, particles, rings, meR: me.r,
+    });
+  }
 
-  // floating emote taunts (server-pruned, ~2s life)
+  // 2D overlay: emote floaters + joystick ghost
+  octx.clearRect(0, 0, W, H);
   const bobT = performance.now() / 240;
-  ctx.textAlign = 'center';
+  octx.textAlign = 'center';
   for (let i = 0; i < liveTaunts.length; i++) {
     const t = liveTaunts[i];
     const emo = EMOTES[t.e] || '';
@@ -407,194 +429,33 @@ function frame(now: number) {
     if (t.id === myId && me.alive) { tx2 = me.x; ty2 = me.y; tr = me.r; }
     else { const r = remotes.get(t.id); if (r) { tx2 = renderX(t.id); ty2 = renderY(t.id); tr = r.r; } }
     if (tx2 === null || ty2 === null) continue;
-    ctx.font = '26px sans-serif';
-    ctx.fillText(emo, tx2, ty2 - tr - 18 + Math.sin(bobT + i * 1.7) * 5);
+    // perspective-correct projection (fixed-yaw chase cam); fallback to ortho pre-boot
+    let sx = tx2 - cam.x + W / 2, sy = ty2 - cam.y + H / 2;
+    if (world) {
+      const pr = world.toScreen(tx2, ty2, tr * 1.4 + 26);
+      if (!pr.behind) { sx = pr.x; sy = pr.y; }
+    }
+    octx.font = '26px sans-serif';
+    octx.fillText(emo, sx, sy + Math.sin(bobT + i * 1.7) * 5);
   }
-
-  // particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.life -= dt; if (p.life <= 0) { particles.splice(i, 1); continue; }
-    p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96;
-    ctx.globalAlpha = Math.min(1, p.life * 2);
-    ctx.fillStyle = `hsl(${p.hue} 95% 65%)`;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-  // knockback shockwave rings
-  for (let i = rings.length - 1; i >= 0; i--) {
-    const g = rings[i];
-    g.life -= rawDt; if (g.life <= 0) { rings.splice(i, 1); continue; }
-    g.r += (g.max - g.r) * Math.min(1, rawDt * 9);
-    ctx.globalAlpha = Math.min(1, g.life * 2.5);
-    ctx.strokeStyle = `hsl(${g.hue} 95% 65%)`; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 7); ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-  ctx.restore();
 
   // joystick overlay: ghost anchor + 75px base + 32px knob (R&D spec)
   if (joy.active) {
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 110, 0, 7); ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#ffffff88'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 75, 0, 7); ctx.stroke();
-    ctx.fillStyle = '#FFE93C';
-    ctx.beginPath(); ctx.arc(joy.ox + joy.dx * 75, joy.oy + joy.dy * 75, 32, 0, 7); ctx.fill();
+    octx.globalAlpha = 0.25;
+    octx.fillStyle = '#ffffff';
+    octx.beginPath(); octx.arc(joy.ox, joy.oy, 110, 0, 7); octx.fill();
+    octx.globalAlpha = 1;
+    octx.strokeStyle = '#ffffff88'; octx.lineWidth = 3;
+    octx.beginPath(); octx.arc(joy.ox, joy.oy, 75, 0, 7); octx.stroke();
+    octx.fillStyle = '#FFE93C';
+    octx.beginPath(); octx.arc(joy.ox + joy.dx * 75, joy.oy + joy.dy * 75, 32, 0, 7); octx.fill();
   }
   if ((frameNo++ % 3) === 0) drawMini(); // minimap 20Hz is plenty (was every frame)
 }
 
-// (glowSprite retired in the gummy-goth pass — stickerSprite bakes outline+face+highlight)
+// (2D sticker bake retired in the full-3D pass — art now lives in three-render.ts)
 
-// ---------- gummy-goth sticker blobs (baked sprites, zero per-frame gradients) ----------
-const GUMMY = [
-  { h: 335, c: '#E35BB0' }, // gummy-pink (deepened for sunlight legibility)
-  { h: 42, c: '#F5A623' },  // mango
-  { h: 155, c: '#2ED9A3' }, // mint
-  { h: 200, c: '#2FA8E0' }, // glacier
-  { h: 265, c: '#9B6BF3' }, // grape-soda
-  { h: 18, c: '#F2622E' },  // tang
-];
-function sparkle4(g: CanvasRenderingContext2D, x: number, y: number, s: number, color: string) {
-  // four-point sticker sparkle (baked, zero runtime cost)
-  g.fillStyle = color;
-  g.beginPath();
-  g.moveTo(x, y - s);
-  g.quadraticCurveTo(x, y, x + s, y); g.quadraticCurveTo(x, y, x, y + s);
-  g.quadraticCurveTo(x, y, x - s, y); g.quadraticCurveTo(x, y, x, y - s);
-  g.fill();
-}
-function ditherCheek(g: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  // gradient-free jelly blush: Bayer-ish dot dither (cheap on Mali GPUs)
-  g.fillStyle = 'rgba(255,70,120,.8)';
-  for (let yy = -r; yy <= r; yy += 4) for (let xx = -r; xx <= r; xx += 4) {
-    if (xx * xx + yy * yy <= r * r && ((xx + yy + 40) % 8 === 0)) g.fillRect(cx + xx, cy + yy, 2.4, 2.4);
-  }
-}
-function gummyIdx(hue: number): number {
-  let bi = 0, bd = 1e9;
-  for (let i = 0; i < GUMMY.length; i++) {
-    const d = Math.min(Math.abs(GUMMY[i].h - hue), 360 - Math.abs(GUMMY[i].h - hue));
-    if (d < bd) { bd = d; bi = i; }
-  }
-  return bi;
-}
-const stickerCache = new Map<string, HTMLCanvasElement>();
-function stickerSprite(hue: number, r: number): HTMLCanvasElement {
-  const gi = gummyIdx(hue);
-  const rb = r < 20 ? 14 : r < 30 ? 24 : r < 44 ? 36 : 52; // radius buckets
-  const face = rb <= 14 ? 0 : rb <= 24 ? 1 : rb <= 36 ? 2 : 3; // baby, kid, chonk, boss
-  const key = gi + '-' + rb + '-' + face;
-  let c = stickerCache.get(key);
-  if (c) return c;
-  const S = 160, R = 64;
-  c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d')!;
-  // slime drips (white die-cut + body color, baked)
-  const drips: [number, number][] = [[58, 10], [80, 14], [102, 10]];
-  for (const [dx, dh] of drips) {
-    g.fillStyle = '#FFFFFF';
-    g.beginPath(); g.arc(dx, 128, dx === 80 ? 11 : 8, 0, 7); g.fill();
-    g.fillRect(dx - (dx === 80 ? 11 : 8), 118, (dx === 80 ? 11 : 8) * 2, 12 + dh);
-  }
-  // sticker outline (thick white = readable at 2cm on phones)
-  g.fillStyle = '#FFFFFF';
-  g.beginPath(); g.arc(S / 2, S / 2, R, 0, 7); g.fill();
-  for (const [dx, dh] of drips) {
-    g.fillStyle = GUMMY[gi].c;
-    g.beginPath(); g.arc(dx, 128, dx === 80 ? 8 : 5.5, 0, 7); g.fill();
-    g.fillRect(dx - (dx === 80 ? 8 : 5.5), 118, (dx === 80 ? 8 : 5.5) * 2, 10 + dh);
-  }
-  // flat gummy body (0.80 = chunky sticker ring that survives small screens)
-  g.fillStyle = GUMMY[gi].c;
-  g.beginPath(); g.arc(S / 2, S / 2, R * 0.80, 0, 7); g.fill();
-  // chunky crescent gloss + twin sparkles (pre-baked, no canvas gradients)
-  g.fillStyle = 'rgba(255,255,255,.9)';
-  g.beginPath(); g.ellipse(S / 2 - 26, S / 2 - 30, 17, 10, -0.6, 0, 7); g.fill();
-  g.fillStyle = GUMMY[gi].c;
-  g.beginPath(); g.ellipse(S / 2 - 22, S / 2 - 27, 13, 7, -0.6, 0, 7); g.fill();
-  sparkle4(g, S / 2 + 30, S / 2 - 34, 9, 'rgba(255,255,255,.95)');
-  sparkle4(g, S / 2 + 42, S / 2 - 16, 5.5, 'rgba(255,255,255,.8)');
-  // faces
-  g.fillStyle = '#2A1740';
-  if (face <= 1) { // baby/kid: dot eyes + smile
-    g.beginPath(); g.arc(S / 2 - 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.arc(S / 2 + 16, S / 2 - 4, face === 0 ? 6 : 7, 0, 7); g.fill();
-    g.strokeStyle = '#2A1740'; g.lineWidth = 4; g.lineCap = 'round';
-    g.beginPath(); g.arc(S / 2, S / 2 + 10, 12, 0.3, Math.PI - 0.3); g.stroke();
-    if (face === 1) ditherCheek(g, S / 2 - 28, S / 2 + 10, 8), ditherCheek(g, S / 2 + 28, S / 2 + 10, 8);
-  } else if (face === 2) { // chonk: blush + open :O mouth
-    g.beginPath(); g.arc(S / 2 - 17, S / 2 - 6, 7, 0, 7); g.arc(S / 2 + 17, S / 2 - 6, 7, 0, 7); g.fill();
-    ditherCheek(g, S / 2 - 30, S / 2 + 10, 9); ditherCheek(g, S / 2 + 30, S / 2 + 10, 9);
-    g.fillStyle = '#2A1740';
-    g.beginPath(); g.ellipse(S / 2, S / 2 + 16, 9, 12, 0, 0, 7); g.fill();
-  } else { // boss: angled brows + fangs + crown
-    g.strokeStyle = '#2A1740'; g.lineWidth = 7; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(S / 2 - 30, S / 2 - 26); g.lineTo(S / 2 - 8, S / 2 - 16); g.stroke();
-    g.beginPath(); g.moveTo(S / 2 + 30, S / 2 - 26); g.lineTo(S / 2 + 8, S / 2 - 16); g.stroke();
-    g.fillStyle = '#2A1740';
-    g.beginPath(); g.arc(S / 2 - 15, S / 2 + 0, 7, 0, 7); g.arc(S / 2 + 15, S / 2 + 0, 7, 0, 7); g.fill();
-    g.fillStyle = '#fff';
-    g.beginPath(); g.moveTo(S / 2 - 14, S / 2 + 18); g.lineTo(S / 2 - 6, S / 2 + 18); g.lineTo(S / 2 - 10, S / 2 + 28); g.fill();
-    g.beginPath(); g.moveTo(S / 2 + 14, S / 2 + 18); g.lineTo(S / 2 + 6, S / 2 + 18); g.lineTo(S / 2 + 10, S / 2 + 28); g.fill();
-    g.fillStyle = '#FFE93C'; // stubby crown
-    g.beginPath();
-    g.moveTo(S / 2 - 22, S / 2 - 40); g.lineTo(S / 2 - 22, S / 2 - 56); g.lineTo(S / 2 - 11, S / 2 - 46);
-    g.lineTo(S / 2, S / 2 - 58); g.lineTo(S / 2 + 11, S / 2 - 46); g.lineTo(S / 2 + 22, S / 2 - 56); g.lineTo(S / 2 + 22, S / 2 - 40);
-    g.closePath(); g.fill();
-  }
-  stickerCache.set(key, c);
-  return c;
-}
-
-// doodle tile background (baked once, parallax-scrolled)
-let doodlePat: CanvasPattern | null = null;
-function paintDoodles() {
-  if (!doodlePat) {
-    const t = document.createElement('canvas'); t.width = t.height = 256;
-    const g = t.getContext('2d')!;
-    g.fillStyle = 'rgba(255,255,255,.10)';
-    const dots: [number, number, number][] = [[40, 50, 3], [170, 160, 3], [90, 215, 2]]; // R&D: -60% density
-    for (const [x, y, r] of dots) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
-    // one sticker star per tile
-    g.strokeStyle = 'rgba(255,233,60,.35)'; g.lineWidth = 3; g.lineCap = 'round';
-    const sx = 190, sy = 130, sr = 12;
-    g.beginPath();
-    for (let i = 0; i < 5; i++) {
-      const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
-      const px = sx + Math.cos(a) * sr, py = sy + Math.sin(a) * sr;
-      if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
-    }
-    g.closePath(); g.stroke();
-    doodlePat = ctx.createPattern(t, 'repeat');
-  }
-  if (!doodlePat) return;
-  const offX = -(((cam.x * 0.5) % 256 + 256) % 256), offY = -(((cam.y * 0.5) % 256 + 256) % 256);
-  ctx.save();
-  ctx.translate(offX, offY);
-  ctx.fillStyle = doodlePat;
-  ctx.fillRect(-256, -256, W + 512, H + 512);
-  ctx.restore();
-}
-
-function drawBlob(x: number, y: number, r: number, hue: number, name: string, isMe: boolean) {
-  // sticker body (single baked drawImage + squash wobble)
-  const wob = 1 + 0.05 * Math.sin(performance.now() / 300 + x * 0.05 + y * 0.03);
-  const d = r * 2;
-  ctx.save();
-  ctx.translate(x, y); ctx.scale(wob, 1 / wob);
-  ctx.drawImage(stickerSprite(hue, r), -r, -r, d, d);
-  ctx.restore();
-  if (isMe) { // you-ring: star-yellow picker so YOU reads instantly
-    ctx.strokeStyle = '#FFE93C'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 7); ctx.stroke();
-  }
-  // name
-  ctx.fillStyle = '#FFFDF5'; ctx.font = `700 ${Math.max(11, Math.min(15, r * 0.42))}px sans-serif`; ctx.textAlign = 'center';
-  ctx.fillText(name, x, y + r + 14);
-}
+// (2D painters retired in the full-3D pass — see three-render.ts)
 
 function drawMini() {
   mctx.clearRect(0, 0, 120, 120);
@@ -648,11 +509,29 @@ function shareCard() {
 }
 
 // ---------- menu ----------
-el('play').addEventListener('click', () => {
+el('play').addEventListener('click', async () => {
   audio(); sfx('click'); // unlock WebAudio on user gesture
+  const btn = el('play') as HTMLButtonElement;
   const n = ((el('name') as HTMLInputElement).value || 'Blob' + Math.floor(Math.random() * 99)).slice(0, 14);
   localStorage.setItem('blob-name', n);
   myName = n;
+  // lazy 3D: menu stays instant, three.js chunk loads on first PLAY
+  if (!world && !worldFailed) {
+    const old = btn.textContent;
+    btn.textContent = '⏳ LOADING 3D…';
+    btn.disabled = true;
+    await ensureWorld();
+    btn.disabled = false;
+    btn.textContent = old;
+    if (!world) {
+      coach('⚠️ 3D failed to load — check connection & retry');
+      return;
+    }
+  }
+  if (!world) {
+    coach('⚠️ 3D failed to load — check connection & retry');
+    return;
+  }
   connect(n);
 });
 el('newRoom').addEventListener('click', () => {
@@ -685,6 +564,7 @@ el('shareBtn').addEventListener('click', () => { sfx('click'); shareCard(); });
 void uiMenuIn();
 uiPressify('#play');
 uiPressify('#dashBtn');
+uiPressify('#fireBtn');
 
 // preload leaderboard count
 fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => {
