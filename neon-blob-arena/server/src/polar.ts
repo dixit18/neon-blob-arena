@@ -4,7 +4,7 @@
 // shape as mochi (snapshot + rounds + streaks + bots), independent sim.
 // Pellet charge rides id parity (even=+1): zero extra bytes, client mirrors it.
 import { WebSocket } from 'ws';
-import { TUNE, PolarPlayer, Pellet, SnapPlayer, ServerSnapshot, massToRadius, speedForMass, pelletCharge } from './types.js';
+import { TUNE, PolarPlayer, Pellet, SnapPlayer, ServerSnapshot, massToRadius, speedForMass, pelletCharge, type GameId } from './types.js';
 import { integrate, resolveCollision } from './physics.js';
 import { persistScore } from './db.js';
 import type { Conn } from './game.js';
@@ -22,6 +22,7 @@ function spawnPos(margin = 80) { return { x: rand(margin, TUNE.WORLD - margin), 
 
 export class PolarRoom {
   id: string;
+  readonly game = 'polar' as const; // marketplace discriminant: matchmaking + dispatch narrow on this
   tick = 0;
   nextNum = 1;
   players = new Map<string, PolarPlayer>();

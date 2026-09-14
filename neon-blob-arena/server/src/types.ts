@@ -3,13 +3,14 @@ export interface Vec { x: number; y: number }
 
 // Marketplace: game ids ride `?game=<id>` (default mochi). Rooms are namespaced
 // per game; snapshot transport shape is shared, games add optional fields.
-export type GameId = 'mochi' | 'polar';
+export type GameId = 'mochi' | 'polar' | 'buffet';
 export const GAMES: Record<GameId, { title: string; blurb: string }> = {
   mochi: { title: 'Mochi Panic', blurb: 'Munch · Dash · Splat · Crown' },
   polar: { title: 'Polar Panic', blurb: 'Flip charge · Attract · Repel' },
+  buffet: { title: 'Black-Hole Buffet', blurb: 'Slingshot wells · Devour' },
 };
 export function parseGame(raw: unknown): GameId {
-  return raw === 'polar' ? 'polar' : 'mochi';
+  return raw === 'polar' ? 'polar' : raw === 'buffet' ? 'buffet' : 'mochi';
 }
 
 export interface PlayerState {
@@ -82,6 +83,7 @@ export interface ServerSnapshot {
   taunts: { id: string; e: number }[]; // active emote taunts (server-pruned, 2s life)
   round: number; // seconds left in the current 3-min round (urgency engine)
   orbs: { i: number; x: number; y: number; h: number }[]; // live projectiles, AOI-culled
+  wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
 }
 
 export const EMOTES = ['😂', '😈', '💪', '😱', '👋'] as const; // must match client

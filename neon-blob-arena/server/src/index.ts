@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { Room } from './game.js';
 import { PolarRoom } from './polar.js';
+import { BuffetRoom } from './buffet.js';
 import { TUNE, parseGame, type GameId } from './types.js';
 import { validateInput } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
@@ -17,27 +18,33 @@ const REGION = process.env.REGION || 'local';
 
 // Marketplace: rooms namespaced per game (`polar:ABCD` vs `mochi:ABCD` map keys;
 // room codes users share stay plain). Tick/snap loops treat them uniformly.
-const rooms = new Map<string, Room | PolarRoom>();
+const rooms = new Map<string, Room | PolarRoom | BuffetRoom>();
 let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
 function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 
-function getOrCreateRoom(game: GameId, id?: string): Room | PolarRoom {
+function makeRoom(game: GameId, id: string): Room | PolarRoom | BuffetRoom {
+  if (game === 'polar') return new PolarRoom(id);
+  if (game === 'buffet') return new BuffetRoom(id);
+  return new Room(id);
+}
+
+function getOrCreateRoom(game: GameId, id?: string): Room | PolarRoom | BuffetRoom {
   const mapKey = id ? game + ':' + id : undefined;
   if (mapKey && rooms.has(mapKey)) return rooms.get(mapKey)!;
   if (id && /^[A-Z0-9]{4,8}$/.test(id)) {
-    const r = game === 'polar' ? new PolarRoom(id) : new Room(id);
+    const r = makeRoom(game, id);
     rooms.set(mapKey!, r); return r;
   }
   // matchmake: least-loaded room OF THE SAME GAME, else new
-  let best: Room | PolarRoom | null = null;
+  let best: Room | PolarRoom | BuffetRoom | null = null;
   let bestHumans = Infinity;
   for (const r of rooms.values()) {
-    if ((game === 'polar') !== (r instanceof PolarRoom)) continue;
+    if (r.game !== game) continue;
     const humans = [...r.players.values()].filter(p => !p.isBot).length;
     if (humans < TUNE.MAX_HUMANS_PER_ROOM && humans < bestHumans) { best = r; bestHumans = humans; }
   }
   if (best) return best;
-  const fresh = game === 'polar' ? new PolarRoom(code()) : new Room(code());
+  const fresh = makeRoom(game, code());
   rooms.set(game + ':' + fresh.id, fresh); return fresh;
 }
 
@@ -54,7 +61,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (url.pathname === '/rooms') {
-    res.end(JSON.stringify([...rooms.values()].map(r => ({ id: r.id, game: r instanceof PolarRoom ? 'polar' : 'mochi', players: r.size, humans: [...r.players.values()].filter(p => !p.isBot).length }))));
+    res.end(JSON.stringify([...rooms.values()].map(r => ({ id: r.id, game: r.game, players: r.size, humans: [...r.players.values()].filter(p => !p.isBot).length }))));
     return;
   }
   if (url.pathname === '/leaderboard') {
@@ -108,12 +115,12 @@ wss.on('connection', (ws: WebSocket, req) => {
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
       if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
-      if (room instanceof PolarRoom) {
+      if (room.game === 'polar') {
         room.handleInput(id, clean.dx, clean.dy);
         if (clean.flip) room.tryFlip(id);
       } else {
         room.handleInput(id, clean.dx, clean.dy, clean.dash);
-        if (clean.fire) room.tryFire(id);
+        if (room.game === 'mochi' && clean.fire) room.tryFire(id);
       }
     } catch { /* ignore malformed */ }
   });

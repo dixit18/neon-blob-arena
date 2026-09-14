@@ -1,7 +1,7 @@
 // Neon Blob Arena client — FULL 3D (Three.js) presentation, authoritative 2D sim.
 // UI animation (menu/banner/overlays) loads GSAP lazily; render loop stays hand-rolled.
 import { uiMenuIn, uiCrownPop, uiDeathIn, uiPressify } from './ui-anim';
-import type { World3D, DrawPlayer } from './three-render';
+import type { World3D, DrawPlayer, DrawWell } from './three-render';
 // Three.js loads lazily on PLAY (menu paints in ~22KB); canvas loop stays hand-rolled.
 let world: World3D | null = null;
 let worldFailed = false;
@@ -20,10 +20,13 @@ async function ensureWorld(): Promise<World3D | null> {
   }
 }
 
-type GameId = 'mochi' | 'polar';
-const GAME_TITLES: Record<GameId, string> = { mochi: 'Mochi Panic', polar: 'Polar Panic' };
+type GameId = 'mochi' | 'polar' | 'buffet';
+const GAME_TITLES: Record<GameId, string> = { mochi: 'Mochi Panic', polar: 'Polar Panic', buffet: 'Black-Hole Buffet' };
 // Marketplace: ?game= selects the arena (default mochi). Server confirms via hello.
-let game: GameId = new URLSearchParams(location.search).get('game') === 'polar' ? 'polar' : 'mochi';
+function parseGameId(raw: string | null): GameId {
+  return raw === 'polar' ? 'polar' : raw === 'buffet' ? 'buffet' : 'mochi';
+}
+let game: GameId = parseGameId(new URLSearchParams(location.search).get('game'));
 let myCharge: 1 | -1 = 1;
 
 type Snap = {
@@ -36,6 +39,7 @@ type Snap = {
   feed: string[];
   taunts: { id: string; e: number }[];
   round: number; // seconds left in the 3-min round
+  wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
 };
 
 const canvas = document.getElementById('game3d') as HTMLCanvasElement;
@@ -86,6 +90,7 @@ const remotes = new Map<string, { n: string; h: number; r: number; ax: number; a
 const snapIds = new Set<string>(); // hoisted: per-snap membership without alloc
 type Orb2D = { i: number; x: number; y: number; hue: number };
 const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
+const wells: DrawWell[] = []; // buffet devourers, in-place slot reuse like orbs
 // draw-list pool: one DrawPlayer object per slot, reused every frame (no per-frame garbage)
 const plist: DrawPlayer[] = [];
 function plistSlot(pi: number): DrawPlayer {
@@ -276,7 +281,7 @@ function connect(name: string) {
     const m = JSON.parse(ev.data);
     if (m.t === 'hello') {
       myId = m.you; roomId = m.room;
-      if (m.game === 'polar' || m.game === 'mochi') game = m.game; // server is truth
+      game = parseGameId(m.game ?? null); // server is truth (unknown → default)
       applyGameMode();
       conFails = 0; // connected: silence any retry warnings
       history.replaceState(null, '', `?game=${game}&room=${roomId}`);
@@ -287,6 +292,11 @@ function connect(name: string) {
         localStorage.setItem('polar-seen', '1');
         setTimeout(() => coach('🧲 Opposite charges attract — blue + red pellets vacuum to you'), 600);
         setTimeout(() => coach('⇄ SPACE flips your charge — same charge repels, flip to escape!'), 4200);
+        setTimeout(() => coach('👑 Biggest mochi when ⏱ hits 0 wins the round!'), 7800);
+      } else if (game === 'buffet' && !localStorage.getItem('buffet-seen')) {
+        localStorage.setItem('buffet-seen', '1');
+        setTimeout(() => coach('🕳️ Black holes devour — ride the rim, never the middle'), 600);
+        setTimeout(() => coach('⚡ SPACE dashes you out of the pull — rivals make great shields'), 4200);
         setTimeout(() => coach('👑 Biggest mochi when ⏱ hits 0 wins the round!'), 7800);
       } else if (game === 'mochi' && !localStorage.getItem('blob-seen')) { // first-timer concept tutorial
         localStorage.setItem('blob-seen', '1');
@@ -346,7 +356,7 @@ function connect(name: string) {
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
     ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued, fire: fireQueued, flip: flipQueued }));
-    if (dashQueued && me.dashReady && game === 'mochi') { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
+    if (dashQueued && me.dashReady && game !== 'polar') { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
     if (fireQueued && game === 'mochi') burst(me.x, me.y, 3, 45);
     if (flipQueued && me.dashReady && game === 'polar') { ring(me.x, me.y, me.r + 60, myCharge > 0 ? 200 : 335); sfx('flip'); buzz(12); }
     dashQueued = false; fireQueued = false; flipQueued = false;
@@ -423,6 +433,15 @@ function onSnap(s: Snap) {
     else orbs.push({ i: o.i, x: o.x, y: o.y, hue: o.h });
   }
   orbs.length = mapped.length;
+  // buffet wells: same in-place discipline (3 entries, but no per-snap garbage ever)
+  const wmapped = s.wells || [];
+  for (let i = 0; i < wmapped.length; i++) {
+    const o = wmapped[i];
+    const d = wells[i];
+    if (d) { d.x = o.x; d.y = o.y; d.r = o.r; }
+    else wells.push({ x: o.x, y: o.y, r: o.r });
+  }
+  wells.length = wmapped.length;
   liveTaunts = s.taunts || [];
   // throttled DOM (2Hz max, only on change) — EVERYTHING lives here now.
   // These used to write per-snapshot (~15Hz): layout thrash was a top jank source.
@@ -550,7 +569,7 @@ function frame(now: number) {
   if (world) {
     world.frame({
       camX: cam.x, camY: cam.y, trauma, mobile, time: now,
-      players: plist, pellets, orbs, particles, rings, meR: me.r,
+      players: plist, pellets, orbs, particles, rings, meR: me.r, wells,
     });
   }
 
@@ -623,7 +642,7 @@ function shareCard() {
   g.strokeStyle = '#2B2144'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
   g.textAlign = 'center';
   g.fillStyle = '#E84393'; g.font = '700 46px Fredoka, sans-serif';
-  g.fillText(game === 'polar' ? 'POLAR PANIC' : 'MOCHI PANIC', 300, 80);
+  g.fillText(game === 'polar' ? 'POLAR PANIC' : game === 'buffet' ? 'HOLE BUFFET' : 'MOCHI PANIC', 300, 80);
   g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
   g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
   g.fillStyle = '#5b4f7e'; g.font = '700 26px Nunito, sans-serif';
@@ -660,16 +679,25 @@ function applyGameMode() {
   const dashBtn = el('dashBtn');
   dashBtn.textContent = polar ? '⇄ Flip' : '⚡ Dash';
   dashBtn.title = polar ? 'Flip charge (Space)' : 'Dash (Space)';
-  el('fireBtn').style.display = polar ? 'none' : '';
-  document.title = polar ? 'Polar Panic — 3-min magnetic rounds' : 'Mochi Panic — 3-min squishy multiplayer rounds';
+  el('fireBtn').style.display = game === 'mochi' ? '' : 'none'; // only mochi fires orbs
+  document.title = game === 'polar' ? 'Polar Panic — 3-min magnetic rounds'
+    : game === 'buffet' ? 'Black-Hole Buffet — 3-min gravity rounds'
+    : 'Mochi Panic — 3-min squishy multiplayer rounds';
   const title = document.getElementById('gameTitle');
-  if (title) { title.innerHTML = polar ? 'POLAR<br/>PANIC' : 'MOCHI<br/>PANIC'; (title as HTMLElement).style.color = polar ? '#2FA8E0' : '#E84393'; }
+  if (title) {
+    title.innerHTML = game === 'polar' ? 'POLAR<br/>PANIC' : game === 'buffet' ? 'HOLE<br/>BUFFET' : 'MOCHI<br/>PANIC';
+    (title as HTMLElement).style.color = game === 'polar' ? '#2FA8E0' : game === 'buffet' ? '#8B5CF6' : '#E84393';
+  }
   const sub = document.getElementById('gameSub');
   if (sub) sub.innerHTML = polar
     ? 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.'
+    : game === 'buffet'
+    ? 'Slingshot the wells. Dash the pull. Feast or fall.<br/>No signup — devouring in under 5 seconds.'
     : 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.';
   const badge = document.getElementById('gameBadge');
-  if (badge) badge.textContent = polar ? '🧲 FLIP · ATTRACT · DISCHARGE' : '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS';
+  if (badge) badge.textContent = polar ? '🧲 FLIP · ATTRACT · DISCHARGE'
+    : game === 'buffet' ? '🕳️ SLINGSHOT · DASH · DEVOUR'
+    : '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS';
   document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
     b.classList.toggle('sel', b.dataset.game === game);
   });
@@ -682,12 +710,16 @@ function pickGame(g: GameId) {
 }
 // restore last arena (URL wins over storage)
 {
+  const qs = new URLSearchParams(location.search);
   const stored = (() => { try { return localStorage.getItem('mp-game'); } catch { return null; } })();
-  if (new URLSearchParams(location.search).get('game') !== 'polar' && stored === 'polar') game = 'polar';
-  if (new URLSearchParams(location.search).get('game') === 'mochi') game = 'mochi';
+  game = parseGameId(qs.get('game') ?? stored);
 }
 document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
-  b.addEventListener('click', () => { pickGame(b.dataset.game === 'polar' ? 'polar' : 'mochi'); sfx('click'); });
+  b.addEventListener('click', () => {
+    const g = b.dataset.game;
+    pickGame(g === 'polar' ? 'polar' : g === 'buffet' ? 'buffet' : 'mochi');
+    sfx('click');
+  });
 });
 applyGameMode();
 let connecting = false; // double-click guard: one PLAY = one socket, one world

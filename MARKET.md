@@ -21,9 +21,9 @@ fit (3-min, no-signup, bots, 60fps Chromebook).
 ## Scored concepts (Nova proposes, Cross disposes)
 | # | Concept | Clip | Nov | Reuse | Fit | Σ | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1 | POLAR PANIC — flip your charge; opposites attract, same repels; vacuum pellets | 9 | 9 | 85% | 10 | 33 | **BUILD NOW (game #2)** |
-| 2 | BLACK-HOLE BUFFET — slingshot around devouring wells (prior Mode-2 winner) | 9 | 6 | 90% | 8 | 31 | NEXT (game #3) |
-| 3 | HOOK HAVOC — grappling-hook locomotion arena (Grapplenauts is 2D-only) | 10 | 7 | 40% | 7 | 30 | LATER (new physics) |
+| 1 | POLAR PANIC — flip your charge; opposites attract, same repels; vacuum pellets | 9 | 9 | 85% | 10 | 33 | **SHIPPED (game #2)** |
+| 2 | BLACK-HOLE BUFFET — slingshot around devouring wells (prior Mode-2 winner) | 9 | 6 | 90% | 8 | 31 | **SHIPPED (game #3)** |
+| 3 | HOOK HAVOC — grappling-hook locomotion arena (Grapplenauts is 2D-only) | 10 | 7 | 40% | 7 | 30 | NEXT (game #4, needs spring physics) |
 | 4 | GROWORDIE-like survival snake | 7 | 4 | 50% | 8 | 27 | CUT (clone lane) |
 | 5 | Typing-combat duel (MagStrike exists) | 6 | 3 | 20% | 5 | 23 | CUT (exists + desktop-only) |
 | 6 | Territory trace (Paper/Terix lane) | 7 | 3 | 55% | 8 | 25 | CUT (crowded) |

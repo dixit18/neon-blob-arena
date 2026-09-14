@@ -123,6 +123,7 @@ export interface DrawPlayer {
   name: string; isMe: boolean; hunter: boolean; shielded: boolean;
   charge?: number; // polar: +1 blue ring / −1 red ring / 0|undefined none
 }
+export interface DrawWell { x: number; y: number; r: number }
 export interface DrawOrb { i: number; x: number; y: number; hue: number }
 export interface DrawPellet { x: number; y: number; hue: number }
 export interface DrawParticle { x: number; y: number; hue: number; life: number }
@@ -152,6 +153,9 @@ export class World3D {
   private ringPool: { mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; col: THREE.Color }[] = [];
   private chargeRings = new Map<string, THREE.Mesh>(); // polar polarity rings (blue + / red −)
   private seenChargePool = new Set<string>(); // hoisted charged-membership (no alloc)
+  private wellGroup: THREE.Group | null = null; // buffet: 3 devourers, built once
+  private wellMeshes: { hole: THREE.Mesh; rim: THREE.Mesh }[] = [];
+  private wellSpin = 0;
   private hunterRings = new Map<string, THREE.Mesh>();
   private youRing!: THREE.Mesh;
   private shieldShell!: THREE.Mesh;
@@ -366,7 +370,7 @@ export class World3D {
   frame(v: {
     camX: number; camY: number; trauma: number; mobile: boolean; time: number;
     players: DrawPlayer[]; pellets: DrawPellet[]; orbs: DrawOrb[];
-    particles: DrawParticle[]; rings: DrawRing[]; meR?: number;
+    particles: DrawParticle[]; rings: DrawRing[]; meR?: number; wells?: DrawWell[];
   }) {
     // camera: full-3D chase view (fixed yaw => controls stay world-aligned)
     // bigger blob = higher camera so giants stay readable; dash = FOV punch
@@ -596,6 +600,43 @@ export class World3D {
       slot.mat.opacity = Math.min(1, rg.life * 2.5);
       slot.col.setHSL((((rg.hue % 360) + 360) % 360) / 360, 0.95, 0.65);
       slot.mat.color.copy(slot.col);
+    }
+
+    // buffet wells: black spheres + spinning accretion rings (6 meshes, zero alloc)
+    if (v.wells && v.wells.length > 0) {
+      if (!this.wellGroup) {
+        this.wellGroup = new THREE.Group();
+        for (let i = 0; i < 3; i++) {
+          const hole = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 20, 14),
+            new THREE.MeshBasicMaterial({ color: '#0B0614' }),
+          );
+          const rim = new THREE.Mesh(
+            new THREE.TorusGeometry(1.35, 0.12, 10, 40),
+            new THREE.MeshBasicMaterial({ color: '#B45CFF', toneMapped: false, transparent: true, opacity: 0.95 }),
+          );
+          rim.rotation.x = Math.PI / 2.4;
+          this.wellGroup.add(hole); this.wellGroup.add(rim);
+          this.wellMeshes.push({ hole, rim });
+        }
+        this.scene.add(this.wellGroup);
+      }
+      this.wellGroup.visible = true;
+      this.wellSpin += 0.03;
+      for (let i = 0; i < this.wellMeshes.length; i++) {
+        const w = v.wells[i];
+        const m = this.wellMeshes[i];
+        if (!w) { m.hole.visible = false; m.rim.visible = false; continue; }
+        m.hole.visible = true; m.rim.visible = true;
+        m.hole.position.set(w.x, w.r * 0.5, w.y);
+        m.hole.scale.set(w.r, w.r * 0.55, w.r);
+        m.rim.position.set(w.x, 6, w.y);
+        const rs = w.r * (1.25 + 0.05 * Math.sin(v.time / 300 + i * 2));
+        m.rim.scale.set(rs, rs, rs);
+        m.rim.rotation.z = this.wellSpin + i;
+      }
+    } else if (this.wellGroup) {
+      this.wellGroup.visible = false;
     }
 
     this.renderer.render(this.scene, this.camera);

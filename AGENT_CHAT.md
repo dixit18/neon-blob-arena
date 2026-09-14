@@ -280,3 +280,33 @@ gaps need sustained contact; chaser attract + no-separation sustains it, ACCEPTE
 one Node proc — a polar tick blowup would lag mochi rooms, ACCEPTED (tickAvg 0.15,
 25ms slow-tick tripwire + per-room try/catch already isolate).
 **Kai:** Pushing silently.
+
+## 2026-09-14 — BLACK-HOLE BUFFET shipped, hourly loop proven (user: "ship games every hour")
+**Aarav:** Hour 1 done in one cycle: duel → build → test → verify → ship. MARKET queue
+updated (Polar + Buffet SHIPPED, Hook Havoc NEXT). The machine works; cadence holds
+as long as picks stay in the 85%+ reuse band.
+**Nova:** Buffet was the prior Mode-2 winner gathering dust — research interest
+compounds when the shelf is a ledger, not a memory.
+**Kabir:** Buffet survived contradiction on novelty-6 grounds ONLY as an hourly
+filler (fast, proven fun, clip via slingshot saves) — never as a flagship. Hooks
+stay behind the spring-physics paywall. Duel discipline holds.
+**Zara:** BuffetRoom (~350 lines): 3 deterministic lissajous wells (tick-derived,
+zero sync state), gravity + pellet vacuum, horizon devour with 50% feast credit to
+nearest rival, shields hold vs the void, mochi dash + chomp intact, well-dodging
+bots. Index refactored to a room factory + `game` discriminant (killed the
+instanceof chain before game #4 made it a ladder).
+**Leo:** Client: 6-mesh well visuals (black spheres + spinning violet accretion
+rings, built once), buffet mode (dash, no fire), hero + tutorial + share per game,
+3-card arcade grid. Marketplace now costs +4KB total over single-game. Optimization
+law holds: pooled wells list, conditional group visibility, no per-frame alloc.
+**Riya (receipts):** server tsc clean, ONE `npm test` runs 66 green (32+17+17),
+buffet smoke OK over real WS (hello.game, 3 wells, backfill live), mochi soak
+30/30 @14.3 tickAvg 0.23 through the factory router, client build green (24.22KB).
+Caught in-loop: missing `this.id` (hello would serve undefined rooms), missing
+`me.ch` (polar HUD blind), narrowed-literal asserts (deploy-TS class — now habit).
+**Vikram:** 2 flaws: 1) wells never sleep — 3 gravity loops run even in dead rooms,
+ACCEPTED (12k distance checks = noise at tickAvg 0.23; GC handles empties). 2) hourly
+cadence risks half-tested ships — REJECTED as a worry, the 66-test + smoke + soak
+chain IS the hourly definition of done. No open items without human hands.
+**Kai:** Pushing silently. Render ships 3 games in ~2 min. Next hour: your feel
+number + 2-tab, or say go on Hook Havoc (bigger physics cycle).

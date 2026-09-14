@@ -28,19 +28,18 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   trickled 1-per-2s (14s of dead air). Backfill now bursts 3-per-1s (7 bots in ~3s,
   capped, tested 32/32). Menu shows connect/retry/waking status instead of silence.
 - Soak re-run post-backfill: 30/30 @14.1 snaps/s, tickAvg 0.19/max 2.4. Green.
-- MARKETPLACE LIVE (`MARKET.md` ledger): Kabir "Cross" Rao hired as Nova's RedTeam
-  (Rule 10: no concept ships without finding + counter-memo). Game #2 POLAR PANIC:
-  magnet-charge arena (flip/vacuum/attract/repel/merge), `?game=` routing, shared
-  transport + World3D + QA gates. Server 49 tests green (32 combat + 17 polar),
-  polar smoke OK over real WS, mochi soak 30/30 @14.3 through new router.
+- MARKETPLACE: 3 GAMES LIVE. Kabir "Cross" Rao hired as Nova's RedTeam (Rule 10).
+  Game #2 POLAR PANIC (magnet arena) + Game #3 BLACK-HOLE BUFFET (gravity wells).
+  `?game=` routing with per-game namespaces, shared transport + World3D + QA gates.
+  Server 66 tests green (32 combat + 17 polar + 17 buffet) via one `npm test`.
+  Polar + buffet smokes OK over real WS. Mochi soak 30/30 @14.3 through factory.
+- Next in MARKET queue: HOOK HAVOC (game #4, needs spring physics — bigger cycle).
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Marketplace + POLAR PANIC (in progress); files: `ORG.md`, `MARKET.md` (new),
-  server `polar.ts`/`types.ts`/`validate.ts`/`index.ts`/`polar.test.ts`,
-  client `main.ts`/`three-render.ts`/`index.html`, `HANDOFF.md`, `AGENT_CHAT.md`.
+- None. Hourly loop idles on user-gated items (feel number, 2-tab, friends).
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + try POLAR (`?game=polar`).
