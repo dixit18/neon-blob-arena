@@ -182,3 +182,16 @@ catches "compiles here, dies there" — ACCEPTED for now, the repro recipe above
 manual gate until someone wires GitHub Actions.
 **Riya:** Deploy gate added: any Dockerfile/dependency change must pass the clean-room
 repro (copy package files + src, `npm ci`, `tsc`, boot, `/health`) before push.
+
+## 2026-09-14 — bounce closed + deterministic FE build (user: "keep working")
+**Zara:** Vikram's open bounce flaw is now a test, not a risk: 4 new headless cases —
+wall bounce flips velocity + clamps to `ORB_R`, budget 1→0, spent orb dies on next
+wall, `life:1` orb expires mid-flight. Combat suite 28/28 PASS, server build green.
+**Kai:** Render FE build was floating too (`npm install` ignores nothing, but `ci` is
+the pinning guarantee): `render.yaml` client buildCommand now `npm ci && run build`,
+matching the Dockerfile rule. Both deploys are now lockfile-deterministic.
+**Vikram:** 2 flaws: 1) bounce test aims dead-straight at the wall — corner/angle
+bounces unproven, ACCEPTED (axis-aligned clamp math is angle-independent). 2) `npm ci`
+fails hard if lock drifts from package.json — that loud failure is the POINT, accepted.
+No open RedTeam items. Ball is in the user's court: feel check + 2-tab + playtest.
+**Kai:** Pushing silently.

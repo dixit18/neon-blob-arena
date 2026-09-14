@@ -131,7 +131,21 @@ check('respawn-revives', victim.alive === true, `at tick=${room.tick} (due ${res
 check('respawn-mass', victim.mass === TUNE.START_MASS, `mass=${victim.mass}`);
 check('respawn-shield', victim.shieldUntil > room.tick, `shieldUntil=${victim.shieldUntil} tick=${room.tick}`);
 
-// 11 — snapshot byte profile (binary-protocol decision data, QA budget: <=12KB green)
+// 11 — orb wall bounce: velocity flips, budget decrements, spent orb dies, life expires
+room.orbs.length = 0;
+room.orbs.push({ id: 9001, owner: 'shooter', x: 30, y: 3000, vx: -TUNE.ORB_SPEED, vy: 0, hue: 0, bounces: 1, life: TUNE.ORB_LIFE_TICKS, grace: 0 });
+room.stepOrbs();
+const bounced = room.orbs[0];
+check('orb-bounces', room.orbs.length === 1 && (bounced?.vx ?? 0) > 0 && (bounced?.x ?? -1) >= TUNE.ORB_R, `vx=${bounced?.vx} x=${bounced?.x}`);
+check('orb-bounce-budget', (bounced?.bounces ?? -1) === 0);
+if (bounced) { bounced.x = 30; bounced.vx = -TUNE.ORB_SPEED; }
+room.stepOrbs();
+check('orb-dies-spent', room.orbs.length === 0);
+room.orbs.push({ id: 9002, owner: 'shooter', x: 2000, y: 3000, vx: TUNE.ORB_SPEED, vy: 0, hue: 0, bounces: 1, life: 1, grace: 0 });
+room.stepOrbs();
+check('orb-expires', room.orbs.length === 0);
+
+// 12 — snapshot byte profile (binary-protocol decision data, QA budget: <=12KB green)
 for (let i = 0; i < 24; i++) {
   const b = room.addPlayer('crowd' + i, 'Crowd' + i, true);
   b.x = 800 + (i % 6) * 80; b.y = 800 + Math.floor(i / 6) * 80;

@@ -16,6 +16,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   narrowing-proof, Dockerfile now `npm ci` from lockfile (pinned, devDeps for
   compile, prune after). Proven: pinned install → tsc 0 → prune → boot → /health ok.
   ALSO verified fixed test compiles under floating 5.9.3 (belt + suspenders).
+- Bounce closed: combat.test.ts 28/28 (wall bounce flips + budgets, spent orb dies,
+  life expiry). Client FE build on Render now `npm ci` too (was floating install).
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.

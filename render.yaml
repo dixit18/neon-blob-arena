@@ -31,7 +31,7 @@ services:
   - type: web
     name: neon-blob-arena-fe
     runtime: static
-    buildCommand: npm --prefix neon-blob-arena/client install && npm --prefix neon-blob-arena/client run build
+    buildCommand: npm --prefix neon-blob-arena/client ci && npm --prefix neon-blob-arena/client run build
     staticPublishPath: ./neon-blob-arena/client/dist
     buildFilter:
       paths:
