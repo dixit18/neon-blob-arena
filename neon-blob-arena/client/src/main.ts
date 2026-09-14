@@ -106,6 +106,7 @@ type Particle = { x: number; y: number; vx: number; vy: number; life: number; hu
 const particles: Particle[] = [];
 const particleFree: Particle[] = []; // freelist: bursts reuse objects, never churn GC
 let lastSnapAt = performance.now();
+let stallWarned = false; // UX-002: one stall warning per outage, reset on snap
 
 // ---------- juice: procedural SFX + shockwave rings + hit-stop + spectate ----------
 let AC: AudioContext | null = null;
@@ -365,6 +366,7 @@ function connect(name: string) {
 
 function onSnap(s: Snap) {
   lastSnapAt = performance.now();
+  stallWarned = false; // snaps flowing again: re-arm the watchdog
   if (s.me) {
     // reconcile: server wins, but gently — the old 0.45 yank fought 30Hz
     // prediction every snapshot and read as constant micro-jitter on your own blob
@@ -536,6 +538,12 @@ function frame(now: number) {
   trauma = Math.max(0, trauma - dt * 1.6);
   const mobile = Math.min(W, H) < 640;
   governQuality(now); // cheap timestamp gate inside; steps DPR down/up on p95
+  // UX-002 hang watchdog: open socket + no snaps for 5s while playing = stalled.
+  // Close it so onclose auto-reconnects; warn once per outage, never spam.
+  if (ws && ws.readyState === WebSocket.OPEN && el('menu').style.display === 'none' && now - lastSnapAt > 5000) {
+    if (!stallWarned) { stallWarned = true; coach('📡 Connection stalled — reconnecting…'); }
+    try { ws.close(); } catch { /* onclose path handles retry */ }
+  }
 
   // particle + shockwave SIM (positions only — three.js draws them)
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -793,3 +801,23 @@ fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => 
   const hero = document.getElementById('pcountHero');
   if (hero) hero.textContent = t;
 }).catch(() => {});
+
+// UX-001: live per-game counts on the arcade cards (menu-only polling, 5s)
+const httpBase = SERVER.replace('ws', 'http');
+async function refreshLiveCounts() {
+  if (el('menu').style.display === 'none') return; // save battery in-game
+  try {
+    const r = await fetch(httpBase + '/rooms');
+    const rooms = await r.json() as { id: string; game: string; players: number }[];
+    const tally: Record<string, number> = { mochi: 0, polar: 0, buffet: 0 };
+    for (const rm of rooms) {
+      if (rm.game === 'mochi' || rm.game === 'polar' || rm.game === 'buffet') tally[rm.game] += rm.players ?? 0;
+    }
+    for (const g of ['mochi', 'polar', 'buffet'] as const) {
+      const s = document.getElementById('live-' + g);
+      if (s) s.textContent = tally[g] > 0 ? `🟢 ${tally[g]} live` : 'quiet — be the first!';
+    }
+  } catch { /* offline: keep last state, PLAY retry path covers it */ }
+}
+setInterval(refreshLiveCounts, 5000);
+void refreshLiveCounts();

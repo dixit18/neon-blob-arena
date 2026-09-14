@@ -310,3 +310,33 @@ cadence risks half-tested ships — REJECTED as a worry, the 66-test + smoke + s
 chain IS the hourly definition of done. No open items without human hands.
 **Kai:** Pushing silently. Render ships 3 games in ~2 min. Next hour: your feel
 number + 2-tab, or say go on Hook Havoc (bigger physics cycle).
+
+## 2026-09-14 — platform program: markets, phases, PM/UX, no-hang (user: "world's largest platform, launch ASAP")
+**Aarav:** Scope upgraded from games to platform. `MARKETS.md` is the atlas: USA
+(habit-locked top-5, TikTok discovery), India (600M gamers, Ludo/Cricket/culture-fit,
+2GB-RAM feature), China (live-ops rhythm to steal), RU/CIS (Tanks #1 signal, web
+portals growing 20-30%), EU/SEA/BR (tanks east, party everywhere). Build shortlist
+scored by reuse: Steel Swarm 90% NEXT, Rumble 60%, Ludo/Doodle/Cricket queued, MOBA/
+BR-shooter/RMG CUT with reasons. Phases from Phase 0 (80% done) to Phase 4 world.
+**Nova (cited):** Circana/SensorTower/Newzoo/SteamDB/MIXI/Lumikai/GameTeahouse/WN Hub
+numbers in the ledger — 380M Roblox MAU, ~1B Ludo installs, 139M Honor DAU, 450K
+Tanks record. No vibes.
+**Kabir:** Counter: market tables describe giants we can't out-build — our edge is
+frictionless + low-end + cultural fit, NOT competing with Fortnite. Shortlist
+survives because every pick fights where giants don't (browser, 3-min, 2GB RAM).
+**Devika "Dot" Menon (hired — PM/UX, first day):** owns roadmap phases + `TICKETS.md`
+(Rule 11: no release with open UX-BLOCKER). First audit filed 8 tickets from code:
+shipped UX-001 live arcade counts (`/rooms` poll, per-game badges), UX-002 hang
+watchdog (5s no-snap → warn once + auto-reconnect), UX-003 short-screen menu
+(PLAY clears 360×640 fold), UX-004 a11y labels. Open: UX-005 overlap (needs human
+phone), UX-006 Hindi strings, UX-007 PWA, UX-008 SEO/social. Customer lens from
+here on: she re-tests every fix herself.
+**Leo:** All four tickets in one pass, client build green (24.85KB). No-hang law:
+menu-only polling, watchdog re-arms on snap, zero new per-frame work.
+**Vikram:** 2 flaws: 1) watchdog closes a socket that might be mid-backpressure-
+recovery, ACCEPTED (5s of zero snaps is never healthy; reconnect is the cure).
+2) live-counts fetch fails silently offline leaving stale badges, ACCEPTED (PLAY
+retry path covers it; last-known beats blank).
+**Riya:** TICKETS board is now release-gating alongside QA.md. UX-005 stays OPEN —
+nothing ships red.
+**Kai:** Pushing silently.

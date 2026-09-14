@@ -102,6 +102,8 @@
   .gcard .emo { font-size:26px; display:block; }
   .gcard b { display:block; font-family:Fredoka,sans-serif; font-size:15px; font-weight:600; }
   .gcard span { font-size:11px; font-weight:800; color:var(--ink-soft); }
+  .gcard .live { display:block; margin-top:4px; font-size:11px; color:var(--ink); background:#E7F9F0;
+    border:2px solid var(--line); border-radius:999px; padding:2px 8px; }
   .gcard.sel { background:var(--gold); transform:rotate(-1deg); }
   .howto { display:flex; gap:8px; justify-content:center; margin-bottom:14px; flex-wrap:wrap; }
   .howto div { flex:1 1 120px; max-width:150px; background:#fff; border:2px solid var(--line); border-radius:14px;
@@ -126,6 +128,13 @@
   #dead button { margin-top:12px; border:2px solid var(--line); box-shadow:var(--shadow); background:var(--rasp); color:#fff;
     border-radius:14px; padding:12px 22px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; min-height:48px; }
   #shareBtn { margin-top:8px; width:100%; background:#fff !important; color:var(--ink) !important; }
+  @media (max-height:700px) {
+    /* UX-003: PLAY must clear the fold on short landscape phones */
+    .diorama, .howto, .ticker { display:none; }
+    #menu .card { padding:16px 14px; }
+    #menu h1 { font-size:32px; }
+    #menu .sub { font-size:12px; margin-bottom:8px; }
+  }
   @media (max-width:640px) {
     #menu h1 { font-size:42px; }
     #leaders { min-width:128px; padding:8px 10px; }
@@ -151,8 +160,8 @@
 </style>
 </head>
 <body>
-<canvas id="game3d"></canvas>
-<canvas id="fx2d"></canvas>
+<canvas id="game3d" aria-hidden="true"></canvas>
+<canvas id="fx2d" aria-hidden="true"></canvas>
 <div id="vig"></div>
 <div class="hud pill" id="leaders"><h3>🏆 LEADERS</h3><div id="lleaders">…</div><div id="nudge" style="display:none">👥</div></div>
 <div class="hud" id="feed"></div>
@@ -160,17 +169,17 @@
 <div class="hud pill" id="me">…</div>
 <div class="hud" id="room">
   <button class="ghost" id="copyLink" title="Copy invite link">🔗 Invite</button>
-  <button class="ghost" id="soundBtn" title="Sound on/off">🔊</button>
-  <button class="ghost" id="emotesToggle" title="Taunts">😂</button>
+  <button class="ghost" id="soundBtn" title="Sound on/off" aria-label="Sound on/off">🔊</button>
+  <button class="ghost" id="emotesToggle" title="Taunts" aria-label="Taunts">😂</button>
   <button id="dashBtn" title="Dash (Space)">⚡ Dash</button>
   <button id="fireBtn" title="Fire (Click)">🔥 Fire</button>
 </div>
 <div class="hud" id="emotes"></div>
 <div class="hud pill" id="coach" style="display:none"></div>
-<canvas id="minimap" width="116" height="116"></canvas>
+<canvas id="minimap" width="116" height="116" aria-hidden="true"></canvas>
 <div id="hint">Drag / WASD to wobble · Space to dash · Click to splat · biggest mochi takes the crown</div>
 <div id="banner"><div class="inner"><h2 id="bannerTitle">🏆</h2><p id="bannerSub"></p></div></div>
-<div id="menu">
+<div id="menu" role="dialog" aria-label="Game menu: choose an arena and play">
   <div class="card">
     <div class="diorama" aria-hidden="true">
       <svg class="mochi m1" width="86" height="96" viewBox="0 0 86 96">
@@ -215,9 +224,9 @@
     <p class="sub" id="gameSub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
     <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
     <div class="games" id="gamePick">
-      <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span></button>
-      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic ✨NEW</b><span>Flip charge · Attract</span></button>
-      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet ✨NEW</b><span>Slingshot wells · Dash</span></button>
+      <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="live" id="live-mochi">…</span></button>
+      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic ✨NEW</b><span>Flip charge · Attract</span><span class="live" id="live-polar">…</span></button>
+      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet ✨NEW</b><span>Slingshot wells · Dash</span><span class="live" id="live-buffet">…</span></button>
     </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
     <div class="howto">
@@ -225,7 +234,7 @@
       <div><b>2 · Dash ⚡ Splat 🔥</b>Burst &amp; blast back</div>
       <div><b>3 · Crown 👑</b>Biggest when ⏱ hits 0 wins</div>
     </div>
-    <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" />
+    <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" aria-label="Your player name" />
     <div class="row">
       <button id="play">▶ &nbsp;PLAY NOW</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>

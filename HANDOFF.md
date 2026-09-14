@@ -34,12 +34,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   Server 66 tests green (32 combat + 17 polar + 17 buffet) via one `npm test`.
   Polar + buffet smokes OK over real WS. Mochi soak 30/30 @14.3 through factory.
 - Next in MARKET queue: HOOK HAVOC (game #4, needs spring physics — bigger cycle).
+- PLATFORM PROGRAM: `MARKETS.md` (region tables + buildable shortlist + phases),
+  Devika "Dot" Menon hired as PM/UX (Rule 11, owns `TICKETS.md`), first audit done:
+  live arcade counts, hang watchdog, short-screen menu, a11y labels. Board: 4 done,
+  4 open (UX-005 needs human hands).
 - Tree state: CLEAN, in sync with `origin/main`. Verify with `git status -sb`.
 - Prod: client auto-deploys from main; server on Render; user runs local via `.\start-local.ps1 -Restart`.
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Hourly loop idles on user-gated items (feel number, 2-tab, friends).
+- None. Hourly loop idles on user-gated items (feel number, 2-tab, friends, UX-005).
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + try POLAR (`?game=polar`).
