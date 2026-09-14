@@ -153,3 +153,12 @@ path unproven, ACCEPTED (bounded: 1 bounce, 3.5s life, worst case a visual fizzl
 2) crowd bots in the profile stand still — real rooms move, but movement doesn't change
 byte size, ACCEPTED as representative.
 **Kai:** Committed + pushed silently. Tree clean, origin in sync.
+
+## 2026-09-14 — v2 MOCHI PANIC (user: "jitter, worst design, render twice, redesign everything")
+**Aarav:** Verdict accepted, no defense. Four work units, all shipped: feel → memory → re-theme → verify.
+**Leo (feel):** reconcile is now critically-damped (the 0.45 yank fought 30Hz prediction — that WAS the blob jitter), ALL DOM writes in the 2Hz change-only block (score/online/pill/nudge were sneaking 15Hz layout thrash), single-loop guard + hidden-tab pause + PLAY double-click lock + HMR dispose (every double-render vector closed), trauma shake is smooth sine-noise, DPR governor (1.5→1.25→1.0 on p95>22ms). HUD now shows `fps/p95ms` — user reports numbers, we stop guessing.
+**Zara (memory):** zero per-frame allocation — pooled particles/rings/draw-list, hoisted Sets, in-place orb slots, indexed minimap, `toScreenInto` out-param, `renderX/Y` timestamp param. Name labels are per-blob owned (old cache leaked on rename + could evict live textures). Skipped instanceColor dirty-flags deliberately: 6KB/frame upload is noise, GC was the enemy.
+**Mira (re-theme):** gummy-goth DELETED. MOCHI PANIC: cream `#FFF4DE` + ink `#2B2144`, Fredoka/Nunito, SVG mascot diorama with squash-and-stretch (reduced-motion respected), 3-step how-to, live-count ticker. 3D scene inverted: soda-sky, picnic-blanket floor, ink die-cut hulls, ink-on-white labels, sprinkle-tier mochi faces, confetti sky, solid (non-additive) orbs/particles for daylight. Same draw calls, same instancing.
+**Riya (receipts):** client build green (initial 20.42KB/8.9KB gzip — still tiny), landing serves 200 with all new IDs, combat 23/23 PASS, soak 30/30 @14.2 snaps/s, tickAvg 0.3/max 2.3. OPEN: user's 30s feel check (report HUD p95!) + 2-tab manual + phone portrait.
+**Vikram (2 flaws):** 1) Google Fonts is a runtime dependency — offline first-paint falls back to system rounded, ACCEPTED (fallback stack specified, no layout shift: same metrics class). 2) governor only helps fill-rate-bound slowness; if user's jitter was network (their WiFi), p95 stays flat and we chase the wrong ghost — ACCEPTED, which is exactly why HUD p95 is now user-visible: flat p95 + felt jitter = network, high p95 = GPU.
+**Kai:** Pushing silently. User: hard-refresh + `.\start-local.ps1 -Restart` for local.
