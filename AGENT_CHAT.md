@@ -216,3 +216,22 @@ the real tripwire — user, confirm the pinger exists). 2) no branch protection 
 CI green before merge — pushing straight to main bypasses the gate I demanded,
 ACCEPTED only until user enables it (repo Settings → Branches → require `CI`).
 **Kai:** Pushing this — last direct push until protection is on.
+
+## 2026-09-14 — anti-idle (user: "why i see ideal")
+**Zara (prod probe, numbers):** backend `ok:true` (fresh boot, rooms:0 players:0), FE
+200 with MOCHI landing, WS handshake + hello + snaps green with browser Origin —
+netcode innocent. The idleness was real but local: fresh rooms start EMPTY and bots
+trickled 1-per-2s → up to 14s of dead air for a solo joiner. Fix: `ensureBots`
+bursts 3 per 1s cadence → 7 bots in ~3s, hard-capped, overfill trim kept. Proven
+headless: 7 bots after 60 ticks, still ≤7 after 300 (suite now 30/30).
+**Leo:** Menu no longer fails silent: connecting / retry-attempt / waking-hint states
+in the room label, `onerror` funnels to `onclose`, pre-game failures stay explicit
+(no thundering herd on a waking server), in-game drops keep silent 1.5s retry.
+Side benefit: the page-load `/health` ping starts waking Render before you hit PLAY.
+**Vikram:** 2 flaws: 1) probe rooms (PROBE) linger with bots up to 60s+ eating tick —
+ACCEPTED (GC exists, caps hold, tickAvg 0.3 proves cost is nil). 2) no UptimeRobot
+pinger confirmed by user yet — free tier WILL keep napping without it, ACCEPTED as
+user-action (Dashboard → UptimeRobot → `/health` every 10 min). Say it and it's done.
+**Riya:** Anti-idle gate: backfill counts join the combat suite; prod probe recipe
+(health + FE 200 + WS hello/snaps) is the new "is prod dead?" runbook.
+**Kai:** Pushing silently.

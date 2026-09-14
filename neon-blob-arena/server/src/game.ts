@@ -136,14 +136,19 @@ export class Room {
   }
 
   ensureBots() {
-    // backfill so lobby never feels empty (R&D insight #2)
+    // backfill so lobby never feels empty (R&D insight #2).
+    // Bursts of 3 every 1s (called on botTimer%20): a solo joiner sees a full
+    // room in ~2.5s. The old 1-per-2s trickle left rooms feeling dead for 14s.
     const humans = [...this.players.values()].filter(p => !p.isBot).length;
     const wantBots = humans < 2 ? 7 : humans < 8 ? 5 : humans < 14 ? 3 : 0;
-    const bots = [...this.players.values()].filter(p => p.isBot).length;
-    if (bots < wantBots && this.size < TUNE.MAX_HUMANS_PER_ROOM + 10) {
+    let bots = [...this.players.values()].filter(p => p.isBot).length;
+    let added = 0;
+    while (bots < wantBots && added < 3 && this.size < TUNE.MAX_HUMANS_PER_ROOM + 10) {
       const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)] + '-' + Math.floor(rand(10, 99));
       this.addPlayer('bot-' + Math.random().toString(36).slice(2, 8), name, true);
-    } else if (bots > wantBots && bots > 0 && humans >= 8) {
+      bots++; added++;
+    }
+    if (bots > wantBots && bots > 0 && humans >= 8) {
       const b = [...this.players.values()].find(p => p.isBot);
       if (b) this.players.delete(b.id);
     }
@@ -181,7 +186,7 @@ export class Room {
     // pellet upkeep
     while (this.pellets.length < TUNE.PELLETS) this.addPellet();
     this.botTimer++;
-    if (this.botTimer % 40 === 0) { this.ensureBots(); this.ensureHunters(); }
+    if (this.botTimer % 20 === 0) { this.ensureBots(); this.ensureHunters(); } // 1s backfill cadence
     if (this.tick % 10 === 0 && this.taunts.length > 0) this.taunts = this.taunts.filter(t => t.until > this.tick);
   }
 

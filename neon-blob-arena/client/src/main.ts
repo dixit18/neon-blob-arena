@@ -186,6 +186,11 @@ let dashQueued = false;
 let seq = 0;
 let fireQueued = false; // tap FIRE / click to shoot toward facing (server-authoritative orbs)
 let inputTimer: ReturnType<typeof setInterval> | null = null; // single input loop (reconnects must not stack)
+let conFails = 0; // consecutive WS failures (reset on hello) — drives menu status
+function conStatus(msg: string) {
+  // Connection feedback lives in the menu's room label — but never clobbers it mid-game.
+  if (el('menu').style.display !== 'none') el('roomLabel').textContent = msg;
+}
 
 window.addEventListener('keydown', e => {
   keys.add(e.key.toLowerCase());
@@ -254,6 +259,7 @@ function connect(name: string) {
   try { ws?.close(); } catch { /* already dead */ }
   if (inputTimer) { clearInterval(inputTimer); inputTimer = null; }
   remotes.clear(); pellets = []; liveTaunts = []; spectateId = null;
+  conStatus(conFails === 0 ? '⏳ Connecting to the arena…' : `🔄 Reconnecting… (attempt ${conFails + 1})`);
   const q = new URLSearchParams({ name });
   if (roomId) q.set('room', roomId);
   ws = new WebSocket(`${SERVER}?${q.toString()}`);
@@ -261,6 +267,7 @@ function connect(name: string) {
     const m = JSON.parse(ev.data);
     if (m.t === 'hello') {
       myId = m.you; roomId = m.room;
+      conFails = 0; // connected: silence any retry warnings
       history.replaceState(null, '', `?room=${roomId}`);
       el('roomLabel').textContent = `Room: ${roomId} — friends with this link land straight in`;
       el('roomPill').textContent = `🎲 room ${roomId}`;
@@ -295,8 +302,18 @@ function connect(name: string) {
     }
     if (m.t === 'snap') onSnap(m as Snap);
   };
+  ws.onerror = () => { try { ws?.close(); } catch { /* onclose handles retry */ } };
   ws.onclose = () => {
-    setTimeout(() => { if (el('menu').style.display === 'none') connect(name); }, 1500);
+    conFails++;
+    // Pre-game failure (menu still up): stay explicit — no hammering a waking
+    // server — but SAY so. In-game drops keep the silent 1.5s auto-retry.
+    if (el('menu').style.display !== 'none') {
+      conStatus(conFails >= 2
+        ? `⚠️ Can't reach the arena — server may be waking (~30s). Tap PLAY to retry.`
+        : `🔄 Couldn't connect — tap PLAY to retry.`);
+    } else {
+      setTimeout(() => { if (el('menu').style.display === 'none') connect(name); }, 1500);
+    }
   };
   // input @30Hz with redundant feel, server rate-limits anyway
   if (inputTimer) clearInterval(inputTimer);

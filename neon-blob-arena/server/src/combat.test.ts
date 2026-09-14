@@ -145,7 +145,20 @@ room.orbs.push({ id: 9002, owner: 'shooter', x: 2000, y: 3000, vx: TUNE.ORB_SPEE
 room.stepOrbs();
 check('orb-expires', room.orbs.length === 0);
 
-// 12 — snapshot byte profile (binary-protocol decision data, QA budget: <=12KB green)
+// 12 — backfill: a solo joiner gets a full room fast (anti-idle: 3-per-1s bursts).
+// Thresholds leave room for bots chomping each other mid-test (same sim, honest).
+{
+  const lobby = new Room('lobby-probe');
+  lobby.addPlayer('solo', 'Solo'); // human solo join (addPlayer never touches DB)
+  for (let i = 0; i < 60; i++) lobby.step(); // 3s of sim
+  const bots = [...lobby.players.values()].filter(p => p.isBot).length;
+  check('backfill-fills', bots >= 6, `bots=${bots} after 60 ticks`);
+  for (let i = 0; i < 240; i++) lobby.step();
+  const bots2 = [...lobby.players.values()].filter(p => p.isBot).length;
+  check('backfill-caps', bots2 <= 7, `bots=${bots2} after 300 ticks`);
+}
+
+// 13 — snapshot byte profile (binary-protocol decision data, QA budget: <=12KB green)
 for (let i = 0; i < 24; i++) {
   const b = room.addPlayer('crowd' + i, 'Crowd' + i, true);
   b.x = 800 + (i % 6) * 80; b.y = 800 + Math.floor(i / 6) * 80;
