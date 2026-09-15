@@ -179,5 +179,42 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   Cross-game rate joins UX-012 acceptance. DIVERGENCES locked: no Phaser
   rewrite, no Colyseus migration before paid scale, no crowd-machine homepage
   before concurrency health, no UGC/SDK before PMF. No code in D8 itself.
+## D9 — triple-report synthesis + live-site R&D (user: "go through this, update sprint")
+- WHY adopt (Aarav, Nova cited): three new reports converge INDEPENDENTLY on
+  five claims that sharpen D5/D8 rather than replacing them. (1) Playground
+  framing, marketplace architecture underneath — matches our shell; all three
+  warn "marketplace" to players reads as transactions, not play. (2) Share
+  OBJECT > share button (score image, ghost, drawing chain, result grid,
+  garden replay) — our best-gated challenge + score PNG already follow the
+  rule; future picks must pass it or they don't ship. (3) Six differentiated
+  verbs, not catalogue size (Poki ~1500/100M, CrazyGames ~4500/60M — size war
+  unwinnable); our 6 live are still one verb (D4 sameness stands). (4) Daily /
+  social / discovery loops as distinct games, cross-game rate as THE platform
+  metric — joins UX-012. (5) Progressive wow + permanent fast lane — our
+  menu-only CSS tunnel + PLAY-primary validated, 35KB vs Poki ~5MB guidance.
+  Live-site R&D (prod FE `neon-blob-arena-fe.onrender.com` fetched 2026-09-15;
+  BE 503 = free-tier sleep, BE-001 still open): landing already ships guest-
+  first badge, link-first 3 steps, Quick Play fullest-room, THIS WEEK rows,
+  challenge-a-friend, live hottest+king strip — all report-aligned. Gaps the
+  reports expose: menu still says CHOOSE-YOUR-ARENA + 6 thumbnails (catalogue-
+  first, not mood-first); zero daily ritual (THIS WEEK rows, no daily seed /
+  spoiler-safe card); zero non-arena verbs live; UX-013 mood reframe still open.
+- WHY-NOT (Rehan): fourth portfolio review in 48h risks whiplash with Steel
+  mid-flight + Party unbuilt; daily game needs a content owner nobody has
+  named; crowd-machine / living-world spectacle = cold-start + backend-load
+  trap (Checkbox postmortem crashed repeatedly); Portal Rush / One-Minute
+  Arcade campaign risks the marketing page becoming more fun than the
+  catalogue; Phaser/Colyseus/Unity defaults would rewrite a proven 35KB/60fps
+  stack for zero player gain; mood rows + surprise-me without volume is theater.
+- CONCLUSION: ADOPT synthesis, HOLD order. Order unchanged (Steel → Party →
+  Doodle → Ludo → Trivia → Sprint 6 Slingshot/TenSec/SignalHunt). NEW: Sprint 7
+  candidate CHAIN GARDEN (discovery/Chill toy, duel row #16); ghost-challenge
+  links ride inside Slingshot (no separate sprint). Sprint 2 DoD gains two
+  report-backed gates: mood-first row + Surprise-me above thumbnails (UX-018),
+  daily-seed spec + card format with named owner before Sprint 6 (UX-019).
+  CUT until PMF + concurrency health: crowd-machine homepage, MMO/Living
+  World, 3D open world, shooter, open UGC editor, fan-IP clones, Portal Rush
+  as permanent homepage. No code in D9 itself.
 - Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: steal mechanics
-  (share objects, daily ritual, async ghosts), never assets; Vikram flaws in chat.
+  (mood verbs, daily ritual, async ghosts, garden discovery), never assets;
+  Vikram flaws in chat.

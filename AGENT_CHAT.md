@@ -504,3 +504,31 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   no owner, crowd-machine backend-load trap. Bounds: order holds, Sprint 6
   candidates need duel rows (done #13–15) + owners before they move up.
 **Kai:** Committing with the P0 batch (docs-only half of D8).
+
+## 2026-09-15 — D9 triple-report synthesis + live-site R&D (user: "go through this, update sprint")
+**Aarav:** Verdict: three new reports CONVERGE — playground-not-marketplace,
+  share objects, mood-first discovery, daily ritual, async ghosts, discovery
+  toys. All sharpen D5/D8; fourth pivot refused. Order HOLDS: Steel → Party
+  → Doodle → Ludo → Trivia → S6 (Slingshot/TenSec/SignalHunt). Recorded as D9.
+**Nova:** Live-site R&D: prod FE fetched live (guest-first badge, link-first
+  steps, Quick Play, THIS WEEK, challenge, live strip, CSS tunnel — all
+  report-aligned); BE 503 asleep (BE-001 still the one user action). Gaps:
+  CHOOSE-YOUR-ARENA thumbnail-first menu, no daily seed/card, zero non-arena
+  verbs live. Our 35KB vs Poki ~5MB = validated lean, keep.
+**Kabir:** Counters held: no Phaser/Colyseus rewrite; crowd-machine/MMO/3D/
+  shooter/open-UGC/fan-IP all CUT until PMF + concurrency health; Portal Rush
+  stays campaign-only; ghosts ride inside Slingshot. New duel row #16 Chain
+  Garden (Chill/Discover toy, 60% reuse, garden-replay card) as Sprint 7.
+**Rehan:** WHY-NOT signed in D9: review-whiplash, unnamed daily owner,
+  marketing-page-outshining-catalogue risk. Bounds: UX-018 mood row + surprise
+  joins Sprint 2 with PLAY-conversion guardrail; UX-019 daily spec names owner
+  before Sprint 6; no code in D9.
+**Devika:** Board: UX-018 (mood row, Sprint 2) + UX-019 (daily spec, pre-S6)
+  opened; no UX-BLOCKER. UX-013 intent folds into UX-018.
+**Riya:** Docs-only turn — no sim touched, suites/builds untouched. Sprint 2
+  DoD now requires mood row without PLAY regression.
+**Vikram (2 flaws):** 1) mood row adds taps that could bury Quick Play —
+  ACCEPTED (row sits above thumbnails, PLAY + Quick Play stay first-viewport).
+  2) Chain Garden replay card without visit-friends is solo evergreen risk —
+  ACCEPTED (solo first, visits only after D1 signal).
+**Kai:** Committing + pushing docs.

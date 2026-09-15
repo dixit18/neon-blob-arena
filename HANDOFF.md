@@ -4,6 +4,17 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- D9 triple-report synthesis + live-site R&D SHIPPED (docs only, no sim change):
+  three new reports converge on playground framing, share-OBJECT rule, mood-first
+  discovery, daily ritual, async ghosts, discovery toys — all sharpen D5/D8.
+  Live-site R&D 2026-09-15: prod FE live + aligned (guest-first, challenge,
+  live strip, CSS tunnel, 35KB); BE 503 asleep (BE-001 still open); gaps =
+  thumbnail-first menu, no daily seed, zero non-arena verbs. Adopted with
+  bounds: order HOLDS (Steel → Party → Doodle → Ludo → Trivia → S6
+  Slingshot/TenSec/SignalHunt); NEW Sprint 7 candidate Chain Garden (#16);
+  Sprint 2 gains UX-018 mood row, UX-019 daily spec; CUTs locked (crowd-
+  machine/MMO/3D/shooter/UGC/fan-IP/Portal-Rush-homepage). Files:
+  DECISIONS D9, MARKET #16, SPRINTS S2-5b + S7 + CUTs, TICKETS UX-018/019.
 - P0 CANT-PLAY FIXED + SHIPPED: root cause = Render free-tier BE asleep
   (probed fresh-boot rooms:0) + fire-and-forget PLAY with whisper-quiet failure.
   Fix: PLAY state machine (Loading / waking-retry x6 / error pill, buttons lock,

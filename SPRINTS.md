@@ -32,10 +32,13 @@ Tickets:
   (watchdog exists; add resume token/slot hold) — Zara
 - [S2-5] Party metrics in `/stats`: second-game starts, party reuse, host
   reproduction (guests→hosts); menu reframe (Start night / Join code first) — Zara/Leo
+- [S2-5b] Mood-first row + Surprise-me (D9/UX-018): Beat/Chaos/Chill/Think/
+  Surprise-me above thumbnails, guest PLAY ≤2 taps preserved — Devika + Leo
 - [S2-6] Verify: full alpha sequence on 2 tabs (join→A→return→B→resume→report
   stub), builds green, no sim regressions — Riya
 Definition of done: alpha-gate sequence passes on video/manual, `/stats`
 shows party-switch counters, all suites green, shell regressions zero.
+Mood row taps preserved PLAY conversion (no regression vs baseline).
 
 ## Backlog (reordered per D5 — diversify verbs, demote sameness)
 - Sprint 3: Doodle Duel (draw-guess relay, R&D-2 P0) + report/block/mute slice
@@ -48,6 +51,12 @@ shows party-switch counters, all suites green, shell regressions zero.
 - Sprint 6 candidates (D8 playground shortlist, duel rows first): Slingshot
   Sprint (one-button physics + async ghosts), Ten Seconds (reaction microgames),
   Signal Hunt (daily deduction ritual). All cheap on our engine, all ship a
-  share object or they don't ship.
+  share object or they don't ship. Signal Hunt needs UX-019 owner before it moves.
+- Sprint 7 candidate (D9 R&D-4 synthesis, duel row #16): Chain Garden
+  (Chill/Discover toy, place-one-object chain reactions + garden-replay share
+  card). Solo first, visit-friends later; no netcode at launch.
+- CUT until PMF + concurrency health (D9): crowd-machine homepage, MMO/Living
+  World, 3D open world, shooter, open UGC level editor, fan-IP clones,
+  Portal Rush / One-Minute Arcade as permanent homepage (campaign-only later).
 - Queued (D2 solo): Zen Munch (endless mochi, best-mass persistence).
 - Standing: UptimeRobot (BE-001, user), branch protection (user), UX-005 (user phone).

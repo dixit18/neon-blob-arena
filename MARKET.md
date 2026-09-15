@@ -99,5 +99,27 @@ Cross memos: slingshot reuses integrate/pellet/snapshot whole-cloth (aim =
 launch vector, ghosts = recorded inputs, no concurrency needed); ten-seconds
 is timers + tap targets on the existing shell (cheapest row on this page);
 signal hunt is daily-seeded state + share card (content pipeline = one
-generator + curation, owner TBD before sprint). Vs crowd-machine homepage:
+generator + curation, owner TBD before sprint — see UX-019). Vs crowd-machine homepage:
 rejected before concurrency health (R&D-3's own Orbiting-Rooms warning).
+
+## R&D-4 triple-report synthesis (D9 — mood verbs + daily + discovery toy)
+Rule 10 applies: Nova finding + Cross counter each. Three independent reports
+converge on: mood-first discovery (Beat/Think/Chaos/Chill/Discover), daily
+ritual with spoiler-safe card, async ghosts over concurrency, discovery toys
+with huge perceived space from tiny inputs. Live-site R&D 2026-09-15: prod FE
+live with guest-first + challenge + live strip + CSS tunnel (all aligned);
+gaps = thumbnail-first menu, no daily seed, zero non-arena verbs.
+| # | Concept | Clip | Nov | Reuse | Fit | Share object | Verdict |
+|---|---|---|---|---|---|---|---|
+| 16 | CHAIN GARDEN — place one object → chain-reaction ecosystem (Chill/Discover) | 8 | 7 | 60% | 9 | garden replay / "my ecosystem" card | SPRINT 7 CANDIDATE |
+Cross memos: vs "garden is idle cosy, not arcade": chain reactions are
+2-second-readable clips (domino satisfaction) and the replay card is the
+share object — Chill loop our portfolio lacks; build = pellet-spawn +
+trigger-radius + tween, all existing shell pieces, no netcode (solo +
+visit-friends-later). Vs "why not Portal Rush now": Rush is L-effort
+multi-microgame flagship that risks outshining the catalogue — defer until
+cross-game rate proves the platform thesis. Vs "why not crowd-machine/MMO/3D
+open world/shooter/open UGC/fan-IP": all CUT until PMF + concurrency health —
+backend-load trap, moderation surface, IP liability, or rewrite of a proven
+35KB stack for zero player gain. Ghost-challenge links ride inside Slingshot
+(#13), not a separate sprint.
