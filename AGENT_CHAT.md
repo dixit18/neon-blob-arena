@@ -431,3 +431,12 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Leo:** Shipped S1-3 unblock: `aim` optional radians in InputSchema, finite-checked. Old clients unaffected (aim undefined). Receipt: aim=1.57 pass / NaN-null / legacy-undef + tsc + 4 suites green.
 **Vikram:** 2 flaws: 1) aim unbounded (spin spam?) — ACCEPTED (angle is circular, sim clamps on use; gate only kills NaN/Infinity). 2) Effect Schema decode cost per input @30Hz — ACCEPTED (Either decode is allocation-light vs JSON.parse it already pays; tickAvg unchanged).
 **Kai:** Committing + pushing.
+
+## 2026-09-15 — R&D-2 reviewed, sprint updated (user: "go through it, update sprint")
+**Aarav:** Verdict: HELPS, with a cut list. ADOPT party-OS thesis ("one room, many games"), private-lobbies-first, guest-first, 4–5 different verbs, host-monetisation-later. DEFER iframe/SDK isolation, native voice, open UGC, payments, esports layer — R&D-2 itself says modular monolith first. Recorded as D5 (Rehan signed).
+**Nova:** Where we are: 6 games LIVE but one verb (arena eat/dash); shell does guest + private rooms + Quick Play + bots + emotes-only + /catalog + live counts. Gaps R&D-2 exposes: rooms namespaced per game (switching kills the party), no host kick/lock, no report/block UI, no party-switch metrics, thumbnail-first menu, zero non-arena verbs.
+**Kabir:** Counter held: no catalogue-size war (Poki 100M/1700 games, CrazyGames 50M — unwinnable); Steel finishes as sunk-cost anchor (P1 7.8), then arenas pause; Doodle (draw-guess, already our backlog) is the cheapest P0 diversifier; trivia enters shortlist; Rumble/batch-B/Cricket/Hooks parked on sameness risk.
+**Rehan:** WHY-NOT signed in D5: party plumbing risks the working shell with no new game to show; metrics without volume is theater; diversity delays Steel+Ludo. Resolution: bounds — Steel finishes, party sprint proves alpha gate (join→A→return→B→resume→report), diversification measured by second-game starts + host reproduction, not vibes.
+**Devika:** Board updated: UX-011 report/block/mute (Sprint 3), UX-012 party metrics (Sprint 2), UX-013 menu reframe (Sprint 2). No UX-BLOCKER opened; release gate holds.
+**Riya:** Docs-only turn — no sim touched, suites/builds untouched from fdaed46 green. Sprint 2 DoD requires alpha sequence + /stats counters + zero shell regressions.
+**Kai:** Committing + pushing docs.

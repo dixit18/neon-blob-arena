@@ -37,9 +37,48 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   of Done, not a freeze.
 - Status: CONCLUDED. Owners: Riya + Zara. Signed: Rehan.
 
+## D5 — party-OS thesis from R&D-2 (user: "update our sprint accordingly")
+- WHY adopt (Aarav, Nova cited): R&D-2 community evidence is consistent —
+  organisers need 8–15 players with one link, no download, phone-friendly;
+  guests praise no-login/no-friction starts; empty lobbies kill. Our shell
+  already proves guest-first + private rooms + bots + emotes-only safety.
+  The missing piece is exactly the thesis: "Open a room. Send one link.
+  Play anything together." Today rooms are namespaced per game
+  (`game:room` in `index.ts`), so switching games abandons the party.
+  Fixing that is differentiation vs Poki/CrazyGames catalogue-first.
+  Portfolio side: R&D-2 P0 archetypes (draw-guess 9.4, microgame cup 9.2,
+  trivia 9.0, social deduction 8.8) are all DIFFERENT verbs; our 6 live
+  games are one verb (arena eat/dash). D4 already flagged sameness risk.
+  Doodle Duel (draw & guess, stroke sync) is already in our backlog and
+  is the cheapest P0-aligned diversifier. Trivia/word blitz is low-medium
+  build, 2–100 players, phone-friendly — ideal second diversifier.
+- WHY-NOT (Rehan): party persistence touches the WORKING shell
+  (routing, room lifecycle, matchmaking, share links) — the highest-risk
+  surface for regressions with zero new games to show. Diversity splits
+  focus: Steel Swarm is mid-flight (S1-3 aim gate shipped) and Ludo Clash
+  serves India volume; pausing arenas for party plumbing + a drawing game
+  delays both. Metrics (WSPS, host reproduction) without volume is theater
+  — our /stats has joins/rounds/taunts but few real parties yet. Iframe
+  isolation + SDK + voice + UGC (all in R&D-2) would sink the free-tier
+  hourly loop; R&D-2 itself says modular monolith first, defer those.
+- CONCLUSION: ADOPT with bounds. (1) Finish Steel Swarm as the last arena
+  for a while (competitive anchor, P1 7.8 in R&D-2 terms, S1-3 already
+  done — sunk-cost finish, not a new bet). (2) Next platform sprint is
+  PARTY PERSISTENCE: one room code across games + switch-game flow +
+  host kick/lock + reconnect hardening + party metrics (second-game
+  starts, host reproduction). (3) Next NEW GAME is Doodle Duel (draw-guess
+  relay, P0) — promoted ahead of Rumble/Meteor/Team/Ghost sameness batch.
+  (4) Trivia/word blitz enters the shortlist as the low-cost large-group
+  game after Doodle. (5) DEFERRED explicitly: iframe/SDK isolation, native
+  voice, open UGC, payments/host-sub, tournaments/esports layer — until
+  party-switch + host-repeat signal exists. No sim changes in D5 itself.
+- Status: CONCLUDED. Owner: Aarav. Signed: Rehan.
+
 ## D4 — per-game verdicts (review all 6 before more ships)
 - Mochi/Polar/Buffet/Rush/Hill/Tag: KEEP, conditional on D3 telemetry staying green.
   Rehan's why-not per game (sameness risk, novelty-6 buffet, tag ping-pong edge) is
   answered by: distinct verbs per card, tests pinning the edges, telemetry watching.
 - Next ships: Steel Swarm (tanks, RU/EU signal) then Zen Munch (first solo, D2).
+  Superseded in part by D5: Steel still next (finish in-flight), then Doodle
+  Duel (P0 draw-guess) jumps ahead of Zen/Rumble; Zen stays queued.
 - Status: CONCLUDED. Owner: Aarav. Signed: Rehan.

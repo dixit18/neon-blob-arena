@@ -4,6 +4,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- R&D-2 REVIEWED + SPRINT UPDATED (docs only, no sim change): D5 adopts party-OS
+  thesis with bounds — finish Steel (last arena), then Sprint 2 PARTY
+  PERSISTENCE (cross-game room code + switch flow + host kick/lock + resume +
+  party metrics), then Sprint 3 DOODLE DUEL (P0 draw-guess, promoted), Sprint 4
+  Ludo, Sprint 5 Trivia Blitz (new); Rumble/batch-B/Cricket/Hooks parked;
+  UX-011/012/013 opened; MARKET duel rows #11–12. Status: GREEN builds untouched.
 - EFFECT-EDGE aim gate shipped: `validate.ts` Schema now accepts optional `aim`
   (radians, finite-checked). Verified: tsc + 4 suites green, aim=1.57 pass /
   NaN-null / legacy-undef.
@@ -53,13 +59,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Effect-aim gate shipped + verified; tree ready to commit.
+- None. R&D-2 sprint update shipped (docs only); tree ready to commit.
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, try ⚡ Quick Play + 📅 event rows, report HUD `fps/p95`.
-2. Playtest: 3 friends + `?game=&room=` links, PMF numbers (`/stats` + `/catalog`).
-3. Sprint 1 STEEL SWARM resumes (S1-1 sim) — marketplace shell now web-ready.
-3. Playtest: 3 friends + `?game=&room=` links, PMF numbers (`/stats`).
+2. Finish Sprint 1 STEEL SWARM (S1-1 sim → S1-2 suite → S1-4 client → S1-5 verify).
+3. Sprint 2 PARTY PERSISTENCE per new backlog (S2-1 cross-game room code first).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

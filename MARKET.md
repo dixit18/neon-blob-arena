@@ -73,3 +73,18 @@ Per-game phase plan (every game, no exceptions): duel row → sim + headless sui
 client mode (palette/rings/tutorial/card) → smoke over WS → soak if sim touched →
 arcade card + hero → ship. Batch A shares one VariantRoom; Steel Swarm gets its own
 sim (shells ballistics) like polar/buffet did.
+
+## R&D-2 diversifiers (party-OS thesis, D5 — duel rows for the next NEW verbs)
+Rule 10 applies: Nova finding + Cross counter each. Scores reuse clip/nov/reuse/fit.
+| # | Concept | Clip | Nov | Reuse | Fit | Σ | Verdict |
+|---|---|---|---|---|---|---|---|
+| 11 | DOODLE DUEL — draw & guess relay, 4–12+, prompts + voting | 9 | 7 | 50% | 9 | 32 | **NEXT NEW GAME (Sprint 3)** |
+| 12 | TRIVIA/WORD BLITZ — team buzzer quiz, 2–100, playlists | 8 | 5 | 65% | 9 | 29 | SHORTLIST (Sprint 5) |
+Cross memos: vs #11 "stroke sync is netcode risk": strokes are sparse,
+rate-limited polylines with server rebroadcast + prompt seed — far cheaper than
+60Hz physics; drawing abuse handled by UX-011 report + prompt filters, no free
+text at launch. Vs #12 "trivia is content treadmill": start with one shipped
+question pack + host custom packs later; latency handled by lockout-buzzer with
+server timestamp authority, not client claims. Vs "why not more arenas": 6
+shipped arenas already cover the competitive anchor; sameness is the measured
+risk (D4), and R&D-2 P0 ranks draw/trivia above a 7th arena verb.

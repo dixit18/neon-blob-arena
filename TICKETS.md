@@ -13,6 +13,17 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   copy in one strings table. Phase 2.
 - [UX-007] PWA installability audit (icon/maskable/shortcuts per game) — Owner: Riya.
 - [UX-008] SEO + social cards per game (title/desc/OG image) — Owner: Arjun. Phase 1.
+- [UX-011] Report/block/mute from inside the match (R&D-2 MVP safety) — Owner:
+  Leo (client button + local block-mutes-taunts) + Zara (server `/report` log
+  with match_id/reporter/reported/reason). Accept: report posts without leaving
+  the game; block hides that player's taunts. Sprint 3 with Doodle.
+- [UX-012] Party metrics in `/stats` (WSPS proxy: second-game starts, party
+  reuse, host reproduction) — Owner: Zara. Accept: `/stats` exposes
+  partySwitches + secondGameStarts + hostsCreated. Sprint 2.
+- [UX-013] Menu reframe: Start-a-game-night / Join-with-code / Continue-with-party
+  above thumbnails (R&D-2: organise people, not games) — Owner: Devika + Leo.
+  Accept: guest reaches PLAY in ≤2 taps, thumbnails stay below fold-first CTA.
+  Sprint 2.
 
 ## Done
 - [UX-009] How-to-play modal per game — Done: 📖 buttons (HUD + menu), rules table
