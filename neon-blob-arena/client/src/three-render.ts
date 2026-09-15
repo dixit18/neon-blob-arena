@@ -124,6 +124,7 @@ export interface DrawPlayer {
   charge?: number; // polar: +1 blue ring / −1 red ring / 0|undefined none
 }
 export interface DrawWell { x: number; y: number; r: number }
+export interface DrawZone { x: number; y: number; r: number }
 export interface DrawOrb { i: number; x: number; y: number; hue: number }
 export interface DrawPellet { x: number; y: number; hue: number }
 export interface DrawParticle { x: number; y: number; hue: number; life: number }
@@ -156,6 +157,7 @@ export class World3D {
   private wellGroup: THREE.Group | null = null; // buffet: 3 devourers, built once
   private wellMeshes: { hole: THREE.Mesh; rim: THREE.Mesh }[] = [];
   private wellSpin = 0;
+  private hillRing: THREE.Mesh | null = null; // variant hill zone, built once
   private hunterRings = new Map<string, THREE.Mesh>();
   private youRing!: THREE.Mesh;
   private shieldShell!: THREE.Mesh;
@@ -332,6 +334,11 @@ export class World3D {
 
   setPixelRatio(dpr: number) { this.renderer.setPixelRatio(dpr); } // quality governor
 
+  stats(): { calls: number; tris: number; geos: number; texs: number } {
+    const r = this.renderer.info;
+    return { calls: r.render.calls, tris: r.render.triangles, geos: r.memory.geometries, texs: r.memory.textures };
+  }
+
   private faceFor(r: number): number { return r < 20 ? 0 : r < 30 ? 1 : r < 44 ? 2 : 3; }
 
   private nameSprite(name: string, hunter: boolean): THREE.Sprite {
@@ -370,7 +377,7 @@ export class World3D {
   frame(v: {
     camX: number; camY: number; trauma: number; mobile: boolean; time: number;
     players: DrawPlayer[]; pellets: DrawPellet[]; orbs: DrawOrb[];
-    particles: DrawParticle[]; rings: DrawRing[]; meR?: number; wells?: DrawWell[];
+    particles: DrawParticle[]; rings: DrawRing[]; meR?: number; wells?: DrawWell[]; zone?: DrawZone;
   }) {
     // camera: full-3D chase view (fixed yaw => controls stay world-aligned)
     // bigger blob = higher camera so giants stay readable; dash = FOV punch
@@ -637,6 +644,24 @@ export class World3D {
       }
     } else if (this.wellGroup) {
       this.wellGroup.visible = false;
+    }
+
+    // variant hill zone: single gold ring, built once, gentle pulse
+    if (v.zone) {
+      if (!this.hillRing) {
+        this.hillRing = new THREE.Mesh(
+          new THREE.RingGeometry(0.93, 1, 64),
+          new THREE.MeshBasicMaterial({ color: '#FFC93C', transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }),
+        );
+        this.hillRing.rotation.x = -Math.PI / 2;
+        this.scene.add(this.hillRing);
+      }
+      this.hillRing.visible = true;
+      this.hillRing.position.set(v.zone.x, 2, v.zone.y);
+      const zp = 1 + 0.03 * Math.sin(v.time / 400);
+      this.hillRing.scale.set(v.zone.r * zp, v.zone.r * zp, 1);
+    } else if (this.hillRing) {
+      this.hillRing.visible = false;
     }
 
     this.renderer.render(this.scene, this.camera);

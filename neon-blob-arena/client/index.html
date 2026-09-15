@@ -45,6 +45,10 @@
     font-family:Fredoka,sans-serif; font-weight:600; font-size:15px; font-variant-numeric:tabular-nums; letter-spacing:.04em; pointer-events:none;
     background:var(--gold); }
   #roundPill.danger { background:var(--rasp); color:#fff; -webkit-text-stroke:0; animation:pulse .8s infinite; }
+  #objPill { top:calc(52px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); padding:5px 14px;
+    font-weight:800; font-size:12px; pointer-events:none; background:#fff; white-space:nowrap;
+    max-width:92vw; overflow:hidden; text-overflow:ellipsis; }
+  #objPill.danger { background:var(--rasp); color:#fff; animation:pulse .8s infinite; }
   #me { bottom:calc(12px + env(safe-area-inset-bottom)); left:10px; padding:9px 13px; font-size:13px; font-weight:800; pointer-events:none;
     font-variant-numeric:tabular-nums; }
   #room { bottom:calc(12px + env(safe-area-inset-bottom)); right:10px; display:flex; gap:8px; pointer-events:auto; align-items:center; }
@@ -128,6 +132,20 @@
   #dead button { margin-top:12px; border:2px solid var(--line); box-shadow:var(--shadow); background:var(--rasp); color:#fff;
     border-radius:14px; padding:12px 22px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; min-height:48px; }
   #shareBtn { margin-top:8px; width:100%; background:#fff !important; color:var(--ink) !important; }
+  /* how-to modal: same sticker card, game rules on demand */
+  #howto { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:11;
+    background:rgba(43,33,68,.4); padding:16px; }
+  #howto .card { background:var(--paper); border:3px solid var(--line); box-shadow:6px 6px 0 var(--ink);
+    border-radius:22px; padding:22px 24px; max-width:380px; width:100%; max-height:86vh; overflow-y:auto; }
+  #howto h2 { font-family:Fredoka,sans-serif; font-size:24px; margin-bottom:4px; }
+  #howto .goal { font-weight:800; font-size:14px; margin-bottom:10px; }
+  #howto ul { list-style:none; margin-bottom:10px; }
+  #howto li { font-size:13px; font-weight:700; padding:5px 0; border-top:2px dashed #e3d3ae; }
+  #howto li b { font-family:Fredoka,sans-serif; font-weight:600; }
+  #howto .win { font-size:13px; font-weight:800; background:var(--gold); border:2px solid var(--line);
+    border-radius:12px; padding:8px 10px; margin-bottom:12px; }
+  #howtoClose { width:100%; border:2px solid var(--line); box-shadow:var(--shadow); background:var(--rasp); color:#fff;
+    border-radius:14px; padding:12px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; }
   @media (max-height:700px) {
     /* UX-003: PLAY must clear the fold on short landscape phones */
     .diorama, .howto, .ticker { display:none; }
@@ -166,9 +184,11 @@
 <div class="hud pill" id="leaders"><h3>🏆 LEADERS</h3><div id="lleaders">…</div><div id="nudge" style="display:none">👥</div></div>
 <div class="hud" id="feed"></div>
 <div class="hud pill" id="roundPill">⏱ --:--</div>
+<div class="hud pill" id="objPill" style="display:none"></div>
 <div class="hud pill" id="me">…</div>
 <div class="hud" id="room">
   <button class="ghost" id="copyLink" title="Copy invite link">🔗 Invite</button>
+  <button class="ghost" id="howBtn" title="How to play" aria-label="How to play">📖</button>
   <button class="ghost" id="soundBtn" title="Sound on/off" aria-label="Sound on/off">🔊</button>
   <button class="ghost" id="emotesToggle" title="Taunts" aria-label="Taunts">😂</button>
   <button id="dashBtn" title="Dash (Space)">⚡ Dash</button>
@@ -225,8 +245,11 @@
     <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
     <div class="games" id="gamePick">
       <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="live" id="live-mochi">…</span></button>
-      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic ✨NEW</b><span>Flip charge · Attract</span><span class="live" id="live-polar">…</span></button>
-      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet ✨NEW</b><span>Slingshot wells · Dash</span><span class="live" id="live-buffet">…</span></button>
+      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic</b><span>Flip charge · Attract</span><span class="live" id="live-polar">…</span></button>
+      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet</b><span>Slingshot wells · Dash</span><span class="live" id="live-buffet">…</span></button>
+      <button class="gcard" data-game="rush"><span class="emo">🍬</span><b>Sugar Rush ✨NEW</b><span>90s blitz · 2x pellets</span><span class="live" id="live-rush">…</span></button>
+      <button class="gcard" data-game="hill"><span class="emo">⛰️</span><b>King Hill ✨NEW</b><span>Hold center · Score</span><span class="live" id="live-hill">…</span></button>
+      <button class="gcard" data-game="tag"><span class="emo">🏃</span><b>Tag Frenzy ✨NEW</b><span>Don't be IT</span><span class="live" id="live-tag">…</span></button>
     </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
     <div class="howto">
@@ -239,12 +262,14 @@
       <button id="play">▶ &nbsp;PLAY NOW</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
     </div>
+    <p id="howLink" style="margin-top:10px;font-size:13px;font-weight:800;color:var(--rasp);cursor:pointer;pointer-events:auto">📖 How to play — rules for every arena</p>
     <div id="menuMeta"><span id="pcount">… online</span><span id="bestLine">🏅 best: —</span><span id="crownLine">👑 crowns: —</span><span id="roomPill">🎲 public arena</span></div>
     <p id="roomLabel"></p>
     <p id="inviteCta">🔗 heads-up: copy your invite link BEFORE the round ends — friends land straight in</p>
   </div>
 </div>
 <div id="dead"><div class="card"><h2 id="deadTitle">💥 Splatted!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn">📤 Share score</button></div></div>
+<div id="howto"><div class="card"><h2 id="howTitle">📖 How to play</h2><p class="goal" id="howGoal"></p><ul id="howList"></ul><p class="win" id="howWin"></p><button id="howtoClose">Got it — play!</button></div></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

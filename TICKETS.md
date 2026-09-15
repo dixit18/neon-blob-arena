@@ -15,6 +15,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [UX-008] SEO + social cards per game (title/desc/OG image) — Owner: Arjun. Phase 1.
 
 ## Done
+- [UX-009] How-to-play modal per game — Done: 📖 buttons (HUD + menu), rules table
+  (goal/controls/win) for all 6 games, click-outside close. Receipt: build green.
+- [UX-010] Objective pill — Done: live goal line under round timer (tag IT warning
+  pulses red, hill in/out state, polar charge state). 2Hz change-only. Receipt: build.
 - [UX-001] Live counts on arcade cards — Done: `/rooms` poll 5s (menu-only), per-game
   badges (`🟢 N live` / `quiet — be the first!`). Receipt: client build green.
 - [UX-002] Hang watchdog — Done: open socket + 5s no-snap while playing → one coach

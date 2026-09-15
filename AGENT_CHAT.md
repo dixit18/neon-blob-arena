@@ -311,6 +311,35 @@ chain IS the hourly definition of done. No open items without human hands.
 **Kai:** Pushing silently. Render ships 3 games in ~2 min. Next hour: your feel
 number + 2-tab, or say go on Hook Havoc (bigger physics cycle).
 
+## 2026-09-14 — INCIDENT: BE 503 + batch A lands + no-random-play (user: "BE failed, lagging, no instructions, not gaming-grade")
+**Kai (incident):** Prod BE returned 503 on `/health` — root cause: Render free-tier
+sleep (no keepalive pinger exists; BE-001 still user-action), NOT our code. Woke on
+second probe (`ok:true`, fresh boot rooms:0). Same triage caught a REAL near-miss in
+the working tree: a stray edit had swallowed `setInterval` into a comment — the next
+push would have shipped a dead sim. Restored, and now RUNTIME-proven (ticks 0→25
+over live WS), not just built.
+**Zara (hardening):** boot can never die on DB again (initDb guard), process-level
+crash handlers log-and-stay-up (rooms already isolated; Render restarts true wedges
+via health checks), ping/pong RTT echo (zero sim touch). Wall-containment fix in
+shared physics (shoves parked bodies OUTSIDE the arena — live exploit in all games,
+now regression-tested). Batch A engine: one VariantRoom, three games, 17 headless
+cases incl. dash-chomp corner mechanics + tag ping-pong analysis.
+**Leo (no-random-play):** 📖 how-to modal with per-game rules (goal/controls/win),
+live objective pill under the timer (tag IT pulses red, hill in/out, polar charge),
+HUD carries 📶 RTT + fps/p95, first-timer tutorials per game. Nobody wonders what
+to do anymore.
+**Riya (receipts):** server tsc + 83 tests green (32+17+17+17) via one `npm test`,
+tag smoke OK, mochi soak 30/30 @14.0 through factory, client build green (27KB for
+6 games), tick-advance proven live. BE-001 + UX-005 stay OPEN (both need humans).
+**Vikram:** 2 flaws: 1) log-and-stay-up can mask a rot loop that passes health —
+ACCEPTED with tripwire (tickMaxMs + slow-tick logs; Render kills true wedges).
+2) RTT meter measures WS echo, not render stalls — ACCEPTED, that's what p95 is for;
+together they split network vs GPU blame exactly as the lag runbook demands.
+**Devika:** UX-009/010 done and re-tested on paper (modal + objective); UX-005 still
+needs a human phone. Board honest, release still gated.
+**Kai:** Pushing everything (batch A + incident) silently. Render needs ~2-3 min;
+BE-001 (UptimeRobot) is the one thing that stops the next 503.
+
 ## 2026-09-14 — platform program: markets, phases, PM/UX, no-hang (user: "world's largest platform, launch ASAP")
 **Aarav:** Scope upgraded from games to platform. `MARKETS.md` is the atlas: USA
 (habit-locked top-5, TikTok discovery), India (600M gamers, Ludo/Cricket/culture-fit,

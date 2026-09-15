@@ -156,7 +156,25 @@ room.stepOrbs();
 const corner = room.orbs[0];
 check('orb-corner-bounce', room.orbs.length === 1 && (corner?.vx ?? 0) > 0 && (corner?.vy ?? 0) > 0 && (corner?.bounces ?? -1) === 0, `vx=${corner?.vx} vy=${corner?.vy} bounces=${corner?.bounces}`);
 
-// 12 — backfill: a solo joiner gets a full room fast (anti-idle: 3-per-1s bursts).
+// 12 — walls hold during shoves: separation never parks bodies outside (exploit)
+{
+  const wroom = new Room('walls');
+  const brute = wroom.addPlayer('brute', 'Brute', true);
+  brute.x = 3880; brute.y = 2000; brute.vx = brute.vy = 0;
+  brute.mass = 200; brute.r = massToRadius(200); brute.shieldUntil = 0;
+  const pin = wroom.addPlayer('pin', 'Pin', true);
+  pin.x = 3950; pin.y = 2000; pin.vx = pin.vy = 0;
+  pin.mass = 12; pin.r = massToRadius(12); pin.shieldUntil = 0;
+  wroom.handleInput('brute', 1, 0, true);
+  for (let i = 0; i < 10; i++) { wroom.handleInput('brute', 1, 0, false); wroom.step(); }
+  let contained = true;
+  for (const p of wroom.players.values()) {
+    if (p.x < p.r - 0.01 || p.x > TUNE.WORLD - p.r + 0.01 || p.y < p.r - 0.01 || p.y > TUNE.WORLD - p.r + 0.01) contained = false;
+  }
+  check('walls-hold', contained, `pin.x=${pin.x.toFixed(0)}`);
+}
+
+// 13 — backfill: a solo joiner gets a full room fast (anti-idle: 3-per-1s bursts).
 // Thresholds leave room for bots chomping each other mid-test (same sim, honest).
 {
   const lobby = new Room('lobby-probe');

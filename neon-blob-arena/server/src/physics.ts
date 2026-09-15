@@ -46,6 +46,13 @@ export function resolveCollision(a: Body, b: Body): boolean {
   a.y -= ny * overlap * (b.mass / total) * 0.9;
   b.x += nx * overlap * (a.mass / total) * 0.9;
   b.y += ny * overlap * (a.mass / total) * 0.9;
+  // walls hold during shoves: separation must never park bodies outside the
+  // arena (they lived out there, unfair + unreachable). Clamp both, every hit.
+  const W = TUNE.WORLD;
+  a.x = Math.max(a.r, Math.min(W - a.r, a.x));
+  a.y = Math.max(a.r, Math.min(W - a.r, a.y));
+  b.x = Math.max(b.r, Math.min(W - b.r, b.x));
+  b.y = Math.max(b.r, Math.min(W - b.r, b.y));
   // impulse: relative velocity along normal, restitution 0.55 + knockback bonus
   const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
   const velAlong = rvx * nx + rvy * ny;

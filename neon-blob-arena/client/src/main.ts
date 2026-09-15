@@ -1,7 +1,7 @@
 // Neon Blob Arena client — FULL 3D (Three.js) presentation, authoritative 2D sim.
 // UI animation (menu/banner/overlays) loads GSAP lazily; render loop stays hand-rolled.
 import { uiMenuIn, uiCrownPop, uiDeathIn, uiPressify } from './ui-anim';
-import type { World3D, DrawPlayer, DrawWell } from './three-render';
+import type { World3D, DrawPlayer, DrawWell, DrawZone } from './three-render';
 // Three.js loads lazily on PLAY (menu paints in ~22KB); canvas loop stays hand-rolled.
 let world: World3D | null = null;
 let worldFailed = false;
@@ -20,18 +20,22 @@ async function ensureWorld(): Promise<World3D | null> {
   }
 }
 
-type GameId = 'mochi' | 'polar' | 'buffet';
-const GAME_TITLES: Record<GameId, string> = { mochi: 'Mochi Panic', polar: 'Polar Panic', buffet: 'Black-Hole Buffet' };
+type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag';
+const GAME_TITLES: Record<GameId, string> = {
+  mochi: 'Mochi Panic', polar: 'Polar Panic', buffet: 'Black-Hole Buffet',
+  rush: 'Sugar Rush', hill: 'King Hill', tag: 'Tag Frenzy',
+};
 // Marketplace: ?game= selects the arena (default mochi). Server confirms via hello.
 function parseGameId(raw: string | null): GameId {
-  return raw === 'polar' ? 'polar' : raw === 'buffet' ? 'buffet' : 'mochi';
+  return raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag' ? raw : 'mochi';
 }
 let game: GameId = parseGameId(new URLSearchParams(location.search).get('game'));
 let myCharge: 1 | -1 = 1;
+let myIt = false; // tag: am I IT (drives HUD chip + tag warning)
 
 type Snap = {
   t: string; tick: number; you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; ch?: number; respawnIn?: number };
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; ch?: number; it?: number; respawnIn?: number };
   players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number; c: number }[];
   pellets: { id: number; x: number; y: number; hue: number }[];
   orbs: { i: number; x: number; y: number; h: number }[];
@@ -40,6 +44,7 @@ type Snap = {
   taunts: { id: string; e: number }[];
   round: number; // seconds left in the 3-min round
   wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
+  v?: { it?: string; zone?: { x: number; y: number; r: number } }; // variants: tag IT + hill zone
 };
 
 const canvas = document.getElementById('game3d') as HTMLCanvasElement;
@@ -91,6 +96,7 @@ const snapIds = new Set<string>(); // hoisted: per-snap membership without alloc
 type Orb2D = { i: number; x: number; y: number; hue: number };
 const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
 const wells: DrawWell[] = []; // buffet devourers, in-place slot reuse like orbs
+const zoneState: DrawZone & { on: boolean } = { x: 2000, y: 2000, r: 260, on: false }; // hill zone, zero alloc
 // draw-list pool: one DrawPlayer object per slot, reused every frame (no per-frame garbage)
 const plist: DrawPlayer[] = [];
 function plistSlot(pi: number): DrawPlayer {
@@ -150,6 +156,8 @@ let lastBanner = '';
 let lastDomAt = 0, lastLeadHtml = '', lastFeedHtml = '';
 let lastMeHtml = '', lastPcount = '', lastPillTxt = '', lastPillDanger = false;
 let lastNudgeTxt = '', lastNudgeHot = false, nudgeShown = false;
+let lastObjTxt = '', lastObjDanger = false;
+let rttMs = -1, pingTick = 0; // 📶 latency meter: ping every ~5s, pong echoes
 let frameNo = 0, fpsEma = 60;
 // Phase-0 probe: frame-time ring + longtask counter (measure-first, both devices)
 const FT_N = 120;
@@ -280,6 +288,10 @@ function connect(name: string) {
   ws = new WebSocket(`${SERVER}?${q.toString()}`);
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
+    if (m.t === 'pong') { // latency echo (see ping sender in input loop)
+      if (typeof m.s === 'number') rttMs = Math.max(0, Date.now() - m.s);
+      return;
+    }
     if (m.t === 'hello') {
       myId = m.you; roomId = m.room;
       game = parseGameId(m.game ?? null); // server is truth (unknown → default)
@@ -299,6 +311,18 @@ function connect(name: string) {
         setTimeout(() => coach('🕳️ Black holes devour — ride the rim, never the middle'), 600);
         setTimeout(() => coach('⚡ SPACE dashes you out of the pull — rivals make great shields'), 4200);
         setTimeout(() => coach('👑 Biggest mochi when ⏱ hits 0 wins the round!'), 7800);
+      } else if (game === 'rush' && !localStorage.getItem('rush-seen')) {
+        localStorage.setItem('rush-seen', '1');
+        setTimeout(() => coach('🍬 90 seconds. Double pellets. No mercy.'), 600);
+        setTimeout(() => coach('⚡ DASH kills — corner them like always'), 4200);
+      } else if (game === 'hill' && !localStorage.getItem('hill-seen')) {
+        localStorage.setItem('hill-seen', '1');
+        setTimeout(() => coach('⛰️ Stand in the gold ring to bank score'), 600);
+        setTimeout(() => coach('⚡ Dash rivals OUT of the ring'), 4200);
+      } else if (game === 'tag' && !localStorage.getItem('tag-seen')) {
+        localStorage.setItem('tag-seen', '1');
+        setTimeout(() => coach('🏃 Red ring is IT — don\'t touch them'), 600);
+        setTimeout(() => coach('Survive to score. Tag back to pass it on!'), 4200);
       } else if (game === 'mochi' && !localStorage.getItem('blob-seen')) { // first-timer concept tutorial
         localStorage.setItem('blob-seen', '1');
         const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -357,6 +381,9 @@ function connect(name: string) {
     me.x = Math.max(me.r, Math.min(WORLD - me.r, me.x));
     me.y = Math.max(me.r, Math.min(WORLD - me.r, me.y));
     ws.send(JSON.stringify({ t: 'input', seq: ++seq, dx: +d.dx.toFixed(3), dy: +d.dy.toFixed(3), dash: dashQueued, fire: fireQueued, flip: flipQueued }));
+    if (++pingTick % 150 === 0 && ws.readyState === WebSocket.OPEN) {
+      try { ws.send(JSON.stringify({ t: 'ping', s: Date.now() })); } catch { /* retry next window */ }
+    }
     if (dashQueued && me.dashReady && game !== 'polar') { trauma = Math.min(1, trauma + 0.25); burst(me.x, me.y, 10, 200); ring(me.x, me.y, me.r + 70, 190); sfx('dash'); buzz(25); world?.kick(true, false); }
     if (fireQueued && game === 'mochi') burst(me.x, me.y, 3, 45);
     if (flipQueued && me.dashReady && game === 'polar') { ring(me.x, me.y, me.r + 60, myCharge > 0 ? 200 : 335); sfx('flip'); buzz(12); }
@@ -380,6 +407,9 @@ function onSnap(s: Snap) {
     me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
     me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak; me.sh = m.sh;
     if (game === 'polar' && typeof m.ch === 'number') myCharge = m.ch > 0 ? 1 : -1;
+    const itMe = game === 'tag' && m.it === 1;
+    if (itMe && !myIt) coach("🏃 YOU'RE IT — tag someone!"); // fires once per tagging
+    myIt = itMe;
     // eat detect: sudden mass gain = chomp (juice only — server owns truth)
     if (m.mass - prevMass > 3 && me.alive) { ring(me.x, me.y, me.r + 60, 150); sfx('eat'); hitstop = Math.max(hitstop, 0.045); }
     if (m.kills > prevKills) { sfx('kill'); hitstop = Math.max(hitstop, 0.06); trauma = Math.min(1, trauma + 0.35); world?.kick(false, true); }
@@ -444,6 +474,9 @@ function onSnap(s: Snap) {
     else wells.push({ x: o.x, y: o.y, r: o.r });
   }
   wells.length = wmapped.length;
+  // hill zone: static shape mirrored from server HILL (no per-snap garbage)
+  if (s.v?.zone) { zoneState.x = s.v.zone.x; zoneState.y = s.v.zone.y; zoneState.r = s.v.zone.r; zoneState.on = true; }
+  else zoneState.on = false;
   liveTaunts = s.taunts || [];
   // throttled DOM (2Hz max, only on change) — EVERYTHING lives here now.
   // These used to write per-snapshot (~15Hz): layout thrash was a top jank source.
@@ -453,9 +486,11 @@ function onSnap(s: Snap) {
     if (lh !== lastLeadHtml) { lastLeadHtml = lh; el('lleaders').innerHTML = lh; }
     const fh = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
     if (fh !== lastFeedHtml) { lastFeedHtml = fh; el('feed').innerHTML = fh; }
-    const modeChip = game === 'polar' ? (myCharge > 0 ? '🔵' : '🔴') : '🟣';
+    const modeChip = game === 'polar' ? (myCharge > 0 ? '🔵' : '🔴') : game === 'tag' && myIt ? '🏃' : '🟣';
     const readyChip = game === 'polar' ? (me.dashReady ? '⇄' : '…') : (me.dashReady ? '⚡' : '…');
-    const meHtml = `${modeChip}${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms · ${readyChip}`;
+    const scoreChip = (game === 'hill' || game === 'tag') ? ` · ⭐${me.score}` : '';
+    const rttChip = rttMs >= 0 ? ` · 📶${rttMs}ms` : '';
+    const meHtml = `${modeChip}${me.mass} ${LEVELS[myLevel][0]} · ⚔️${me.kills}${me.streak >= 2 ? ` · 🔥x${me.streak}` : ''}${scoreChip} · 🏅${best} · ${Math.round(fpsEma)}fps/${ftP95().toFixed(0)}ms${rttChip} · ${readyChip}`;
     if (meHtml !== lastMeHtml) { lastMeHtml = meHtml; el('me').textContent = meHtml; }
     const pcTxt = `${s.players.length + 1} online`;
     if (pcTxt !== lastPcount) {
@@ -479,6 +514,26 @@ function onSnap(s: Snap) {
     if (nudgeTxt !== lastNudgeTxt) { lastNudgeTxt = nudgeTxt; nudge.textContent = nudgeTxt; }
     const hot = count < 8;
     if (hot !== lastNudgeHot) { lastNudgeHot = hot; nudge.classList.toggle('hot', hot); }
+    // objective pill: what to do RIGHT NOW (no more random play)
+    const obj = el('objPill');
+    let objTxt: string, objDanger = false;
+    if (game === 'tag') {
+      if (myIt) { objTxt = "🏃 YOU'RE IT — tag someone!"; objDanger = true; }
+      else {
+        let itName = '';
+        for (const r of remotes.values()) if (r.ht === 1) { itName = r.n; break; }
+        objTxt = itName ? `🏃 ${itName} is IT — run!` : '🏃 Tag someone!';
+      }
+    } else if (game === 'hill') {
+      const inside = zoneState.on && Math.hypot(me.x - zoneState.x, me.y - zoneState.y) < zoneState.r;
+      objTxt = inside ? '⛰️ IN THE RING +2/s — hold it!' : '⛰️ Get in the gold ring!';
+    } else if (game === 'polar') {
+      objTxt = myCharge > 0 ? '🔵 You vacuum red · blue repels you' : '🔴 You vacuum blue · red repels you';
+    } else if (game === 'buffet') objTxt = '🕳️ Ride the rim — never the middle';
+    else if (game === 'rush') objTxt = '🍬 90s blitz — eat everything';
+    else objTxt = '🍩 Eat · grow · crown';
+    if (objTxt !== lastObjTxt) { lastObjTxt = objTxt; obj.textContent = objTxt; obj.style.display = 'block'; }
+    if (objDanger !== lastObjDanger) { lastObjDanger = objDanger; obj.classList.toggle('danger', objDanger); }
   }
   // winner banner (once per crown)
   const top = s.feed[0] || '';
@@ -538,6 +593,7 @@ function frame(now: number) {
   trauma = Math.max(0, trauma - dt * 1.6);
   const mobile = Math.min(W, H) < 640;
   governQuality(now); // cheap timestamp gate inside; steps DPR down/up on p95
+  debugTick(now); // dev-only overlay, no-op in prod
   // UX-002 hang watchdog: open socket + no snaps for 5s while playing = stalled.
   // Close it so onclose auto-reconnects; warn once per outage, never spam.
   if (ws && ws.readyState === WebSocket.OPEN && el('menu').style.display === 'none' && now - lastSnapAt > 5000) {
@@ -578,6 +634,7 @@ function frame(now: number) {
     world.frame({
       camX: cam.x, camY: cam.y, trauma, mobile, time: now,
       players: plist, pellets, orbs, particles, rings, meR: me.r, wells,
+      zone: zoneState.on ? zoneState : undefined,
     });
   }
 
@@ -650,7 +707,9 @@ function shareCard() {
   g.strokeStyle = '#2B2144'; g.lineWidth = 10; g.strokeRect(8, 8, 584, 364);
   g.textAlign = 'center';
   g.fillStyle = '#E84393'; g.font = '700 46px Fredoka, sans-serif';
-  g.fillText(game === 'polar' ? 'POLAR PANIC' : game === 'buffet' ? 'HOLE BUFFET' : 'MOCHI PANIC', 300, 80);
+  const shareTitle = game === 'polar' ? 'POLAR PANIC' : game === 'buffet' ? 'HOLE BUFFET'
+    : game === 'rush' ? 'SUGAR RUSH' : game === 'hill' ? 'KING HILL' : game === 'tag' ? 'TAG FRENZY' : 'MOCHI PANIC';
+  g.fillText(shareTitle, 300, 80);
   g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
   g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
   g.fillStyle = '#5b4f7e'; g.font = '700 26px Nunito, sans-serif';
@@ -680,6 +739,54 @@ function shareCard() {
   }, 'image/png');
 }
 
+// ---------- how-to-play (rules on demand: no more random play) ----------
+const HOWTO: Record<GameId, { goal: string; rows: [string, string][]; win: string }> = {
+  mochi: {
+    goal: 'Eat dots to grow. Hunt blobs smaller than you, dodge bigger ones.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Dash — SPACE', 'Burst that costs a little mass, knocks chunks off rivals'], ['Eat', 'You absorb blobs ÷1.12 your size'], ['Fire — Click / F', 'Orb costs 2 mass, bounces once']],
+    win: '👑 Biggest blob when ⏱ hits 0 wins the round!',
+  },
+  polar: {
+    goal: 'You are a magnet. Opposite charges attract — same charges repel.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Flip — SPACE', 'Swap +/− instantly (1s cooldown). Flip to escape!'], ['Vacuum', 'Opposite pellets fly to you; rivals pull together'], ['Eat', 'Touch a smaller OPPOSITE blob to discharge them']],
+    win: '👑 Biggest blob when ⏱ hits 0 wins the round!',
+  },
+  buffet: {
+    goal: 'Feast around 3 wandering black holes. Never touch the middle.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Dash — SPACE', 'Escape the pull (or slingshot around the rim)'], ['Wells', 'Gravity drags you + pellets in; horizon = death'], ['Feed', 'Nearest rival eats 50% of your mass if you fall in']],
+    win: '👑 Biggest blob when ⏱ hits 0 wins the round!',
+  },
+  rush: {
+    goal: 'Mochi Panic at double speed. 90 seconds. No mercy.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Dash — SPACE', 'Same dash, faster game'], ['Eat', 'Pellets everywhere, chomp like always']],
+    win: '👑 Biggest blob when the 90s clock hits 0!',
+  },
+  hill: {
+    goal: 'Stand in the gold ring to bank score. Shove rivals out.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Score', '+2 every second inside the ring'], ['Dash — SPACE', 'Knock holders OUT of the ring'], ['Eat', 'Chomping still works — denies holders']],
+    win: '👑 Most SCORE (not mass!) when ⏱ hits 0 wins!',
+  },
+  tag: {
+    goal: 'Someone is always IT (red ring). Touch passes it on.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Survive', 'Non-IT banks +1 score every second'], ['IT', 'Chase and touch anyone to pass it (1s grace)'], ['Dash — SPACE', 'Escape the chaser — or run victims down']],
+    win: '👑 Most SCORE when ⏱ hits 0 wins — surviving pays!',
+  },
+};
+function openHowto() {
+  const h = HOWTO[game];
+  el('howTitle').textContent = `📖 ${GAME_TITLES[game]}`;
+  el('howGoal').textContent = h.goal;
+  el('howList').innerHTML = h.rows.map(([k, v]) => `<li><b>${k}:</b> ${v}</li>`).join('');
+  el('howWin').textContent = h.win;
+  el('howto').style.display = 'flex';
+  sfx('click');
+}
+function closeHowto() { el('howto').style.display = 'none'; }
+el('howBtn').addEventListener('click', openHowto);
+el('howLink').addEventListener('click', openHowto);
+el('howtoClose').addEventListener('click', closeHowto);
+el('howto').addEventListener('click', (e) => { if (e.target === el('howto')) closeHowto(); });
+
 // ---------- menu ----------
 // Marketplace: per-game buttons (⇄ Flip replaces ⚡Dash + 🔥Fire in polar).
 function applyGameMode() {
@@ -690,22 +797,25 @@ function applyGameMode() {
   el('fireBtn').style.display = game === 'mochi' ? '' : 'none'; // only mochi fires orbs
   document.title = game === 'polar' ? 'Polar Panic — 3-min magnetic rounds'
     : game === 'buffet' ? 'Black-Hole Buffet — 3-min gravity rounds'
+    : game === 'rush' ? 'Sugar Rush — 90-second blitz'
+    : game === 'hill' ? 'King Hill — hold the center'
+    : game === 'tag' ? 'Tag Frenzy — don\'t be IT'
     : 'Mochi Panic — 3-min squishy multiplayer rounds';
+  const hero: Record<GameId, { h: string; c: string; s: string; b: string }> = {
+    mochi: { h: 'MOCHI<br/>PANIC', c: '#E84393', s: 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.', b: '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS' },
+    polar: { h: 'POLAR<br/>PANIC', c: '#2FA8E0', s: 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.', b: '🧲 FLIP · ATTRACT · DISCHARGE' },
+    buffet: { h: 'HOLE<br/>BUFFET', c: '#8B5CF6', s: 'Slingshot the wells. Dash the pull. Feast or fall.<br/>No signup — devouring in under 5 seconds.', b: '🕳️ SLINGSHOT · DASH · DEVOUR' },
+    rush: { h: 'SUGAR<br/>RUSH', c: '#FB9039', s: 'Double pellets. 90 seconds. Eats hit different fast.<br/>No signup — blitzing in under 5 seconds.', b: '🍬 90-SECOND BLITZ' },
+    hill: { h: 'KING<br/>HILL', c: '#00C2A8', s: 'Stand in the gold ring to bank score. Shove rivals out.<br/>No signup — crowning in under 5 seconds.', b: '⛰️ HOLD THE HILL' },
+    tag: { h: 'TAG<br/>FRENZY', c: '#8B5CF6', s: 'Someone is always IT. Survive to score, tag to pass.<br/>No signup — running in under 5 seconds.', b: "🏃 DON'T BE IT" },
+  };
+  const H = hero[game];
   const title = document.getElementById('gameTitle');
-  if (title) {
-    title.innerHTML = game === 'polar' ? 'POLAR<br/>PANIC' : game === 'buffet' ? 'HOLE<br/>BUFFET' : 'MOCHI<br/>PANIC';
-    (title as HTMLElement).style.color = game === 'polar' ? '#2FA8E0' : game === 'buffet' ? '#8B5CF6' : '#E84393';
-  }
+  if (title) { title.innerHTML = H.h; (title as HTMLElement).style.color = H.c; }
   const sub = document.getElementById('gameSub');
-  if (sub) sub.innerHTML = polar
-    ? 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.'
-    : game === 'buffet'
-    ? 'Slingshot the wells. Dash the pull. Feast or fall.<br/>No signup — devouring in under 5 seconds.'
-    : 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.';
+  if (sub) sub.innerHTML = H.s;
   const badge = document.getElementById('gameBadge');
-  if (badge) badge.textContent = polar ? '🧲 FLIP · ATTRACT · DISCHARGE'
-    : game === 'buffet' ? '🕳️ SLINGSHOT · DASH · DEVOUR'
-    : '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS';
+  if (badge) badge.textContent = H.b;
   document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
     b.classList.toggle('sel', b.dataset.game === game);
   });
@@ -723,11 +833,7 @@ function pickGame(g: GameId) {
   game = parseGameId(qs.get('game') ?? stored);
 }
 document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
-  b.addEventListener('click', () => {
-    const g = b.dataset.game;
-    pickGame(g === 'polar' ? 'polar' : g === 'buffet' ? 'buffet' : 'mochi');
-    sfx('click');
-  });
+  b.addEventListener('click', () => { pickGame(parseGameId(b.dataset.game ?? null)); sfx('click'); });
 });
 applyGameMode();
 let connecting = false; // double-click guard: one PLAY = one socket, one world
@@ -802,6 +908,24 @@ fetch((SERVER.replace('ws', 'http')) + '/health').then(r => r.json()).then(h => 
   if (hero) hero.textContent = t;
 }).catch(() => {});
 
+// ?debug=1 perf overlay: renderer.info + frame stats for FPS tuning (dev only,
+// zero cost otherwise — one div, 2Hz updates, never in the hot path).
+const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
+let dbgEl: HTMLDivElement | null = null;
+if (DEBUG) {
+  dbgEl = document.createElement('div');
+  dbgEl.style.cssText = 'position:fixed;left:8px;top:40%;z-index:99;background:#000c;color:#0f0;font:11px monospace;padding:8px;border-radius:8px;pointer-events:none;white-space:pre;';
+  document.body.appendChild(dbgEl);
+}
+let lastDbgAt = 0;
+function debugTick(now: number) {
+  if (!DEBUG || !dbgEl || now - lastDbgAt < 500) return;
+  lastDbgAt = now;
+  const s = world?.stats();
+  dbgEl.textContent = `fps ${Math.round(fpsEma)} p95 ${ftP95().toFixed(1)}ms LT ${longTasks} Q${qTier}\n` +
+    (s ? `draw ${s.calls} tris ${(s.tris / 1000).toFixed(0)}k geo ${s.geos} tex ${s.texs}` : '3d boot…');
+}
+
 // UX-001: live per-game counts on the arcade cards (menu-only polling, 5s)
 const httpBase = SERVER.replace('ws', 'http');
 async function refreshLiveCounts() {
@@ -809,11 +933,11 @@ async function refreshLiveCounts() {
   try {
     const r = await fetch(httpBase + '/rooms');
     const rooms = await r.json() as { id: string; game: string; players: number }[];
-    const tally: Record<string, number> = { mochi: 0, polar: 0, buffet: 0 };
+    const tally: Record<string, number> = { mochi: 0, polar: 0, buffet: 0, rush: 0, hill: 0, tag: 0 };
     for (const rm of rooms) {
-      if (rm.game === 'mochi' || rm.game === 'polar' || rm.game === 'buffet') tally[rm.game] += rm.players ?? 0;
+      if (rm.game in tally) tally[rm.game] += rm.players ?? 0;
     }
-    for (const g of ['mochi', 'polar', 'buffet'] as const) {
+    for (const g of ['mochi', 'polar', 'buffet', 'rush', 'hill', 'tag'] as const) {
       const s = document.getElementById('live-' + g);
       if (s) s.textContent = tally[g] > 0 ? `🟢 ${tally[g]} live` : 'quiet — be the first!';
     }

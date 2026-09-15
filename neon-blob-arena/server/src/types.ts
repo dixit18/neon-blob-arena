@@ -3,14 +3,18 @@ export interface Vec { x: number; y: number }
 
 // Marketplace: game ids ride `?game=<id>` (default mochi). Rooms are namespaced
 // per game; snapshot transport shape is shared, games add optional fields.
-export type GameId = 'mochi' | 'polar' | 'buffet';
+export type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag';
 export const GAMES: Record<GameId, { title: string; blurb: string }> = {
   mochi: { title: 'Mochi Panic', blurb: 'Munch · Dash · Splat · Crown' },
   polar: { title: 'Polar Panic', blurb: 'Flip charge · Attract · Repel' },
   buffet: { title: 'Black-Hole Buffet', blurb: 'Slingshot wells · Devour' },
+  rush: { title: 'Sugar Rush', blurb: '2x pellets · 90s blitz' },
+  hill: { title: 'King Hill', blurb: 'Hold the center · Score' },
+  tag: { title: 'Tag Frenzy', blurb: "Don't be IT" },
 };
 export function parseGame(raw: unknown): GameId {
-  return raw === 'polar' ? 'polar' : raw === 'buffet' ? 'buffet' : 'mochi';
+  if (raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag') return raw;
+  return 'mochi';
 }
 
 export interface PlayerState {
@@ -75,7 +79,7 @@ export interface ServerSnapshot {
   t: 'snap';
   tick: number;
   you: string;
-  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; respawnIn?: number };
+  me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; ch?: number; it?: number; respawnIn?: number };
   players: SnapPlayer[];
   pellets: Pellet[];
   leaders: { n: string; s: number }[];
@@ -84,6 +88,7 @@ export interface ServerSnapshot {
   round: number; // seconds left in the current 3-min round (urgency engine)
   orbs: { i: number; x: number; y: number; h: number }[]; // live projectiles, AOI-culled
   wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
+  v?: { it?: string; zone?: { x: number; y: number; r: number } }; // variants: tag IT + hill zone
 }
 
 export const EMOTES = ['😂', '😈', '💪', '😱', '👋'] as const; // must match client

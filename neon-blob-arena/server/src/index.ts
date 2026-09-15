@@ -8,6 +8,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Room } from './game.js';
 import { PolarRoom } from './polar.js';
 import { BuffetRoom } from './buffet.js';
+import { VariantRoom } from './arcade.js';
 import { TUNE, parseGame, type GameId } from './types.js';
 import { validateInput } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
@@ -18,17 +19,20 @@ const REGION = process.env.REGION || 'local';
 
 // Marketplace: rooms namespaced per game (`polar:ABCD` vs `mochi:ABCD` map keys;
 // room codes users share stay plain). Tick/snap loops treat them uniformly.
-const rooms = new Map<string, Room | PolarRoom | BuffetRoom>();
+type AnyRoom = Room | PolarRoom | BuffetRoom | VariantRoom;
+const rooms = new Map<string, AnyRoom>();
 let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
+const joinsByGame: Record<string, number> = {}; // portal social proof per arena
 function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 
-function makeRoom(game: GameId, id: string): Room | PolarRoom | BuffetRoom {
+function makeRoom(game: GameId, id: string): AnyRoom {
   if (game === 'polar') return new PolarRoom(id);
   if (game === 'buffet') return new BuffetRoom(id);
+  if (game === 'rush' || game === 'hill' || game === 'tag') return new VariantRoom(game, id);
   return new Room(id);
 }
 
-function getOrCreateRoom(game: GameId, id?: string): Room | PolarRoom | BuffetRoom {
+function getOrCreateRoom(game: GameId, id?: string): AnyRoom {
   const mapKey = id ? game + ':' + id : undefined;
   if (mapKey && rooms.has(mapKey)) return rooms.get(mapKey)!;
   if (id && /^[A-Z0-9]{4,8}$/.test(id)) {
@@ -36,7 +40,7 @@ function getOrCreateRoom(game: GameId, id?: string): Room | PolarRoom | BuffetRo
     rooms.set(mapKey!, r); return r;
   }
   // matchmake: least-loaded room OF THE SAME GAME, else new
-  let best: Room | PolarRoom | BuffetRoom | null = null;
+  let best: AnyRoom | null = null;
   let bestHumans = Infinity;
   for (const r of rooms.values()) {
     if (r.game !== game) continue;
@@ -73,7 +77,7 @@ const server = http.createServer(async (req, res) => {
     // PMF dashboard (Arjun): joins, rounds, taunts — requeue/invite loop proxies. No PII.
     const rounds = [...rooms.values()].reduce((a, r) => a + r.roundCount, 0);
     const taunts = [...rooms.values()].reduce((a, r) => a + r.tauntCount, 0);
-    res.end(JSON.stringify({ rooms: rooms.size, ticks, joins: joinsTotal, rounds, taunts }));
+    res.end(JSON.stringify({ rooms: rooms.size, ticks, joins: joinsTotal, games: joinsByGame, rounds, taunts }));
     return;
   }
   res.statusCode = 404; res.end(JSON.stringify({ error: 'not found' }));
@@ -98,6 +102,7 @@ wss.on('connection', (ws: WebSocket, req) => {
   const conn = { ws, playerId: id, msgTimes: [] as number[], lastSeq: 0 };
   room.conns.set(id, conn);
   joinsTotal++;
+  joinsByGame[game] = (joinsByGame[game] ?? 0) + 1;
   room.pushFeed(`✨ ${name} joined`);
   ws.send(JSON.stringify({ t: 'hello', you: id, room: room.id, game, world: TUNE.WORLD }));
 
@@ -111,6 +116,10 @@ wss.on('connection', (ws: WebSocket, req) => {
       const raw: unknown = JSON.parse(buf.toString());
       const robj = raw as { t?: unknown; i?: unknown };
       if (robj && robj.t === 'taunt') { room.addTaunt(id, robj.i); return; }
+      if (robj && robj.t === 'ping') { // RTT meter: answered inline, never touches sim
+        try { ws.send(JSON.stringify({ t: 'pong', s: (robj as { s?: unknown }).s ?? null })); } catch { /* gone */ }
+        return;
+      }
       const clean = validateInput(raw);
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
@@ -158,5 +167,16 @@ setInterval(() => {
   }
 }, 1000 / TUNE.SNAP_HZ);
 
-await initDb(process.env.DATABASE_URL);
+// Availability first: rooms are isolated and both loops already try/catch per
+// room, so a stray throw must never take down every game at once. Log loudly
+// (Render surfaces stderr; tickAvgMs/max expose wedges via /health) and stay up.
+// Render restarts the service if health checks fail, which covers true wedges.
+process.on('uncaughtException', (e) => console.error('[fatal] uncaughtException (staying up):', e));
+process.on('unhandledRejection', (e) => console.error('[fatal] unhandledRejection (staying up):', e));
+
+try {
+  await initDb(process.env.DATABASE_URL);
+} catch (e) {
+  console.error('[db] init failed, running on memory leaderboard:', e);
+}
 server.listen(PORT, () => console.log(`[server] blob-arena :${PORT} region=${REGION} tick=${TUNE.TICK_HZ}Hz snap=${TUNE.SNAP_HZ}Hz`));

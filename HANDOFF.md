@@ -28,11 +28,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   trickled 1-per-2s (14s of dead air). Backfill now bursts 3-per-1s (7 bots in ~3s,
   capped, tested 32/32). Menu shows connect/retry/waking status instead of silence.
 - Soak re-run post-backfill: 30/30 @14.1 snaps/s, tickAvg 0.19/max 2.4. Green.
-- MARKETPLACE: 3 GAMES LIVE. Kabir "Cross" Rao hired as Nova's RedTeam (Rule 10).
-  Game #2 POLAR PANIC (magnet arena) + Game #3 BLACK-HOLE BUFFET (gravity wells).
-  `?game=` routing with per-game namespaces, shared transport + World3D + QA gates.
-  Server 66 tests green (32 combat + 17 polar + 17 buffet) via one `npm test`.
-  Polar + buffet smokes OK over real WS. Mochi soak 30/30 @14.3 through factory.
+- MARKETPLACE: 6 GAMES LIVE (batch A shipped: rush/hill/tag via one VariantRoom).
+  Kabir "Cross" Rao hired as Nova's RedTeam (Rule 10).
+- INCIDENT 2026-09-14: prod BE 503 = free-tier sleep (no pinger — BE-001 open).
+  Same pass caught a near-fatal local edit (sim loop commented out — restored +
+  runtime-proven ticks 0→25). Shipped: crash-proof boot (DB guard + handlers),
+  ping/pong RTT meter in HUD, how-to modal + objective pill per game.
 - Next in MARKET queue: HOOK HAVOC (game #4, needs spring physics — bigger cycle).
 - PLATFORM PROGRAM: `MARKETS.md` (region tables + buildable shortlist + phases),
   Devika "Dot" Menon hired as PM/UX (Rule 11, owns `TICKETS.md`), first audit done:
@@ -43,7 +44,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Hourly loop idles on user-gated items (feel number, 2-tab, friends, UX-005).
+- 10-GAME DAY (in progress): portal/FPS R&D, roster + per-game phases, variant
+  engine + batch A (rush/hill/tag). Files: `MARKET.md`, client/server game files,
+  `HANDOFF.md`, `AGENT_CHAT.md`, `TICKETS.md`.
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + try POLAR (`?game=polar`).

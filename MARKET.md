@@ -47,3 +47,29 @@ fit (3-min, no-signup, bots, 60fps Chromebook).
 2. Every game: 3D (shared World3D), 3-min rounds, no signup, bots, <150KB first paint.
 3. New games reuse snapshot transport shape + QA gates (combat suite pattern, soak).
 4. Research duel never ends: each new game needs a MARKET row + Cross memo first.
+
+## 10-GAME DAY roster (portal + FPS R&D applied, Cross-scored)
+Portal law (Poki/Yandex/CrazyGames data): instant load (<4s or lose half the clicks),
+action centered immediately, big touch UI, categories + social proof (live counts),
+short sessions, trial-friendly. FPS law (three.js 2026 guides): draw calls <100,
+DPR capped, zero-alloc loops, dispose discipline, `renderer.info` overlay in dev.
+Our standing: initial 24KB (~1s), 1 draw call per entity class, DPR governor,
+pooled everything — portal-ready. Gap closed this cycle: `?debug=1` perf overlay.
+
+| # | Game | Verb | Reuse | Phase | Status |
+|---|---|---|---|---|---|
+| 1 | Mochi Panic 🍩 | munch/dash/splat | — | P0 | LIVE |
+| 2 | Polar Panic 🧲 | flip charge | 85% | P0 | LIVE |
+| 3 | Black-Hole Buffet 🕳️ | slingshot wells | 90% | P0 | LIVE |
+| 4 | Sugar Rush 🍬 | speed + 90s rounds | 97% | A | **SHIPPED (batch A)** |
+| 5 | King Hill ⛰️ | hold center zone | 88% | A | **SHIPPED (batch A)** |
+| 6 | Tag Frenzy 🏃 | pass the IT | 88% | A | **SHIPPED (batch A)** |
+| 7 | Meteor Shower ☄️ | dodge telegraphed blasts | 85% | B | QUEUED |
+| 8 | Team Splash 🎨 | 2-team mochi | 80% | B | QUEUED |
+| 9 | Ghost Hunt 👻 | hunt the fading | 82% | B | QUEUED |
+| 10 | Steel Swarm 🛡️ | tank shells (RU/EU/US/IN) | 90% | C | QUEUED |
+
+Per-game phase plan (every game, no exceptions): duel row → sim + headless suite →
+client mode (palette/rings/tutorial/card) → smoke over WS → soak if sim touched →
+arcade card + hero → ship. Batch A shares one VariantRoom; Steel Swarm gets its own
+sim (shells ballistics) like polar/buffet did.
