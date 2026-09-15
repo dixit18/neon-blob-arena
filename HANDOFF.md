@@ -4,6 +4,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- EFFECT-EDGE aim gate shipped: `validate.ts` Schema now accepts optional `aim`
+  (radians, finite-checked). Verified: tsc + 4 suites green, aim=1.57 pass /
+  NaN-null / legacy-undef.
 - WEB-MARKETPLACE v1 shipped (physical-doc → web translation):
   server `GAMES` now carries duration/players/level/vibe + `GET /catalog`;
   client cards show `3-min · 1–25 · Easy` meta, ⚡ Quick Play joins fullest room,
@@ -50,7 +53,7 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. WEB-MARKETPLACE v1 shipped + verified; tree ready to commit.
+- None. Effect-aim gate shipped + verified; tree ready to commit.
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, try ⚡ Quick Play + 📅 event rows, report HUD `fps/p95`.

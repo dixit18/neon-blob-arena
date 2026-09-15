@@ -424,3 +424,10 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** 2 flaws: 1) Quick Play trusts counts bots inflate — ACCEPTED (humans-first sort, empty routes to fresh+invite). 2) Events are static not scheduled rooms — ACCEPTED (recurrence test first).
 **Riya:** Receipts: server tsc + 4 suites PASSED, client tsc+vite green, probe health+catalog+rooms. Manual left: Quick Play + event-row on phone.
 **Kai:** Committing + pushing. Next: Steel Swarm sim resumes on this shell.
+
+## 2026-09-15 — Effect approved at edges (user: use Effect if faster)
+**Zara:** Already Effect-native where it pays: Schema gate (`validate.ts`), Db Layer + retry + memory fallback (`db.ts`), ManagedRuntime fire-and-forget. Sim stays raw imperative — fibers in the 20Hz tick = GC churn, proven by tickAvg 0.15-0.3ms budget.
+**Aarav:** Policy locked: Effect at edges (validation, DB, config, boot), never in `game.ts`/`physics.ts` hot loop. AI-native win is Schema inference + Layer retries, not framework hype.
+**Leo:** Shipped S1-3 unblock: `aim` optional radians in InputSchema, finite-checked. Old clients unaffected (aim undefined). Receipt: aim=1.57 pass / NaN-null / legacy-undef + tsc + 4 suites green.
+**Vikram:** 2 flaws: 1) aim unbounded (spin spam?) — ACCEPTED (angle is circular, sim clamps on use; gate only kills NaN/Infinity). 2) Effect Schema decode cost per input @30Hz — ACCEPTED (Either decode is allocation-light vs JSON.parse it already pays; tickAvg unchanged).
+**Kai:** Committing + pushing.
