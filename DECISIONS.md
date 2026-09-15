@@ -37,6 +37,41 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   of Done, not a freeze.
 - Status: CONCLUDED. Owners: Riya + Zara. Signed: Rehan.
 
+## D6 — wow landing + responsive-first (user: "market the first page, shock + forward, all games responsive, RedTeam on everything")
+- WHY (Aarav, Nova cited): first page is the product for non-players — R&D
+  finds: (1) infinite-canvas/scroll heroes are a recognised Awwwards wow
+  pattern (Andrew Reff infinite-canvas hero; CIAO ENERGY infinite-scroll hero;
+  Nike Infinite Space endless WebGL; Lusion Infinite Passerella infinite show
+  + sharable postcards; Codrops Oct-2025 layered-zoom-scroll recipe with GSAP
+  ScrollTrigger/Smoother + CSS --progress + trailing blur layers). (2) Virality
+  that works is outside-network link invites into instant browser play with no
+  account (Jest: 25% share rate, 1:2 referral, +50% D7 for invited; generic
+  share buttons suffer banner blindness and don't move the needle). (3) Prompt
+  AFTER delight converts 2–3x (ExperimentFlow K-factor chain); personalized
+  landing ("X invited you") beats generic; one-click pre-populated share for
+  WhatsApp/Discord/SMS + copy link wins (ReferralEarl checklist: reward above
+  the fold, 3 steps, no signup gate, mobile-first, whitespace).
+- WHY-NOT (Rehan): landing revamp risks the converting core (1-tap PLAY);
+  zoom motion can jank the 2GB-RAM India phones our markets plan depends on;
+  more buttons = choice paralysis; responsive claims without devices are
+  guessing (UX-005 still needs human hands); share incentives can't be currency
+  (no economy exists) so "reward" must be intrinsic (squad needs you, defend
+  the crown). Scroll-driven zoom fights our fixed-dialog menu + short-screen
+  rule — wrong pattern ported blindly.
+- CONCLUSION: SHIP with bounds. Menu-only CSS zoom tunnel (3 transform-only
+  rings, compositor-cheap, reduced-motion off, hidden on short screens, zero
+  paint when menu hidden); marketer hierarchy (link-promise badge + shock line
+  + 3 link-first steps + live social proof); `?from=` personalized banner
+  (URL-only, never stored/logged); Forward-the-fun button (native share →
+  clipboard fallback, pre-populated squad text); crown-win share nudge
+  (prompt-after-delight); 360px HUD-overlap CSS fix + 16px mobile inputs
+  (iOS anti-zoom) + 2-per-row cards. NO ScrollTrigger plugin, NO three.js on
+  landing, NO new deps, initial chunk budget holds. Measure: fwd taps,
+  from-joins (UX-012), K-factor later. Responsive device truth stays human.
+- Status: CONCLUDED. Owner: Aarav (messaging) + Leo (build) + Riya (gates).
+  Signed: Rehan. RedTeam (Vikram) flaws filed in chat; Cross memo: wow must
+  not cost first paint — CSS-only accepted, plugin path rejected.
+
 ## D5 — party-OS thesis from R&D-2 (user: "update our sprint accordingly")
 - WHY adopt (Aarav, Nova cited): R&D-2 community evidence is consistent —
   organisers need 8–15 players with one link, no download, phone-friendly;

@@ -94,9 +94,29 @@
   .mochi { transform-origin:50% 90%; animation:squish 1.6s ease-in-out infinite; }
   .mochi.m2 { animation-delay:-.5s; } .mochi.m3 { animation-delay:-1s; }
   @keyframes squish { 0%,100% { transform:scale(1,1); } 30% { transform:scale(1.08,.9); } 55% { transform:scale(.94,1.08) translateY(-8px); } 75% { transform:scale(1.03,.96); } }
-  @media (prefers-reduced-motion:reduce) { .mochi { animation:none; } #nudge.hot, #roundPill.danger { animation:none; } }
+  @media (prefers-reduced-motion:reduce) { .mochi { animation:none; } #nudge.hot, #roundPill.danger { animation:none; } .zring { animation:none; opacity:0; } }
   .ticker { display:inline-block; font-weight:800; font-size:12px; background:var(--mint); color:#fff;
     border:2px solid var(--line); border-radius:999px; padding:5px 14px; margin-bottom:12px; box-shadow:2px 2px 0 var(--ink); }
+  /* WOW hero: never-ending zoom tunnel, pure CSS (compositor-only transforms,
+     zero JS, zero paint when menu hidden, off under reduced-motion) */
+  .zoomstage { position:relative; overflow:hidden; border-radius:18px; margin:2px 0 10px;
+    border:2px solid var(--line); background:#FFE9A8; }
+  .zoomstage .diorama { position:relative; z-index:1; margin:0; padding-top:8px; min-height:118px; }
+  .zring { position:absolute; left:50%; top:54%; width:130px; height:130px; margin:-65px 0 0 -65px;
+    border:3px solid var(--ink); border-radius:50%; opacity:0; pointer-events:none;
+    animation:zzoom 9s linear infinite; }
+  .zring.z2 { animation-delay:3s; border-color:var(--rasp); }
+  .zring.z3 { animation-delay:6s; border-color:var(--soda); }
+  @keyframes zzoom { 0% { transform:scale(.22); opacity:0; } 16% { opacity:.85; } 70% { opacity:.5; } 100% { transform:scale(2.6); opacity:0; } }
+  /* marketer hierarchy: shock line + inviter banner + forward CTA */
+  .shock { font-family:Fredoka,sans-serif; font-size:17px; font-weight:600; color:var(--ink);
+    margin-bottom:12px; }
+  .shock b { background:var(--gold); border:2px solid var(--line); border-radius:8px; padding:0 8px;
+    box-shadow:2px 2px 0 var(--ink); white-space:nowrap; }
+  #fromBanner { display:none; font-weight:800; font-size:13px; background:var(--gold);
+    border:2px solid var(--line); border-radius:12px; padding:8px 12px; margin-bottom:12px;
+    box-shadow:var(--shadow); }
+  #menu .row button.fwd { background:var(--gold); color:var(--ink); font-size:15px; }
   .gamesLabel { font-family:Fredoka,sans-serif; font-size:13px; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:6px; }
   .games { display:flex; gap:8px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
   .gcard { pointer-events:auto; cursor:pointer; flex:1 1 140px; max-width:210px; background:#fff; color:var(--ink);
@@ -160,7 +180,7 @@
     border-radius:14px; padding:12px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; }
   @media (max-height:700px) {
     /* UX-003: PLAY must clear the fold on short landscape phones */
-    .diorama, .howto, .ticker { display:none; }
+    .diorama, .zoomstage, .howto, .ticker { display:none; }
     #menu .card { padding:16px 14px; }
     #menu h1 { font-size:32px; }
     #menu .sub { font-size:12px; margin-bottom:8px; }
@@ -186,6 +206,25 @@
     #room button { min-height:48px; }
     #me { font-size:12px; max-width:44vw; }
     .diorama { min-height:96px; }
+  }
+  @media (max-width:400px) {
+    /* UX-005/015: 360px — stack pills so roundPill/feed never overlap, 2 cards/row */
+    #menu h1 { font-size:38px; }
+    #menu .card { padding:20px 14px; }
+    .shock { font-size:15px; }
+    .gcard { flex:1 1 44%; max-width:none; padding:8px 6px; }
+    .gcard .emo { font-size:22px; }
+    #menu input { font-size:16px; } /* iOS zooms on focus when <16px */
+    #menu .row button { padding:12px 16px; font-size:16px; }
+    #menu .row button.ghost, #menu .row button.fwd { font-size:13px; }
+    #roundPill { font-size:14px; padding:6px 12px; }
+    #objPill { font-size:11px; top:calc(48px + env(safe-area-inset-top)); }
+    #leaders { min-width:112px; padding:6px 8px; }
+    #leaders div { font-size:11px; }
+    #lleaders { min-height:90px; }
+    #feed { max-width:44vw; }
+    #feed span { font-size:11px; padding:4px 9px; }
+    #me { font-size:11px; max-width:40vw; }
   }
 </style>
 </head>
@@ -213,7 +252,9 @@
 <div id="banner"><div class="inner"><h2 id="bannerTitle">🏆</h2><p id="bannerSub"></p></div></div>
 <div id="menu" role="dialog" aria-label="Game menu: choose an arena and play">
   <div class="card">
-    <div class="diorama" aria-hidden="true">
+    <div id="fromBanner"></div>
+    <div class="zoomstage" aria-hidden="true"><div class="zring z1"></div><div class="zring z2"></div><div class="zring z3"></div>
+    <div class="diorama">
       <svg class="mochi m1" width="86" height="96" viewBox="0 0 86 96">
         <ellipse cx="43" cy="52" rx="34" ry="36" fill="#E84393" stroke="#2B2144" stroke-width="4"/>
         <rect x="22" y="30" width="12" height="5" rx="2.5" fill="#FFC93C" transform="rotate(-24 28 32)"/>
@@ -251,9 +292,11 @@
         <path d="M36 59 Q43 64 50 59" stroke="#2B2144" stroke-width="3.5" fill="none" stroke-linecap="round"/>
       </svg>
     </div>
-    <div class="badge" id="gameBadge">⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS</div>
+    </div>
+    <div class="badge" id="gameBadge">🔗 NO SIGNUP · PLAYS IN 5 SECONDS</div>
     <h1 id="gameTitle">MOCHI<br/>PANIC</h1>
-    <p class="sub" id="gameSub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
+    <p class="shock">One link. Zero downloads. <b>Your whole squad</b> in one arena.</p>
+    <p class="sub" id="gameSub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>Tap PLAY — or forward this page and watch your friends appear.</p>
     <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
     <div class="games" id="gamePick">
       <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-mochi">…</span></button>
@@ -265,15 +308,16 @@
     </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
     <div class="howto">
-      <div><b>1 · Munch 🍩</b>Eat dots, outgrow rivals</div>
-      <div><b>2 · Dash ⚡ Splat 🔥</b>Burst &amp; blast back</div>
-      <div><b>3 · Crown 👑</b>Biggest when ⏱ hits 0 wins</div>
+      <div><b>1 · Link 🔗</b>Share one link — friends land straight in</div>
+      <div><b>2 · Squad 👥</b>No signup, phones welcome, bots fill gaps</div>
+      <div><b>3 · Crown 👑</b>Biggest when ⏱ hits 0 wins — then rematch</div>
     </div>
     <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" aria-label="Your player name" />
     <div class="row">
       <button id="play">▶ &nbsp;PLAY NOW</button>
       <button id="quickPlay" class="ghost" title="Join the fullest arena for this game">⚡ Quick Play</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
+      <button id="fwdBtn" class="ghost fwd" title="Forward this page — shock a friend">😱 Forward the fun</button>
     </div>
     <div class="events" id="events">
       <div class="eventsLabel">📅 THIS WEEK — squad nights (free, no signup)</div>

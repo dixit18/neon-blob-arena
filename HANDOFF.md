@@ -4,6 +4,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- WOW-LANDING v1 shipped (D6): CSS-only infinite-zoom tunnel hero, marketer
+  hierarchy (link-promise badges + shock line + 3 link-first steps), `?from=`
+  personalized banner, Forward-the-fun button, crown-win share nudge, 360px
+  overlap fix + 16px iOS inputs + 2-per-row cards. Verified: client tsc + vite
+  green, initial 32.65KB/13.43KB gzip (DoD ≤35KB holds), UX-014/015 opened.
 - R&D-2 REVIEWED + SPRINT UPDATED (docs only, no sim change): D5 adopts party-OS
   thesis with bounds — finish Steel (last arena), then Sprint 2 PARTY
   PERSISTENCE (cross-game room code + switch flow + host kick/lock + resume +
@@ -59,7 +64,7 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. R&D-2 sprint update shipped (docs only); tree ready to commit.
+- None. WOW-LANDING v1 shipped + verified; tree ready to commit.
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, try ⚡ Quick Play + 📅 event rows, report HUD `fps/p95`.

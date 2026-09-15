@@ -24,6 +24,15 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   above thumbnails (R&D-2: organise people, not games) — Owner: Devika + Leo.
   Accept: guest reaches PLAY in ≤2 taps, thumbnails stay below fold-first CTA.
   Sprint 2.
+- [UX-014] WOW landing v1 (D6) — Owner: Leo (build) + Mira (art check) + Riya
+  (gates). Accept: CSS-only zoom tunnel (no new deps, initial chunk ≤35KB),
+  link-promise badge + shock line + 3 link-first steps, `?from=` banner,
+  Forward-the-fun button (share→clipboard), crown-win nudge, reduced-motion
+  off, short-screen hides hero. Receipt: client build green + 360px read check.
+- [UX-015] Responsive audit per game (D6) — Owner: Riya + Leo. Accept: 360px
+  HUD overlap fixed (roundPill/objPill/leaders/feed), 16px mobile inputs,
+  2-per-row cards at ≤400px, landscape-short keeps PLAY in fold, touch targets
+  ≥46px. Device truth (UX-005) stays human-hands. Receipt: build green.
 
 ## Done
 - [UX-009] How-to-play modal per game — Done: 📖 buttons (HUD + menu), rules table

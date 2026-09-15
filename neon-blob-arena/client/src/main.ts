@@ -248,10 +248,26 @@ el('soundBtn').addEventListener('click', () => {
   if (soundOn) sfx('click');
 });
 el('copyLink').addEventListener('click', async () => {
-  const link = location.origin + location.pathname + `?game=${game}&room=` + (roomId || 'lobby');
+  const inviter = (((el('name') as HTMLInputElement).value || myName || '').slice(0, 14));
+  const link = location.origin + location.pathname + `?game=${game}&room=` + (roomId || 'lobby') + (inviter ? `&from=${encodeURIComponent(inviter)}` : '');
   try { await navigator.clipboard.writeText(link); el('copyLink').textContent = '✅ Copied!'; }
   catch { prompt('Share this link:', link); }
   setTimeout(() => (el('copyLink').textContent = '🔗 Invite'), 1500);
+});
+el('fwdBtn').addEventListener('click', async () => {
+  // D6 forward-the-fun: pre-populated shock text, native share → clipboard.
+  // Menu-only, zero hot-loop cost. Personalized via ?from= on copyLink.
+  sfx('click');
+  const link = location.origin + location.pathname + `?game=${game}` + (roomId ? `&room=${roomId}` : '');
+  const text = `😱 This page shocked me — a browser game with NO signup. Tap, pick a name, you're in my arena:`;
+  const nav = navigator as Navigator & { share?: (d: { title?: string; text?: string; url?: string }) => Promise<void> };
+  if (nav.share) {
+    try { await nav.share({ title: 'Mochi Panic', text, url: link }); } catch { /* dismissed */ }
+    return;
+  }
+  try { await navigator.clipboard.writeText(`${text} ${link}`); el('fwdBtn').textContent = '✅ Link copied!'; }
+  catch { prompt('Forward this to shock a friend:', `${text} ${link}`); }
+  setTimeout(() => (el('fwdBtn').textContent = '😱 Forward the fun'), 1500);
 });
 
 function inputDir(): { dx: number; dy: number } {
@@ -548,6 +564,7 @@ function onSnap(s: Snap) {
       localStorage.setItem('blob-crown-day', today);
       el('crownLine').textContent = `👑 crowns: ${crowns}`;
       el('bannerSub').textContent = `👑 DAILY CROWN #${crowns} — defend it tomorrow! Next round running, invite friends 🔗`;
+      coach('👑 YOU took the crown! Forward the fun — make them come take it 👇'); // prompt-after-delight (D6)
     }
     el('bannerTitle').textContent = top;
     if (!(myName && top.includes(myName))) el('bannerSub').textContent = 'Next round is already running — invite friends now 🔗';
@@ -806,12 +823,12 @@ function applyGameMode() {
     : game === 'tag' ? 'Tag Frenzy — don\'t be IT'
     : 'Mochi Panic — 3-min squishy multiplayer rounds';
   const hero: Record<GameId, { h: string; c: string; s: string; b: string }> = {
-    mochi: { h: 'MOCHI<br/>PANIC', c: '#E84393', s: 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.', b: '⚡ 3-MIN ROUNDS · SUDDEN-DEATH CROWNS' },
-    polar: { h: 'POLAR<br/>PANIC', c: '#2FA8E0', s: 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.', b: '🧲 FLIP · ATTRACT · DISCHARGE' },
-    buffet: { h: 'HOLE<br/>BUFFET', c: '#8B5CF6', s: 'Slingshot the wells. Dash the pull. Feast or fall.<br/>No signup — devouring in under 5 seconds.', b: '🕳️ SLINGSHOT · DASH · DEVOUR' },
-    rush: { h: 'SUGAR<br/>RUSH', c: '#FB9039', s: 'Double pellets. 90 seconds. Eats hit different fast.<br/>No signup — blitzing in under 5 seconds.', b: '🍬 90-SECOND BLITZ' },
-    hill: { h: 'KING<br/>HILL', c: '#00C2A8', s: 'Stand in the gold ring to bank score. Shove rivals out.<br/>No signup — crowning in under 5 seconds.', b: '⛰️ HOLD THE HILL' },
-    tag: { h: 'TAG<br/>FRENZY', c: '#8B5CF6', s: 'Someone is always IT. Survive to score, tag to pass.<br/>No signup — running in under 5 seconds.', b: "🏃 DON'T BE IT" },
+    mochi: { h: 'MOCHI<br/>PANIC', c: '#E84393', s: 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.', b: '🔗 NO SIGNUP · ⚡ 3-MIN ROUNDS' },
+    polar: { h: 'POLAR<br/>PANIC', c: '#2FA8E0', s: 'Flip your charge. Vacuum pellets. Discharge rivals.<br/>No signup — attracting in under 5 seconds.', b: '🔗 NO SIGNUP · 🧲 FLIP TO ESCAPE' },
+    buffet: { h: 'HOLE<br/>BUFFET', c: '#8B5CF6', s: 'Slingshot the wells. Dash the pull. Feast or fall.<br/>No signup — devouring in under 5 seconds.', b: '🔗 NO SIGNUP · 🕳️ DODGE THE VOID' },
+    rush: { h: 'SUGAR<br/>RUSH', c: '#FB9039', s: 'Double pellets. 90 seconds. Eats hit different fast.<br/>No signup — blitzing in under 5 seconds.', b: '🔗 NO SIGNUP · 🍬 90-SECOND BLITZ' },
+    hill: { h: 'KING<br/>HILL', c: '#00C2A8', s: 'Stand in the gold ring to bank score. Shove rivals out.<br/>No signup — crowning in under 5 seconds.', b: '🔗 NO SIGNUP · ⛰️ HOLD THE HILL' },
+    tag: { h: 'TAG<br/>FRENZY', c: '#8B5CF6', s: 'Someone is always IT. Survive to score, tag to pass.<br/>No signup — running in under 5 seconds.', b: "🔗 NO SIGNUP · 🏃 DON'T BE IT" },
   };
   const H = hero[game];
   const title = document.getElementById('gameTitle');
@@ -839,6 +856,16 @@ function pickGame(g: GameId) {
 document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
   b.addEventListener('click', () => { pickGame(parseGameId(b.dataset.game ?? null)); sfx('click'); });
 });
+// D6 personalized landing: ?from=NAME (URL-only, never stored or sent — textContent only)
+{
+  const fromRaw = new URLSearchParams(location.search).get('from') || '';
+  const fromName = fromRaw.replace(/[^\w \-]/gu, '').trim().slice(0, 14);
+  if (fromName) {
+    const fb = el('fromBanner');
+    fb.textContent = `🔥 ${fromName} invited you — pick a name and hit PLAY`;
+    (fb as HTMLElement).style.display = 'block';
+  }
+}
 applyGameMode();
 let connecting = false; // double-click guard: one PLAY = one socket, one world
 el('play').addEventListener('click', async () => {
@@ -901,6 +928,7 @@ el('crownLine').textContent = `👑 crowns: ${Number(localStorage.getItem('blob-
 el('shareBtn').addEventListener('click', () => { sfx('click'); shareCard(); });
 void uiMenuIn();
 uiPressify('#play');
+uiPressify('#fwdBtn');
 uiPressify('#quickPlay');
 uiPressify('#dashBtn');
 uiPressify('#fireBtn');

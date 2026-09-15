@@ -440,3 +440,14 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Devika:** Board updated: UX-011 report/block/mute (Sprint 3), UX-012 party metrics (Sprint 2), UX-013 menu reframe (Sprint 2). No UX-BLOCKER opened; release gate holds.
 **Riya:** Docs-only turn — no sim touched, suites/builds untouched from fdaed46 green. Sprint 2 DoD requires alpha sequence + /stats counters + zero shell regressions.
 **Kai:** Committing + pushing docs.
+
+## 2026-09-15 — WOW-LANDING v1 (user: market the first page, shock + forward, responsive, RedTeam on everything)
+**Nova (R&D, cited):** wow pattern = infinite-canvas/scroll heroes (Awwwards: Reff infinite canvas, CIAO ENERGY infinite scroll, Nike Infinite Space, Lusion infinite show + sharable postcards; Codrops Oct-2025 layered-zoom GSAP recipe). Virality that works = outside-network link invites into instant no-account play (Jest: 25% share, 1:2 referral, +50% D7; generic share buttons = banner blindness). Prompt AFTER delight 2–3x; "X invited you" beats generic; one-click pre-populated WhatsApp/Discord/SMS + copy wins.
+**Kabir (counter, working):** wow must not cost first paint — ScrollTrigger plugin + three.js-on-landing REJECTED, CSS-only rings ACCEPTED (transform-only, ~1KB). Share incentives can't be currency (no economy) — intrinsic reward (squad needs you, defend the crown) ACCEPTED.
+**Rehan (counter, signed D6):** revamp risks 1-tap PLAY conversion; zoom can jank 2GB-RAM phones; more buttons = paralysis; responsive without devices = guessing. Bounds shipped: menu-only, reduced-motion off, short-screen hides hero, PLAY stays primary, device truth stays human.
+**Leo:** Shipped: zoomstage tunnel (3 staggered rings, 9s loop), badge/shock/steps messaging, ?from= banner (URL-only, textContent-safe), fwdBtn (share→clipboard), crown-win coach nudge, 360px stack fix, 16px inputs, 2-per-row cards. Zero hot-loop cost — all menu/DOM.
+**Mira:** Same sticker universe, tunnel tint matches ticket (#FFE9A8); diorama untouched above rings. No canvas-hot-loop contact.
+**Vikram (2 flaws, as law demands):** 1) zring animation runs while tab open on menu even idle — ACCEPTED (menu display:none in-game = zero paint; idle-menu GPU is 3 compositor layers, governor untouched). 2) ?from= is self-asserted identity (impersonation: "MOM invited you") — ACCEPTED for invites (same trust as player names; never stored/logged; block/mute in UX-011 covers abuse).
+**Riya (receipts):** client tsc + vite green, initial 32.65KB/13.43KB gzip (DoD ≤35KB ✓, rule <150KB ✓), three chunk lazy-unchanged. Server untouched. Manual left: 360px read check + reduced-motion check (human hands).
+**Devika:** UX-014/015 opened and acceptance-written; no UX-BLOCKER. Menu still ≤2 taps to PLAY.
+**Kai:** Committing + pushing. Next: Steel S1-1 sim — no idle.
