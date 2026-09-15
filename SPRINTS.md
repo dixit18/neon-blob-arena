@@ -7,17 +7,17 @@ Rule 12 apply inside every sprint. TICKETS.md feeds the board; MARKET.md feeds p
 - Bigger cycles (new physics/patterns: hooks, tanks, turns) get their own sprint.
 - Sprint review = receipts (tests, smoke, soak, build sizes), never vibes.
 
-## Sprint 1 — STEEL SWARM (tank arena) — IN PROGRESS (last arena for a while, D5)
-Goal: 7th game live, production-ready, RU/EU/US/IN signal per MARKETS.md.
+## Sprint 1 — STEEL SWARM (tank arena) — PARKED (server sim green, NO menu card, D10)
+Goal: tank sim kept as a parked anchor — client deprioritised on sameness verdict.
 Tickets:
-- [S1-1] Server sim `steel.ts` (move + turret aim + shells, no dash/chomp) — Zara
-- [S1-2] Headless suite `steel.test.ts` (aim, shell ballistics, damage, cd, backfill) — Zara
-- [S1-3] Transport: `aim` in validate + SnapPlayer `a` + index dispatch — Zara (aim gate SHIPPED)
-- [S1-4] Client: turret meshes + mouse-to-ground aim + mode + card + tutorial — Leo
-- [S1-5] Verify: build both, 4 suites + steel green, steel smoke, mochi soak — Riya
-- [S1-6] Docs + commit + push + MARKET row flip to SHIPPED — Kai
-Definition of done: `npm test` all green, smoke over WS, soak ≥12 snaps/s, client
-build ≤30KB initial, no per-frame alloc in new render code, chat receipts.
+- [S1-1] Server sim `steel.ts` (move + turret aim + shells, no dash/chomp) — Zara — DONE
+- [S1-2] Headless suite `steel.test.ts` (aim, shell ballistics, damage, cd, backfill) — Zara — DONE
+- [S1-3] Transport: `aim` in validate + SnapPlayer `a` + index dispatch — Zara — DONE
+- [S1-4] Client: turret meshes + mouse-to-ground aim + mode + card + tutorial — Leo — PARKED (D10)
+- [S1-5] Verify: 5 suites green, steel smoke, mochi soak — Riya — DONE (server)
+- [S1-6] Docs + commit + push + MARKET row flip to SHIPPED — Kai — PARKED (row stays sim-only)
+Definition of done (server): `npm test` all green, smoke over WS, soak ≥12 snaps/s,
+no menu card shipped, chat receipts.
 
 ## Sprint 2 — PARTY PERSISTENCE (platform, R&D-2 alpha gate) — NEXT, per D5
 Goal: prove "one room, many games" — a party joins once, plays A, returns,
@@ -40,13 +40,18 @@ Definition of done: alpha-gate sequence passes on video/manual, `/stats`
 shows party-switch counters, all suites green, shell regressions zero.
 Mood row taps preserved PLAY conversion (no regression vs baseline).
 
-## Backlog (reordered per D5 — diversify verbs, demote sameness)
-- Sprint 3: Doodle Duel (draw-guess relay, R&D-2 P0) + report/block/mute slice
+## Backlog (reordered per D10 — different verbs first, sameness parked)
+- Sprint 3: TRIVIA BLITZ (D10 diversifier, MARKET #12) — server sim + answer
+  transport + quiz channel (this turn, Zara) → client quiz panel + card +
+  tutorial + score-card share object (next, Leo) + verify (Riya). First
+  non-arena verb: 8-question party quiz, 2–100 players, bots answer in tiers,
+  one built-in 24-Q pack. DoD: suites green, 2-tab + bot quiz playable over
+  WS, share card ships, client build ≤38KB (mood row + quiz copy; rule <150KB holds).
+- Sprint 4: Doodle Duel (draw-guess relay, R&D-2 P0) + report/block/mute slice
   (UX-011) + prompt/content filters. Stroke-sync pattern, NOT arena reuse.
-- Sprint 4: Ludo Clash (turn pattern, India) + Hindi strings (UX-006).
-- Sprint 5: Trivia/Word Blitz (NEW, R&D-2 P0 large-group 2–100, low-medium
-  build) + SEO/social (UX-008).
-- Parked (sameness risk, revisit after diversification signal): Rumble Race,
+- Sprint 5: Ludo Clash (turn pattern, India) + Hindi strings (UX-006).
+- Parked (sameness risk, revisit after diversification signal): Steel client
+  (sim green, link-joinable, no menu card), Rumble Race,
   Meteor/Team/Ghost batch B, Cricket Smash, Hook Havoc (spring physics).
 - Sprint 6 candidates (D8 playground shortlist, duel rows first): Slingshot
   Sprint (one-button physics + async ghosts), Ten Seconds (reaction microgames),

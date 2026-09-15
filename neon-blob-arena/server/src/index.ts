@@ -8,9 +8,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Room } from './game.js';
 import { PolarRoom } from './polar.js';
 import { BuffetRoom } from './buffet.js';
+import { SteelRoom } from './steel.js';
+import { TriviaRoom } from './trivia.js';
 import { VariantRoom } from './arcade.js';
 import { TUNE, parseGame, GAMES, type GameId } from './types.js';
-import { validateInput } from './validate.js';
+import { validateInput, validateAnswer } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
 
 const PORT = Number(process.env.PORT || 8080);
@@ -19,7 +21,7 @@ const REGION = process.env.REGION || 'local';
 
 // Marketplace: rooms namespaced per game (`polar:ABCD` vs `mochi:ABCD` map keys;
 // room codes users share stay plain). Tick/snap loops treat them uniformly.
-type AnyRoom = Room | PolarRoom | BuffetRoom | VariantRoom;
+type AnyRoom = Room | PolarRoom | BuffetRoom | VariantRoom | SteelRoom | TriviaRoom;
 const rooms = new Map<string, AnyRoom>();
 let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
 const joinsByGame: Record<string, number> = {}; // portal social proof per arena
@@ -30,6 +32,8 @@ function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 function makeRoom(game: GameId, id: string): AnyRoom {
   if (game === 'polar') return new PolarRoom(id);
   if (game === 'buffet') return new BuffetRoom(id);
+  if (game === 'steel') return new SteelRoom(id);
+  if (game === 'trivia') return new TriviaRoom(id);
   if (game === 'rush' || game === 'hill' || game === 'tag') return new VariantRoom(game, id);
   return new Room(id);
 }
@@ -154,6 +158,10 @@ wss.on('connection', (ws: WebSocket, req) => {
         try { ws.send(JSON.stringify({ t: 'pong', s: (robj as { s?: unknown }).s ?? null })); } catch { /* gone */ }
         return;
       }
+      if (robj && robj.t === 'answer' && room instanceof TriviaRoom) {
+        room.answer(id, validateAnswer(raw)); // null fails room-side int check
+        return;
+      }
       const clean = validateInput(raw);
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
@@ -161,6 +169,11 @@ wss.on('connection', (ws: WebSocket, req) => {
       if (room instanceof PolarRoom) {
         room.handleInput(id, clean.dx, clean.dy);
         if (clean.flip) room.tryFlip(id);
+      } else if (room instanceof SteelRoom) {
+        room.handleInput(id, clean.dx, clean.dy, clean.aim);
+        if (clean.fire) room.tryFire(id);
+      } else if (room instanceof TriviaRoom) {
+        // quiz: movement inputs ignored (no arena), answers arrive as {t:'answer'}
       } else {
         room.handleInput(id, clean.dx, clean.dy, clean.dash);
         if (room instanceof Room && clean.fire) room.tryFire(id);

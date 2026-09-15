@@ -79,7 +79,7 @@ Rule 10 applies: Nova finding + Cross counter each. Scores reuse clip/nov/reuse/
 | # | Concept | Clip | Nov | Reuse | Fit | Σ | Verdict |
 |---|---|---|---|---|---|---|---|
 | 11 | DOODLE DUEL — draw & guess relay, 4–12+, prompts + voting | 9 | 7 | 50% | 9 | 32 | **NEXT NEW GAME (Sprint 3)** |
-| 12 | TRIVIA/WORD BLITZ — team buzzer quiz, 2–100, playlists | 8 | 5 | 65% | 9 | 29 | SHORTLIST (Sprint 5) |
+| 12 | TRIVIA/WORD BLITZ — team buzzer quiz, 2–100, playlists | 8 | 5 | 65% | 9 | 29 | **SPRINT 3 DIVERIFIER (D10)** |
 Cross memos: vs #11 "stroke sync is netcode risk": strokes are sparse,
 rate-limited polylines with server rebroadcast + prompt seed — far cheaper than
 60Hz physics; drawing abuse handled by UX-011 report + prompt filters, no free

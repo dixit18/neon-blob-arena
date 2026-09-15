@@ -35,3 +35,19 @@ export function validateInput(raw: unknown): CleanInput | null {
   if (v.aim !== undefined && !Number.isFinite(v.aim)) return null;
   return { seq: v.seq, dx: v.dx, dy: v.dy, dash: v.dash === true, fire: v.fire === true, flip: v.flip === true, aim: v.aim };
 }
+
+// Trivia answers ride a separate gate: {t:'answer', i:0-3}. One option idx,
+// server checks phase + first-answer-wins. Same Effect decode discipline.
+const AnswerSchema = Schema.Struct({
+  t: Schema.Literal('answer'),
+  i: Schema.Number,
+});
+const decodeAnswer = Schema.decodeUnknownEither(AnswerSchema);
+
+export function validateAnswer(raw: unknown): number | null {
+  const r = decodeAnswer(raw);
+  if (r._tag === 'Left') return null;
+  const v = r.right;
+  if (!Number.isInteger(v.i) || v.i < 0 || v.i > 3) return null;
+  return v.i;
+}

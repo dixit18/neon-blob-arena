@@ -532,3 +532,34 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   2) Chain Garden replay card without visit-friends is solo evergreen risk —
   ACCEPTED (solo first, visits only after D1 signal).
 **Kai:** Committing + pushing docs.
+
+## 2026-09-15 — D10 sameness verdict (user: "all games are the same, no doc inspiration")
+**Aarav:** User is right and I owned it: 6 thumbnails of one verb + Steel (a 7th
+  drive-and-shoot) in flight. Fix is what we SHIP, not what we write. Steel
+  client PARKED (sim stays green, no menu card). New Sprint 3 TRIVIA BLITZ:
+  first non-arena verb this turn (server), quiz panel + card next turn.
+  Doodle → Sprint 4 (pattern done properly), Ludo → 5. Recorded as D10.
+**Nova:** Why trivia before Doodle: all three user reports demand different
+  verbs; Doodle needs a new stroke-sync pattern + moderation plan and bots
+  can't draw (cold-start). Trivia reuses rooms/snapshots/feed/backfill; bots
+  ANSWER in tiers (zero cold-start); 2–100 players = docs' party demand.
+**Zara:** Shipped `trivia.ts` (8-Q matches, 15s answer + 5s reveal, speed +
+  streak scoring, hidden answers anti-copycat, 24-Q pack, mid-question bot
+  plans) + `trivia.test.ts` (27 checks) + `answer` transport (Effect gate) +
+  `quiz` snapshot channel (1.1KB). Steel sim kept green (31 checks).
+**Vikram (2 flaws + 2 caught):** 1) trivia `quiz` channel + `answer` message =
+  new pattern surface — ACCEPTED (one channel, validated, tested). 2) pack
+  quality IS the game — ACCEPTED (Aarav curates v1). Caught by receipts:
+  backfilled bots idled Q1 (no mid-question plans — fixed in sim) and my steel
+  test put the victim outside AOI (fixed in test, sim innocent).
+**Leo:** Shipped UX-018 mood row (Beat/Chaos/Think/Surprise-me above
+  thumbnails, no fake Chill mapping) + client crash-proofing for steel/trivia
+  ids (titles/hero/howto/objective/share chips). No PLAY-path change.
+**Riya:** Receipts: 6/6 suites green (combat/polar/buffet/arcade/steel/trivia),
+  WS smoke 9/9 (steel hello + snaps + aim channel, trivia quiz + answer +
+  bad-answer survival), client 36.78KB/14.80gzip (cap ≤38KB noted — copy cost,
+  rule <150KB holds), mochi soak 20/20 @14.2 snaps/s. No sim regressions.
+**Rehan:** WHY-NOT signed in D10: reorder whiplash, Steel sunk cost parked,
+  theater risk (no player-visible quiz yet). Bounds: Steel link-only, trivia
+  client next turn or D10 fails, Doodle not dropped.
+**Kai:** Committing + pushing.

@@ -215,6 +215,34 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   CUT until PMF + concurrency health: crowd-machine homepage, MMO/Living
   World, 3D open world, shooter, open UGC editor, fan-IP clones, Portal Rush
   as permanent homepage. No code in D9 itself.
-- Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: steal mechanics
-  (mood verbs, daily ritual, async ghosts, garden discovery), never assets;
-  Vikram flaws in chat.
+## D10 — sameness verdict: park Steel client, ship a different verb NOW (user: "all games are the same, no doc inspiration")
+- WHY (user verdict, Aarav): the player opened the menu and saw 6 thumbnails of
+  one verb with a 7th (Steel tanks) in flight — still drive-around-and-shoot.
+  All three user-provided reports independently demand DIFFERENT verbs, and
+  draw-guess appears in all three while word/trivia party + reaction games
+  appear in two. The docs also demand mood-first discovery (UX-018, still
+  open). Shipping the Steel client now makes 7 same-feel games and proves the
+  user right. Steel server sim stays committed + green as a parked anchor —
+  sunk cost kept, sameness not shipped.
+- WHY trivia first, not Doodle (Nova): Doodle needs a brand-new stroke-sync
+  pattern + prompt-moderation plan, and bots cannot draw (cold-start risk the
+  docs explicitly warn about). Trivia reuses rooms/snapshots/feed/rounds/
+  backfill whole-cloth; bots ANSWER in skill tiers so there is zero cold-start;
+  2–100 players matches the docs' large-party demand; phone-friendly; one
+  built-in 24-question pack kills the content-treadmill objection (MARKET #12
+  memo already covers lockout/latency answers). Doodle follows with its pattern
+  done properly, not rushed into a weak launch.
+- WHY-NOT (Rehan): third reorder in 48h; trivia adds a second snapshot channel
+  (`quiz`) + an `answer` message — new pattern surface to maintain; question-
+  pack quality IS the game (24 weak questions = a weak game, curation owner =
+  Aarav for v1); nothing player-visible ships this turn except the mood row —
+  the trivia client + card + tutorial must land next turn or this is theater.
+  Bounds: Steel gets NO menu card (link-joinable only, `/catalog` lists it);
+  trivia ships a score-card share object ("7/8 — beat it") or it doesn't ship;
+  Doodle is next, not dropped.
+- CONCLUSION: Steel client PARKED (S1-4/S1-6 cancelled). New Sprint 3 TRIVIA
+  BLITZ: server + transport this turn, client next turn. Doodle → Sprint 4,
+  Ludo → Sprint 5. UX-018 mood row ships this turn so the menu visibly changes.
+- Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: trivia is the
+  cheapest genuinely-different verb that keeps bots honest; Doodle's stroke
+  pattern deserves its own sprint, not a shortcut.

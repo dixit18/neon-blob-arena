@@ -20,14 +20,15 @@ async function ensureWorld(): Promise<World3D | null> {
   }
 }
 
-type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag';
+type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag' | 'steel' | 'trivia';
 const GAME_TITLES: Record<GameId, string> = {
   mochi: 'Mochi Panic', polar: 'Polar Panic', buffet: 'Black-Hole Buffet',
   rush: 'Sugar Rush', hill: 'King Hill', tag: 'Tag Frenzy',
+  steel: 'Steel Swarm', trivia: 'Trivia Blitz',
 };
 // Marketplace: ?game= selects the arena (default mochi). Server confirms via hello.
 function parseGameId(raw: string | null): GameId {
-  return raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag' ? raw : 'mochi';
+  return raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag' || raw === 'steel' || raw === 'trivia' ? raw : 'mochi';
 }
 let game: GameId = parseGameId(new URLSearchParams(location.search).get('game'));
 let myCharge: 1 | -1 = 1;
@@ -36,7 +37,7 @@ let myIt = false; // tag: am I IT (drives HUD chip + tag warning)
 type Snap = {
   t: string; tick: number; you: string;
   me?: { x: number; y: number; r: number; mass: number; dashReady: boolean; score: number; kills: number; alive: boolean; streak: number; sh: number; ch?: number; it?: number; respawnIn?: number };
-  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number; c: number }[];
+  players: { id: string; n: string; x: number; y: number; r: number; h: number; k: number; s: number; b: number; ht: number; c: number; a?: number }[];
   pellets: { id: number; x: number; y: number; hue: number }[];
   orbs: { i: number; x: number; y: number; h: number }[];
   leaders: { n: string; s: number }[];
@@ -356,6 +357,12 @@ function connect(name: string) {
         localStorage.setItem('tag-seen', '1');
         setTimeout(() => coach('🏃 Red ring is IT — don\'t touch them'), 600);
         setTimeout(() => coach('Survive to score. Tag back to pass it on!'), 4200);
+      } else if (game === 'steel' && !localStorage.getItem('steel-seen')) {
+        localStorage.setItem('steel-seen', '1');
+        setTimeout(() => coach('🛡️ Steel tanks land soon — shells fly, turrets next'), 600);
+      } else if (game === 'trivia' && !localStorage.getItem('trivia-seen')) {
+        localStorage.setItem('trivia-seen', '1');
+        setTimeout(() => coach('❓ Trivia panel lands next — bots answer already!'), 600);
       } else if (game === 'mochi' && !localStorage.getItem('blob-seen')) { // first-timer concept tutorial
         localStorage.setItem('blob-seen', '1');
         const touch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -523,7 +530,7 @@ function onSnap(s: Snap) {
     if (lh !== lastLeadHtml) { lastLeadHtml = lh; el('lleaders').innerHTML = lh; }
     const fh = s.feed.slice(0, 4).map(f => `<span>${escapeHtml(f)}</span>`).join('');
     if (fh !== lastFeedHtml) { lastFeedHtml = fh; el('feed').innerHTML = fh; }
-    const modeChip = game === 'polar' ? (myCharge > 0 ? '🔵' : '🔴') : game === 'tag' && myIt ? '🏃' : '🟣';
+    const modeChip = game === 'polar' ? (myCharge > 0 ? '🔵' : '🔴') : game === 'tag' && myIt ? '🏃' : game === 'trivia' ? '❓' : game === 'steel' ? '🛡️' : '🟣';
     const readyChip = game === 'polar' ? (me.dashReady ? '⇄' : '…') : (me.dashReady ? '⚡' : '…');
     const scoreChip = (game === 'hill' || game === 'tag') ? ` · ⭐${me.score}` : '';
     const rttChip = rttMs >= 0 ? ` · 📶${rttMs}ms` : '';
@@ -568,6 +575,8 @@ function onSnap(s: Snap) {
       objTxt = myCharge > 0 ? '🔵 You vacuum red · blue repels you' : '🔴 You vacuum blue · red repels you';
     } else if (game === 'buffet') objTxt = '🕳️ Ride the rim — never the middle';
     else if (game === 'rush') objTxt = '🍬 90s blitz — eat everything';
+    else if (game === 'trivia') objTxt = '❓ Answer fast — fastest correct scores most';
+    else if (game === 'steel') objTxt = '🛡️ Aim turret · shells only — no chomp';
     else objTxt = '🍩 Eat · grow · crown';
     if (objTxt !== lastObjTxt) { lastObjTxt = objTxt; obj.textContent = objTxt; obj.style.display = 'block'; }
     if (objDanger !== lastObjDanger) { lastObjDanger = objDanger; obj.classList.toggle('danger', objDanger); }
@@ -749,7 +758,8 @@ function shareCard() {
   g.textAlign = 'center';
   g.fillStyle = '#E84393'; g.font = '700 46px Fredoka, sans-serif';
   const shareTitle = game === 'polar' ? 'POLAR PANIC' : game === 'buffet' ? 'HOLE BUFFET'
-    : game === 'rush' ? 'SUGAR RUSH' : game === 'hill' ? 'KING HILL' : game === 'tag' ? 'TAG FRENZY' : 'MOCHI PANIC';
+    : game === 'rush' ? 'SUGAR RUSH' : game === 'hill' ? 'KING HILL' : game === 'tag' ? 'TAG FRENZY'
+    : game === 'steel' ? 'STEEL SWARM' : game === 'trivia' ? 'TRIVIA BLITZ' : 'MOCHI PANIC';
   g.fillText(shareTitle, 300, 80);
   g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
   g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
@@ -812,6 +822,16 @@ const HOWTO: Record<GameId, { goal: string; rows: [string, string][]; win: strin
     rows: [['Move', 'Mouse / WASD / touch-drag'], ['Survive', 'Non-IT banks +1 score every second'], ['IT', 'Chase and touch anyone to pass it (1s grace)'], ['Dash — SPACE', 'Escape the chaser — or run victims down']],
     win: '👑 Most SCORE when ⏱ hits 0 wins — surviving pays!',
   },
+  steel: {
+    goal: 'Tank arena — turret client lands next. Shells-only kills.',
+    rows: [['Move', 'Mouse / WASD / touch-drag'], ['Fire', 'Shells cost 2 mass · mass is armor']],
+    win: '👑 Biggest tank when ⏱ hits 0 wins!',
+  },
+  trivia: {
+    goal: '8 questions. Fastest correct scores most.',
+    rows: [['Answer', 'One of 4 options (15s)'], ['Score', '100 + speed + streak']],
+    win: '👑 Most points after Q8 wins!',
+  },
 };
 function openHowto() {
   const h = HOWTO[game];
@@ -841,6 +861,8 @@ function applyGameMode() {
     : game === 'rush' ? 'Sugar Rush — 90-second blitz'
     : game === 'hill' ? 'King Hill — hold the center'
     : game === 'tag' ? 'Tag Frenzy — don\'t be IT'
+    : game === 'steel' ? 'Steel Swarm — turret tanks (client soon)'
+    : game === 'trivia' ? 'Trivia Blitz — party quiz (panel soon)'
     : 'Mochi Panic — 3-min squishy multiplayer rounds';
   const hero: Record<GameId, { h: string; c: string; s: string; b: string }> = {
     mochi: { h: 'MOCHI<br/>PANIC', c: '#E84393', s: 'Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.', b: '🔗 NO SIGNUP · ⚡ 3-MIN ROUNDS' },
@@ -849,6 +871,8 @@ function applyGameMode() {
     rush: { h: 'SUGAR<br/>RUSH', c: '#FB9039', s: 'Double pellets. 90 seconds. Eats hit different fast.<br/>No signup — blitzing in under 5 seconds.', b: '🔗 NO SIGNUP · 🍬 90-SECOND BLITZ' },
     hill: { h: 'KING<br/>HILL', c: '#00C2A8', s: 'Stand in the gold ring to bank score. Shove rivals out.<br/>No signup — crowning in under 5 seconds.', b: '🔗 NO SIGNUP · ⛰️ HOLD THE HILL' },
     tag: { h: 'TAG<br/>FRENZY', c: '#8B5CF6', s: 'Someone is always IT. Survive to score, tag to pass.<br/>No signup — running in under 5 seconds.', b: "🔗 NO SIGNUP · 🏃 DON'T BE IT" },
+    steel: { h: 'STEEL<br/>SWARM', c: '#5b4f7e', s: 'Turret tanks — full client lands next.<br/>No signup.', b: '🔗 NO SIGNUP · 🛡️ TANKS SOON' },
+    trivia: { h: 'TRIVIA<br/>BLITZ', c: '#00C2A8', s: '8-question party quiz — panel lands next.<br/>No signup.', b: '🔗 NO SIGNUP · ❓ QUIZ SOON' },
   };
   const H = hero[game];
   const title = document.getElementById('gameTitle');
@@ -875,6 +899,18 @@ function pickGame(g: GameId) {
 }
 document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
   b.addEventListener('click', () => { pickGame(parseGameId(b.dataset.game ?? null)); sfx('click'); });
+});
+// UX-018 mood-first discovery (D9/D10): moods map onto arenas, Surprise-me rolls.
+// Zero new deps, zero hot-loop cost — menu DOM only.
+const MOODS: Record<string, GameId> = { beat: 'tag', chaos: 'mochi', think: 'polar' };
+document.querySelectorAll<HTMLButtonElement>('#moodPick .gcard').forEach(b => {
+  b.addEventListener('click', () => {
+    if (b.dataset.mood === 'surprise') {
+      const pool: GameId[] = ['mochi', 'polar', 'buffet', 'rush', 'hill', 'tag'];
+      pickGame(pool[Math.floor(Math.random() * pool.length)]!);
+    } else pickGame(MOODS[b.dataset.mood ?? ''] ?? 'mochi');
+    sfx('click');
+  });
 });
 // D6 personalized landing: ?from=NAME (URL-only, never stored or sent — textContent only)
 {

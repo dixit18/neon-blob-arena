@@ -45,11 +45,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   zero dead gutters (card ≥1000px), NO page scroll on load at ≥800px height
   (right column internal scroll only), PLAY + challenge visible first viewport.
   Receipt: headless 1280×900 screenshot + DOM gate, pasted in chat.
-- [UX-018] Mood-first menu row + Surprise-me (D9) — Owner: Devika + Leo.
-  Accept: Beat / Chaos / Chill / Think / Surprise-me row ABOVE thumbnails
-  (maps to existing games; Surprise-me = random-game Quick Play); guest
-  reaches PLAY in ≤2 taps preserved; PLAY conversion not regressed vs
-  baseline. Sprint 2.
+- [UX-018] Mood-first menu row + Surprise-me (D9, shipped D10) — Owner: Devika + Leo.
+  Shipped: Beat/Chaos/Think/Surprise-me row ABOVE thumbnails (Chill joins with
+  the first Chill game — no fake mapping); Surprise-me = random-arena Quick
+  Play; guest PLAY ≤2 taps preserved (no PLAY-path change). Receipt: client
+  build green 36.78KB/14.80gzip (cap ≤38KB, rule <150KB holds).
 - [UX-019] Daily-seed spec + spoiler-safe card (D9, spec only) — Owner: Aarav
   to assign before Sprint 6 (content owner TBD). Accept: daily seed format +
   spoiler-safe share-card mock + content-pipeline owner named in MARKET row.

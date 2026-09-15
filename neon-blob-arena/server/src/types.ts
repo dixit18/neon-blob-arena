@@ -3,7 +3,7 @@ export interface Vec { x: number; y: number }
 
 // Marketplace: game ids ride `?game=<id>` (default mochi). Rooms are namespaced
 // per game; snapshot transport shape is shared, games add optional fields.
-export type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag';
+export type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag' | 'steel' | 'trivia';
 // Web translation of the physical-venue "portfolio pyramid + content liquidity":
 // every arena is labeled by duration / group size / complexity / vibe so a squad
 // can pick in <5s with zero staff help. Same fields drive /catalog + menu cards.
@@ -21,9 +21,11 @@ export const GAMES: Record<GameId, GameMeta> = {
   rush: { title: 'Sugar Rush', blurb: '2x pellets · 90s blitz', duration: '90s', players: '1–25', level: 'Easy', vibe: 'Blitz' },
   hill: { title: 'King Hill', blurb: 'Hold the center · Score', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'King-of-hill' },
   tag: { title: 'Tag Frenzy', blurb: "Don't be IT", duration: '3-min', players: '2–25', level: 'Easy', vibe: 'Party chase' },
+  steel: { title: 'Steel Swarm', blurb: 'Aim turret · Fire shells', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'Tank shells' },
+  trivia: { title: 'Trivia Blitz', blurb: '8-question party quiz', duration: '3-min', players: '2–100', level: 'Easy', vibe: 'Party quiz' },
 };
 export function parseGame(raw: unknown): GameId {
-  if (raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag') return raw;
+  if (raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag' || raw === 'steel' || raw === 'trivia') return raw;
   return 'mochi';
 }
 
@@ -74,6 +76,7 @@ export interface SnapPlayer {
   b: number; // 1 if bot
   ht: number; // 1 if hunter (violent AI)
   c: number; // charge: +1/-1 in polar, 0 in mochi (polarity ring + vacuum logic)
+  a?: number; // steel: turret aim in radians (absent in other games = zero bytes)
 }
 
 // Polar pellets carry charge by id parity (even=+1, odd=-1): zero extra bytes.
@@ -97,6 +100,14 @@ export interface ServerSnapshot {
   taunts: { id: string; e: number }[]; // active emote taunts (server-pruned, 2s life)
   round: number; // seconds left in the current 3-min round (urgency engine)
   orbs: { i: number; x: number; y: number; h: number }[]; // live projectiles, AOI-culled
+  quiz?: { // trivia only: question state (absent in arena games = zero bytes)
+    q: string; opts: string[]; qi: number; qn: number;
+    phase: number; // 0 = answer window, 1 = reveal
+    reveal: number; // correct option idx during reveal, -1 while answering
+    left: number; // seconds left in this phase
+    mine: number; // my answered idx, -1 if unanswered
+    ok: number; // 1 correct / 0 wrong / -1 unscored (answering phase)
+  };
   wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
   v?: { it?: string; zone?: { x: number; y: number; r: number } }; // variants: tag IT + hill zone
 }

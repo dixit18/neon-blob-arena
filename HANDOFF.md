@@ -4,6 +4,15 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- D10 SAMENESS VERDICT SHIPPED (user: "all games are the same, no doc
+  inspiration"): Steel client PARKED (server sim green, no menu card);
+  TRIVIA BLITZ server live (first non-arena verb: 8-Q party quiz, bots answer
+  in tiers, 24-Q pack, quiz channel + answer transport, 1.1KB snapshots);
+  UX-018 mood row on the menu (Beat/Chaos/Think/Surprise-me — Chill waits for
+  a Chill game). Verified: 6/6 suites green (incl. new steel 31 + trivia 27),
+  WS smoke 9/9 (steel hello/aim-channel, trivia quiz/answer/brota), client
+  36.78KB/14.80gzip (cap ≤38KB), mochi soak 20/20 @14.2 snaps/s. Two sim bugs
+  caught by receipts, not vibes (trivia mid-question bot plans; steel test AOI).
 - D9 triple-report synthesis + live-site R&D SHIPPED (docs only, no sim change):
   three new reports converge on playground framing, share-OBJECT rule, mood-first
   discovery, daily ritual, async ghosts, discovery toys — all sharpen D5/D8.
@@ -86,14 +95,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. P0 + D7 + D8 + accountability shipped; tree ready to commit.
+- None. D10 turn complete; tree ready to commit (see Next up).
 
 ## Next up (priority order)
-1. USER: hard-refresh prod (~2 min deploy), tap PLAY — expect visible
-   Connecting/waking states, then arena. Add UptimeRobot on /health (BE-001)
-   so the free tier stops napping.
-2. Finish Sprint 1 STEEL SWARM (S1-1 sim → S1-2 suite → S1-4 client → S1-5 verify).
-3. Sprint 2 PARTY PERSISTENCE (S2-1 cross-game room code first).
+1. Trivia CLIENT (Leo): quiz panel + 4-option buttons + reveal + card +
+   tutorial + score-card share object ("7/8 — beat it"), then WS play-test.
+   Without this D10 is theater — nothing player-visible except the mood row.
+2. USER: UptimeRobot on /health (BE-001) + hard-refresh prod after deploy.
+3. Sprint 4 Doodle Duel (stroke-sync pattern done properly, not rushed).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.
