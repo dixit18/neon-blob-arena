@@ -104,12 +104,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 ## Active work
 - None. D12 pivot turn complete; tree ready to commit (see Next up).
 
-## Next up (priority order)
-1. Sprint 3 REFLEX RIOT (first plugin): timing channel + sim + bot backfill +
-   client + Chaos Strip artefact (DoD in SPRINTS.md).
-2. USER: UptimeRobot on /health (BE-001) once Render blueprint syncs; Render
-   dashboard needs VITE_SERVER filled after first sync.
-3. Sprint 4 READ THE ROOM, then Ghostline per SPRINTS.md order.
+## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
+1. [RR-1] Reflex Riot sim + tests (Zara).
+2. [RR-2] Riot bots (Zara) — parallel with RR-1.
+3. [RR-3] Replay + Chaos Strip (Leo + Zara).
+4. [RR-4] Riot client (Leo). [RR-5] E2E (Riya, blocks release). [RR-6] Wire-up (Kai).
+5. USER only for: UptimeRobot on /health (BE-001) once Render blueprint syncs.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

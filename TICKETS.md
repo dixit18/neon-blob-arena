@@ -8,9 +8,26 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 ## Doing (this cycle)
 - (clear — everything below re-tested green)
 
-## Open (prioritized)
+## Open (prioritized) — Sprint 3 REFLEX RIOT (pull in order, Rule 14)
+- [RR-1] Sim: task engine — Owner: Zara. Accept: 3–6s task rotation, timing
+  windows, scoring, round flow in `games/reflex-riot/sim/`; ≥24 headless tests
+  green; first task begins ≤3s after first human arrives (simulated clock).
+- [RR-2] Bots: imperfect reactions — Owner: Zara. Accept: reaction-delay tiers
+  + occasional mistakes via `packages/bots`; solo join gets an instant round,
+  never a waiting screen; bots labelled.
+- [RR-3] Tiny replay + Chaos Strip — Owner: Leo + Zara. Accept: vector/event
+  log regenerates the end state; ReplayMoment artefact (nine frames ending in
+  winner/fail) validates via `packages/share` asserts.
+- [RR-4] Client: task renderer + inputs — Owner: Leo. Accept: tap/hold/avoid/
+  copy/freeze/swipe all paint same-tick; 360px clean; chunk ≤250KB Brotli;
+  mounts at `apps/web/src/games/reflex-riot.ts`.
+- [RR-5] E2E x8 + 15-player room — Owner: Riya. Accept: 8 end-to-end checks
+  green; snapshot p95 ≤700B measured; receipts in chat. Blocks release if red.
+- [RR-6] Wire-up: register driver, kill the refusal — Owner: Kai. Accept:
+  `?game=reflex-riot&room=` plays over a real socket; `/rooms` presence shows;
+  no `not-implemented` for catalog games with drivers.
 
-## Open (prioritized)
+## Superseded by D12 pivot (history, not backlog)
 - [UX-005] roundPill/feed overlap on 360px wide — Owner: Leo. Accept: screenshot-proof
   or device check, no overlap. NEEDS: human hands.
 - [UX-006] Hindi-ready strings for India launch — Owner: Devika. Accept: all menu/HUD

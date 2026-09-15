@@ -590,3 +590,18 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   new names; Playground-is-loading-screen risk gated by budgets; no arena code
   ported — patterns re-derived under contract tests.
 **Kai:** Committing + pushing.
+
+## 2026-09-15 — Standing orders: crew runs without the user (user: "train agents to keep working")
+**Aarav:** User's order: same repo, everything pushed (verified: HEAD ==
+  origin/main, tree clean), and the crew must run without check-ins. Enacted:
+  (1) Rule 14 pull protocol — finish → receipts to me → pull next ticket same
+  turn; blocked = file blocker + pull parallel ticket; I keep the queue
+  non-empty; nobody idles with open tickets. User is escalation, not scheduling.
+  (2) Nova trained on the standing inspiration watchlist (Poki/CrazyGames docs,
+  itch.io, Jackbox, Gartic, Wordle, Neal.fun, Zoomquilt, Yandex/VK, Node/Effect/
+  Colyseus/GSAP/MDN tracking) with steal-mechanics-not-assets method.
+  (3) Board reset: legacy UX tickets closed as history; RR-1–RR-6 queued with
+  owners + acceptance. First pull: Zara takes RR-1 (+RR-2 parallel).
+**Devika:** Board owns the queue now — RR-1–RR-6 open with acceptance; I write
+  Sprint 4 tickets before Riot lands (Rule 14).
+**Kai:** Committing + pushing.
