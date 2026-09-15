@@ -273,5 +273,11 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
 - CONCLUSION: menu rebuilt + trivia featured + no-sit DoD this turn; catalogue
   slots locked above; arenas kept live (deleting working games with live
   players/scores buys nothing — removal applied to positioning, not to games).
+## D12 — full pivot: delete legacy arena FE/BE, rebuild from R&D report (user: "remove fe and be, start from scratch")
+- WHY (user verdict, Aarav): two explicit orders to remove everything if required; incremental fixes kept one verb alive. The passed-in report is a complete from-scratch plan (6 new verbs, plugin architecture, WAPS north star, falsifiable gates). Prior work is safe in history (24846af + 4861f62 salvage) — deletion loses nothing recoverable.
+- WHAT GOES: `neon-blob-arena/client` + `neon-blob-arena/server` (entire legacy game) + stale workflow/paths pointing at them. WHAT STAYS: studio docs as history + accountability, re-pointed at the new tree.
+- WHAT GETS BUILT (report §D, honored): monorepo `apps/web` + `apps/server` + `packages/{protocol,room,identity,catalog,bots,share,analytics}` + `games/` plugins; Node 24 Docker-pinned (local toolchain runs v22 — recorded, not hidden); stable Effect at ingress/egress/boot only, never `step()`; raw `ws` with reversible-Colyseus protocol; catalogue Reflex Riot → Read the Room → Ghostline → Signal Seven → Totem Panic → Ricochet Siege; NOT-NOW list adopted incl. zero Rust, no open drawing/chat at launch.
+- WHY-NOT (Rehan): deleting a green tree on a report's authority re-opens earned guarantees (backfill feel, 35KB discipline, wake-retry UX) that must be re-earned under new names; report reuse %s are admitted ±10pp guesses; the Playground can become the loading screen it was meant to kill (report Risk #1 — gated by ≤1MB first-wow + 0-bytes-for-direct-links, no exceptions); moods unvalidated (A/B gate kept). Bounds: Foundation DoD numbers adopted as-is; first failing gate stops the line. No arena code ported — patterns re-derived under contract tests.
+- CONCLUSION: pivot APPROVED. Delete legacy FE/BE, scaffold Foundation this turn, Reflex Riot next.
 - Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: the engine is
   infrastructure, the catalogue was the product — we rebooted the right one.

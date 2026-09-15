@@ -4,6 +4,13 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- D12 PIVOT SHIPPED (user order + R&D report): legacy arena FE/BE DELETED
+  (`neon-blob-arena/` gone; 24846af + 4861f62 in history). New monorepo live:
+  apps/web (4.84KB shell) + apps/server (Node24-pinned CI/Docker, local v22
+  recorded) + packages protocol/room/identity/catalog/bots/share/analytics.
+  Verified: 53/53 tests, tsc clean both trees, 50-socket/60s soak PASS
+  (50/50, 13.27 snaps/s/client, 0 unhandled, tickAvg 0.00ms). Next: Sprint 3
+  Reflex Riot (first plugin). Old docs stand as history; SPRINTS rewritten.
 - D10 SAMENESS VERDICT SHIPPED (user: "all games are the same, no doc
   inspiration"): Steel client PARKED (server sim green, no menu card);
   TRIVIA BLITZ server live (first non-arena verb: 8-Q party quiz, bots answer
@@ -95,14 +102,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. D10 turn complete; tree ready to commit (see Next up).
+- None. D12 pivot turn complete; tree ready to commit (see Next up).
 
 ## Next up (priority order)
-1. Trivia CLIENT (Leo): quiz panel + 4-option buttons + reveal + card +
-   tutorial + score-card share object ("7/8 — beat it"), then WS play-test.
-   Without this D10 is theater — nothing player-visible except the mood row.
-2. USER: UptimeRobot on /health (BE-001) + hard-refresh prod after deploy.
-3. Sprint 4 Doodle Duel (stroke-sync pattern done properly, not rushed).
+1. Sprint 3 REFLEX RIOT (first plugin): timing channel + sim + bot backfill +
+   client + Chaos Strip artefact (DoD in SPRINTS.md).
+2. USER: UptimeRobot on /health (BE-001) once Render blueprint syncs; Render
+   dashboard needs VITE_SERVER filled after first sync.
+3. Sprint 4 READ THE ROOM, then Ghostline per SPRINTS.md order.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

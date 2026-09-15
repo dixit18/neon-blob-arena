@@ -1,68 +1,84 @@
-# SPRINTS — how this studio moves fast. One sprint = one shippable slice, each with
-goal, tickets, definition of done, and demo receipts in AGENT_CHAT.md. Rule 9 and
-Rule 12 apply inside every sprint. TICKETS.md feeds the board; MARKET.md feeds picks.
+# SPRINTS — playground pivot (D12). One sprint = one shippable slice with goal,
+tickets, definition of done, and demo receipts in AGENT_CHAT.md. Rules 9/11/12
+apply inside every sprint. Source plan: user-passed R&D report (Sections D–E);
+reuse %s are planning estimates ±10pp until code exists. Gates stop the line.
 
 ## Cadence
-- Hourly ship loop for 85%+ reuse games (proven: polar, buffet, batch A).
-- Bigger cycles (new physics/patterns: hooks, tanks, turns) get their own sprint.
+- Hour-sized, independently mergeable PRs (work-size constraint, not a delivery promise).
+- No agent alters `packages/protocol/` without contract tests (report agent rule).
 - Sprint review = receipts (tests, smoke, soak, build sizes), never vibes.
 
-## Sprint 1 — STEEL SWARM (tank arena) — PARKED (server sim green, NO menu card, D10)
-Goal: tank sim kept as a parked anchor — client deprioritised on sameness verdict.
+## Sprint 1 — FOUNDATION (this turn)
+Goal: monorepo + wire contract + room lifecycle + guest identity + catalog +
+analytics vocab + bots/backfill — no game yet (stub driver proves the seam).
 Tickets:
-- [S1-1] Server sim `steel.ts` (move + turret aim + shells, no dash/chomp) — Zara — DONE
-- [S1-2] Headless suite `steel.test.ts` (aim, shell ballistics, damage, cd, backfill) — Zara — DONE
-- [S1-3] Transport: `aim` in validate + SnapPlayer `a` + index dispatch — Zara — DONE
-- [S1-4] Client: turret meshes + mouse-to-ground aim + mode + card + tutorial — Leo — PARKED (D10)
-- [S1-5] Verify: 5 suites green, steel smoke, mochi soak — Riya — DONE (server)
-- [S1-6] Docs + commit + push + MARKET row flip to SHIPPED — Kai — PARKED (row stays sim-only)
-Definition of done (server): `npm test` all green, smoke over WS, soak ≥12 snaps/s,
-no menu card shipped, chat receipts.
+- [F-1] Root layout + TS configs + scripts (build/test/dev) — Kai
+- [F-2] `packages/protocol`: versioned envelope `{v,type,room,seq,serverTime?,payload}`,
+  first-class messages (input/answer/strokeBatch/roomPresence/snapshot/event/
+  roundState/emote/reconnect), strict guards — Zara
+- [F-3] `packages/room`: registry, lifecycle, presence, 60s reconnect grace,
+  90s empty-GC, GamePlugin seam — Zara
+- [F-4] `packages/identity`: opaque guest IDs, generated names (Neon Otter),
+  custom-name filter — Leo
+- [F-5] `packages/catalog`: 6 manifests (id/verb/moods/players/joinMode/
+  deviceTier/locales/clientChunk/shareKind/botPolicy) — Aarav
+- [F-6] `packages/bots`: labelled-bot interface + backfill controller — Zara
+- [F-7] `packages/share`: ShareArtifact contract
+  (ResultGrid|GhostChallenge|ReplayMoment|PartyFingerprint|DailyGrid) + URL helpers — Leo
+- [F-8] `packages/analytics`: event vocabulary + bounded buffered writer — Zara
+- [F-9] `apps/server`: Node 24 + ws, registry wiring, HTTP
+  (/health/rooms/catalog), Effect Schema at ingress, plain-TS sims — Zara
+- [F-10] `apps/web`: HTML-first shell, guest boot, catalog render, room entry
+  (`?game=&room=` bypasses world bundle) — Leo
+Definition of done: ≥50 unit tests green; WS integration smoke (join→snapshot→
+leave→GC proof); 60s/50-socket mini-soak clean; 0 unhandled exceptions; Node 24
+pinned in CI + Docker (local toolchain v22 recorded). Full 200-socket/30-min
+soak + 12 browser integration tests ride with Global hardening per report.
 
-## Sprint 2 — PARTY PERSISTENCE (platform, R&D-2 alpha gate) — NEXT, per D5
-Goal: prove "one room, many games" — a party joins once, plays A, returns,
-starts B with same membership, survives a disconnect, can report somebody.
-Tickets:
-- [S2-1] Cross-game room code: one `room` maps to a party across `game`s
-  (replaces per-game `game:room` namespace; switch-game keeps membership) — Zara
-- [S2-2] Switch-game flow: return-to-party → pick game → launch, same members,
-  share link/QR stays valid across switches — Leo
-- [S2-3] Host controls: kick + lock + (later) teams; host = room creator — Zara/Leo
-- [S2-4] Reconnect hardening: session resume keeps party slot on short drop
-  (watchdog exists; add resume token/slot hold) — Zara
-- [S2-5] Party metrics in `/stats`: second-game starts, party reuse, host
-  reproduction (guests→hosts); menu reframe (Start night / Join code first) — Zara/Leo
-- [S2-5b] Mood-first row + Surprise-me (D9/UX-018): Beat/Chaos/Chill/Think/
-  Surprise-me above thumbnails, guest PLAY ≤2 taps preserved — Devika + Leo
-- [S2-6] Verify: full alpha sequence on 2 tabs (join→A→return→B→resume→report
-  stub), builds green, no sim regressions — Riya
-Definition of done: alpha-gate sequence passes on video/manual, `/stats`
-shows party-switch counters, all suites green, shell regressions zero.
-Mood row taps preserved PLAY conversion (no regression vs baseline).
+## Sprint 2 — IMPOSSIBLE PLAYGROUND
+DOM shell → lazy Three world → four mood portals (BEAT/CHAOS/THINK/SURPRISE ME)
+→ Rift Seed (`?rift=`) sharing. DoD: HTML shell ≤60KB Brotli; first wow ≤1MB;
+360px clean; press feedback <100ms; direct game link loads 0 bytes of landing
+Three bundle. Gate: share/copy AND game-start +≥20% vs lite control or simplify.
 
-## Backlog (rebooted per D11 — one verb per slot, catalogue from 0)
-- Sprint 3: TRIVIA BLITZ (D10 diversifier, MARKET #12) — server sim + answer
-  transport + quiz channel (DONE, Zara) → client quiz panel + card +
-  tutorial + score-card share object (THIS TURN, Leo) + verify (Riya). First
-  non-arena verb: 8-question party quiz, 2–100 players, bots answer in tiers,
-  one built-in 24-Q pack. DoD: suites green, 2-tab + bot quiz playable over
-  WS, share card ships, client build ≤39KB (mood row + quiz face; rule <150KB holds).
-  No-sit (D11): every tap shows visual feedback same-tick + WS send; no screen
-  sits >1s without action or visible progress (receipt: smoke + DOM gate).
-- Sprint 4: Doodle Duel (draw-guess relay, R&D-2 P0) + report/block/mute slice
-  (UX-011) + prompt/content filters. Stroke-sync pattern, NOT arena reuse.
-- Sprint 5: Ten Seconds (reaction ritual, docs' ritual loop) — cheapest
-  different verb after trivia; daily board + score-card share object.
-- Sprint 6: Ludo Clash (turn verb, India) + Hindi strings (UX-006).
-- Sprint 7 candidates (D8/D11 playground shortlist): Slingshot Sprint
-  (one-button physics + async ghosts), Signal Hunt (daily deduction — needs
-  UX-019 owner before it moves), Chain Garden (Chill/Discover toy, solo
-  first). All ship a share object or they don't ship.
-- Parked (sameness risk, revisit after diversification signal): Steel client
-  (sim green, link-joinable, no menu card), Rumble Race,
-  Meteor/Team/Ghost batch B, Cricket Smash, Hook Havoc (spring physics).
-- CUT until PMF + concurrency health (D9): crowd-machine homepage, MMO/Living
-  World, 3D open world, shooter, open UGC level editor, fan-IP clones,
-  Portal Rush / One-Minute Arcade as permanent homepage (campaign-only later).
-- Queued (D2 solo): Zen Munch (endless mochi, best-mass persistence).
-- Standing: UptimeRobot (BE-001, user), branch protection (user), UX-005 (user phone).
+## Sprint 3 — REFLEX RIOT (BUILD FIRST game)
+Timing channel, bot backfill, tiny replay + Chaos Strip artefact. DoD: ≥24 sim
+tests + 8 E2E; 15-player room; snapshot p95 ≤700B; first task ≤3s after first
+human; no empty-lobby screen.
+
+## Sprint 4 — READ THE ROOM
+Answer channel, scoring, party persistence, authored prompts + Party Fingerprint.
+DoD: ≥20 scoring/dedup tests + 8 E2E; 15 players; reconnect keeps question;
+no double-score; artefact exports.
+
+## Sprint 5 — GHOSTLINE
+Deterministic physics, replay encoding, async Ghost Challenge links. DoD: 100
+fixed seeds reproduce in tolerance; payload ≤20KB/run; solo-playable; link
+starts exact seed.
+
+## Sprint 6 — SIGNAL SEVEN
+UTC daily seed, solver/generator, spoiler-safe Signal Grid. DoD: 365 daily
+cases pass solvability/uniqueness; leaks no solution; solo-safe.
+
+## Sprint 7 — TOTEM PANIC
+Shared drop order, reconnect/spectate, 2s collapse replay. DoD: ≥500 seeded
+cases in CI; 10 players; snapshot p95 ≤1.5KB; late join next legal slot.
+
+## Sprint 8 — RICOCHET SIEGE
+Simultaneous commit, terrain/ricochet, combat validation. DoD: ≥1,000 seeded
+cases; 8 players; zero client authority; p95 step <8ms multi-room.
+
+## Sprint 9 — GLOBAL HARDENING
+Hindi, tiering, disconnects, telemetry, safety, bundle gates. DoD: 2h/300-client
+soak; zero unhandled; no heap growth post-GC; every title passes 360px +
+2GB smoke; every title owns a unique ShareArtifact.
+
+## North star
+WAPS (Weekly Activated Party Starts): unique rooms where ≥3 humans arrive
+within 120s and ≥1 round finishes. Never optimise raw time-on-site.
+
+## Standing
+- UptimeRobot (BE-001, user), branch protection (user), UX-005-class device truth (human hands).
+- NOT-NOW (report, binding): Rust services, Effect RC migration, accounts,
+  progression/battle-pass, open chat/voice, open UGC, creator marketplace,
+  ranks/clans/friends, native apps, WebGPU-only, real-money, AI gameplay gen.

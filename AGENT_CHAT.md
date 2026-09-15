@@ -563,3 +563,30 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   theater risk (no player-visible quiz yet). Bounds: Steel link-only, trivia
   client next turn or D10 fails, Doodle not dropped.
 **Kai:** Committing + pushing.
+
+## 2026-09-15 — D12 PIVOT: legacy arena deleted, playground foundation built (user: "remove fe and be, start from scratch")
+**Aarav:** User gave the order twice; the R&D report gave the plan. Executed:
+  prior work salvaged to history (24846af + 4861f62 — nothing truly lost),
+  `neon-blob-arena/` + stale workflows deleted, monorepo scaffolded per report
+  §D: apps/web + apps/server + 7 packages + games/ contract. Recorded as D12.
+**Nova:** Report honored with divergences recorded: reuse %s stay ±10pp
+  guesses; moods ship as A/B-gated hypothesis (report's own TEST verdict);
+  India as experiments not stereotypes; region≠market (Yandex/VK noted).
+**Zara:** Shipped packages protocol (versioned envelope + 9 guards) / room
+  (registry, 60s grace, 90s GC, plugin seam) / identity / catalog (6 manifests)
+  / bots / share / analytics + server (Effect Schema ingress, plain-TS after,
+  snapshots @15Hz, backpressure, shutdown path). Zero Rust (report verdict).
+**Leo:** Shipped web shell (4.84KB JS, HTML-first, guest boot, rift seeds,
+  mood portals, catalog render, room view that bypasses world bundle).
+**Vikram (2 flaws):** 1) reconnect token never reached the client in v1 —
+  FIXED (hello carries token, refreshed on drop, integration-proven). 2) test
+  sockets hung the runner — FIXED (shutdown path terminates all).
+**Riya:** Receipts: 53/53 tests (12 suites incl. 5 WS integration), tsc clean
+  both trees, web 4.84KB/1.91gzip (budget 60KB), 50-socket/60s soak PASS
+  (50/50 connected, 13.27 snaps/s/client, 0 unhandled, tickAvg 0.00ms).
+  Node 24 pinned CI+Docker; local toolchain v22 RECORDED (not hidden).
+  Full 200×30min soak + 12 browser tests ride with hardening per plan.
+**Rehan:** WHY-NOT signed in D12: earned guarantees must be re-earned under
+  new names; Playground-is-loading-screen risk gated by budgets; no arena code
+  ported — patterns re-derived under contract tests.
+**Kai:** Committing + pushing.

@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "outDir": "dist", "rootDir": ".", "sourceMap": false, "declaration": false },
+  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "apps/server/src/**/*.ts", "apps/server/test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "apps/web"]
+}

@@ -1,42 +1,32 @@
-# Render Blueprint — all-free stage 1 ($0): backend WS server (Docker) + frontend static site.
-# Usage: push repo to GitHub -> Render Dashboard -> New -> Blueprint -> select repo.
-# You are prompted for secrets once (DATABASE_URL, ORIGIN, VITE_SERVER — see below).
-# After first sync: copy both URLs, fill the cross-links, Render auto-redeploys.
-# Free tier sleeps after ~15 min idle: add a free UptimeRobot cron pinging /health every 10 min.
-#
-# NOTE: no `rootDir` anywhere on purpose — Render was combining rootDir with the
-# docker/static paths and failing the build. All paths below are repo-root-relative.
+# Render Blueprint — all-free stage 1 ($0): Node 24 WS server (Docker) + static web.
+# Push to GitHub -> Render Dashboard -> New -> Blueprint -> select repo.
+# Free tier sleeps after ~15 min idle: add a free UptimeRobot ping on /health every 10 min.
 services:
-  # ---- Backend: Node WS game server (Docker, free) ----
   - type: web
-    name: neon-blob-arena
+    name: playground-server
     runtime: docker
-    dockerfilePath: ./neon-blob-arena/server/Dockerfile
-    dockerContext: ./neon-blob-arena/server
+    dockerfilePath: ./apps/server/Dockerfile
+    dockerContext: ./
     plan: free
     healthCheckPath: /health
     buildFilter:
       paths:
-        - neon-blob-arena/server/**
+        - package.json
+        - tsconfig.*.json
+        - packages/**
+        - apps/server/**
     envVars:
       - key: REGION
         value: iad
-      # Paste values in Render dashboard (never commit secrets):
-      - key: DATABASE_URL
-        sync: false # Neon string
-      - key: ORIGIN
-        sync: false # frontend URL, e.g. https://neon-blob-arena-fe.onrender.com (fill after 1st sync)
 
-  # ---- Frontend: static Vite build (free) ----
   - type: web
-    name: neon-blob-arena-fe
+    name: playground-web
     runtime: static
-    buildCommand: npm --prefix neon-blob-arena/client ci && npm --prefix neon-blob-arena/client run build
-    staticPublishPath: ./neon-blob-arena/client/dist
+    buildCommand: npm --prefix apps/web ci && npm --prefix apps/web run build
+    staticPublishPath: ./apps/web/dist
     buildFilter:
       paths:
-        - neon-blob-arena/client/**
+        - apps/web/**
     envVars:
-      # Paste in Render dashboard (fill after 1st sync, triggers rebuild):
       - key: VITE_SERVER
-        sync: false # backend WS URL, e.g. wss://neon-blob-arena.onrender.com
+        sync: false # backend WS URL, e.g. wss://playground-server.onrender.com

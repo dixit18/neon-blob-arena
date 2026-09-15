@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Playground — poke something</title>
+<meta name="description" content="The URL you send when the group chat says: what should we do? Instant multiplayer rooms, no signup." />
+<meta name="theme-color" content="#070708" />
+<style>
+  :root {
+    --void:#070708; --bone:#F2EDE3; --ink:#070708; --lime:#C6F135; --mag:#FF3D8A;
+    --cyan:#46E0D4; --danger:#FF7A1A;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; min-height:100%; background:var(--void); color:var(--bone);
+    font-family:system-ui,"Avenir Next","Segoe UI",Roboto,sans-serif; }
+  #shell { max-width:720px; margin:0 auto; padding:28px 18px 60px; }
+  .kicker { font-size:12px; font-weight:800; letter-spacing:.18em; color:var(--cyan); margin-bottom:10px; }
+  h1 { font-size:clamp(38px, 9vw, 64px); line-height:1.02; letter-spacing:-.01em; margin-bottom:10px; }
+  h1 .poke { color:var(--lime); }
+  .sub { color:#B9B2A4; font-weight:600; margin-bottom:22px; font-size:15px; }
+  .moods { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .moods button { cursor:pointer; border:2px solid var(--bone); border-radius:16px; padding:16px 12px;
+    background:transparent; color:var(--bone); font-weight:800; font-size:16px; min-height:60px; }
+  .moods button:active { transform:scale(.97); background:var(--lime); color:var(--ink); border-color:var(--lime); }
+  .moods button.on { background:var(--lime); color:var(--ink); border-color:var(--lime); }
+  #games { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .excavate { cursor:pointer; text-align:left; background:#121214; border:2px solid #2A2A2E; border-radius:16px;
+    padding:14px 16px; color:var(--bone); }
+  .excavate:active { border-color:var(--lime); }
+  .excavate b { font-size:18px; display:block; }
+  .excavate span { font-size:13px; color:#B9B2A4; font-weight:600; }
+  .excavate .tag { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.08em; color:var(--ink);
+    background:var(--lime); border-radius:999px; padding:2px 10px; margin-top:8px; }
+  .row { display:flex; gap:8px; margin-bottom:12px; }
+  #name { flex:1; padding:14px; border-radius:14px; border:2px solid #2A2A2E; background:#121214;
+    color:var(--bone); font-size:16px; font-weight:700; min-width:0; }
+  #play { cursor:pointer; border:2px solid var(--lime); border-radius:14px; padding:14px 22px;
+    background:var(--lime); color:var(--ink); font-weight:800; font-size:16px; min-height:52px; }
+  #play:active { transform:translate(2px,2px); }
+  #status { font-size:13px; font-weight:700; color:var(--cyan); min-height:20px; margin-bottom:8px; }
+  #rift { font-size:13px; color:#B9B2A4; font-weight:700; }
+  #rift button { cursor:pointer; background:none; border:none; color:var(--lime); font-weight:800; font-size:13px; }
+  #roomview { display:none; }
+  #roomview.on { display:block; }
+  #mount { margin-top:14px; border:2px dashed #2A2A2E; border-radius:16px; padding:26px; text-align:center;
+    color:#B9B2A4; font-weight:700; }
+  @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="landing">
+    <div class="kicker">NO SIGNUP · LINK = ROOM · BOTS NEVER SLEEP</div>
+    <h1>DON'T BROWSE.<br /><span class="poke">POKE SOMETHING.</span></h1>
+    <p class="sub">One link pulls your whole group chat into a game in seconds.</p>
+    <div class="moods" id="moods">
+      <button data-mood="BEAT">⚔️ BEAT</button>
+      <button data-mood="CHAOS">🎪 CHAOS</button>
+      <button data-mood="THINK">🧠 THINK</button>
+      <button data-mood="SURPRISE">🎲 SURPRISE ME</button>
+    </div>
+    <div id="games"><div class="excavate"><span>digging up tonight's games…</span></div></div>
+    <div class="row">
+      <input id="name" maxlength="14" placeholder="your name…" autocomplete="off" aria-label="Your player name" />
+      <button id="play">▶ PLAY</button>
+    </div>
+    <div id="status" role="status"></div>
+    <p id="rift">rift <b id="riftSeed">…</b> · <button id="riftCopy">copy my world link</button></p>
+  </div>
+  <div id="roomview">
+    <div class="kicker" id="roomKicker">ROOM</div>
+    <h1 id="roomTitle">Entering…</h1>
+    <p class="sub" id="roomSub">resolving room…</p>
+    <div id="mount">game client mounts here</div>
+    <p id="rift"><a href="./" style="color:var(--lime); font-weight:800;">← back to the playground</a></p>
+  </div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

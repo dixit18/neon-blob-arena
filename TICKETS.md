@@ -1,6 +1,10 @@
 # TICKETS — Devika "Dot" Menon owns this board. Rule 11: no release with an open
 UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
+> PIVOT NOTE (D12): tickets below tracked the legacy arena UI (deleted). They
+> stand CLOSED as superseded — history, not backlog. Fresh tickets open per
+> new deliverable starting with Foundation.
+
 ## Doing (this cycle)
 - (clear — everything below re-tested green)
 
