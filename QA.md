@@ -38,6 +38,7 @@ Slow-tick server log (`[tick] slow XXms`) is an automatic investigate.
 - [ ] Deploy repro on Dockerfile/dependency change: clean-room `npm ci` → `tsc` → boot → `/health`
 - [ ] CI workflow green (build + test + soak jobs)
 - [ ] Client feel: HUD `fps/p95ms` — p95 ≤ 20ms desktop, ≤ 25ms mid-tier phone
+- [ ] `/perf` telemetry flowing from real sessions (D3 evidence, not lab numbers)
 - [ ] No console errors; no secret in logs/git (`git log -p | grep -i token` empty)
 
 ## Filing a bug (paste into AGENT_CHAT.md)

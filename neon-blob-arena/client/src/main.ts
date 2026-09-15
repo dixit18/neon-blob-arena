@@ -89,9 +89,9 @@ let myName = localStorage.getItem('blob-name') || '';
 if (myName) (el('name') as HTMLInputElement).value = myName;
 if (roomId) el('roomLabel').textContent = `Room: ${roomId} — friends joining this link land here`;
 
-let me = { x: WORLD / 2, y: WORLD / 2, r: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, sh: 0, pvx: 0, pvy: 0 };
-// remote interpolation: id -> {a, b, t0} snapshots
-const remotes = new Map<string, { n: string; h: number; r: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number; ch: number }>();
+let me = { x: WORLD / 2, y: WORLD / 2, r: 20, tr: 20, mass: 12, dashReady: true, alive: true, score: 0, kills: 0, streak: 0, sh: 0, pvx: 0, pvy: 0 };
+// remote interpolation: id -> {a, b, t0} snapshots (+ tr = radius target, smoothed)
+const remotes = new Map<string, { n: string; h: number; r: number; tr: number; ax: number; ay: number; bx: number; by: number; t: number; gone?: number; ht: number; ch: number }>();
 const snapIds = new Set<string>(); // hoisted: per-snap membership without alloc
 type Orb2D = { i: number; x: number; y: number; hue: number };
 const orbs: Orb2D[] = []; // slots reused across snaps (array only grows to max)
@@ -280,7 +280,7 @@ function connect(name: string) {
   // BUGFIX: reconnects used to stack duplicate sockets + input loops (speed-up/jitter).
   try { ws?.close(); } catch { /* already dead */ }
   if (inputTimer) { clearInterval(inputTimer); inputTimer = null; }
-  remotes.clear(); pellets = []; liveTaunts = []; spectateId = null;
+  remotes.clear(); world?.clear(); pellets = []; liveTaunts = []; spectateId = null;
   conStatus(conFails === 0 ? '⏳ Connecting to the arena…' : `🔄 Reconnecting… (attempt ${conFails + 1})`);
   const q = new URLSearchParams({ name });
   if (roomId) q.set('room', roomId);
@@ -399,12 +399,13 @@ function onSnap(s: Snap) {
     // prediction every snapshot and read as constant micro-jitter on your own blob
     const m = s.me;
     const err = Math.hypot(m.x - me.x, m.y - me.y);
-    if (err > 220) { me.x = m.x; me.y = m.y; me.pvx = 0; me.pvy = 0; } // big desync: hard snap, prediction restarts
+    if (err > 220) { me.x = m.x; me.y = m.y; me.pvx = 0; me.pvy = 0; me.r = m.r; me.tr = m.r; } // big desync: hard snap, prediction restarts
     else {
       const pull = 1 - Math.exp(-6 / 15); // critically-damped-ish follow per snap
       me.x += (m.x - me.x) * pull; me.y += (m.y - me.y) * pull;
+      me.tr = m.r; // radius eases in frame() — eating no longer pops size
     }
-    me.r = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
+    me.r = m.r; me.tr = m.r; me.mass = m.mass; me.dashReady = m.dashReady;
     me.alive = m.alive; me.score = m.score; me.kills = m.kills; me.streak = m.streak; me.sh = m.sh;
     if (game === 'polar' && typeof m.ch === 'number') myCharge = m.ch > 0 ? 1 : -1;
     const itMe = game === 'tag' && m.it === 1;
@@ -433,8 +434,8 @@ function onSnap(s: Snap) {
   const now = performance.now();
   for (const p of s.players) {
     const r = remotes.get(p.id);
-    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now, ht: p.ht, ch: p.c });
-    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.r = p.r; r.gone = undefined; r.ht = p.ht; r.ch = p.c; }
+    if (!r) remotes.set(p.id, { n: p.n, h: p.h, r: p.r, tr: p.r, ax: p.x, ay: p.y, bx: p.x, by: p.y, t: now, ht: p.ht, ch: p.c });
+    else { r.ax = renderX(p.id); r.ay = renderY(p.id); r.bx = p.x; r.by = p.y; r.t = now; r.n = p.n; r.h = p.h; r.tr = p.r; r.gone = undefined; r.ht = p.ht; r.ch = p.c; }
   }
   // fade-out, not pop-out: AOI edge used to blink blobs in/out every frame
   snapIds.clear();
@@ -615,9 +616,12 @@ function frame(now: number) {
 
   // draw lists for three (interp stays here; WebGL draws) — pooled, zero alloc
   const fnow = performance.now();
+  const rk = Math.min(1, rawDt * 8); // radius easing: growth glides, never pops
+  me.r += (me.tr - me.r) * rk;
   let pi = 0;
   for (const [id, r] of remotes) {
     if (r.gone !== undefined && fnow - r.gone > 800) continue;
+    r.r += (r.tr - r.r) * rk;
     const d = plistSlot(pi++);
     d.id = id; d.x = renderX(id, fnow); d.y = renderY(id, fnow);
     d.r = r.r; d.hue = r.h; d.name = r.n; d.isMe = false; d.hunter = r.ht === 1; d.shielded = false;
@@ -945,3 +949,15 @@ async function refreshLiveCounts() {
 }
 setInterval(refreshLiveCounts, 5000);
 void refreshLiveCounts();
+
+// lag telemetry: this device's sessions feed the /perf dashboard (D3 evidence).
+// 15s cadence, menu-gated, no PII — just numbers Riya's gates run on.
+setInterval(() => {
+  if (el('menu').style.display === 'none' && ws && ws.readyState === WebSocket.OPEN) {
+    const payload = JSON.stringify({
+      game, fps: Math.round(fpsEma), p95: +ftP95().toFixed(1),
+      rtt: rttMs < 0 ? 0 : Math.round(rttMs), q: qTier, lt: longTasks,
+    });
+    try { void fetch(httpBase + '/perf', { method: 'POST', body: payload }); } catch { /* offline */ }
+  }
+}, 15000);

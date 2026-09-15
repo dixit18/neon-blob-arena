@@ -44,9 +44,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- 10-GAME DAY (in progress): portal/FPS R&D, roster + per-game phases, variant
-  engine + batch A (rush/hill/tag). Files: `MARKET.md`, client/server game files,
-  `HANDOFF.md`, `AGENT_CHAT.md`, `TICKETS.md`.
+- None. R&D-first program shipped: Rehan hired, DECISIONS.md (D1-D4 concluded),
+  /perf telemetry live, re-render fixes (radius easing, reconnect clear).
 
 ## Next up (priority order)
 1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + try POLAR (`?game=polar`).

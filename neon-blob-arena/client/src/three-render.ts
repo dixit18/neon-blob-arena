@@ -334,6 +334,33 @@ export class World3D {
 
   setPixelRatio(dpr: number) { this.renderer.setPixelRatio(dpr); } // quality governor
 
+  clear() {
+    // Reconnect hygiene: drop every per-player object NOW instead of letting the
+    // seen-diff discover them a frame later (that discovery frame + dispose churn
+    // reads as a re-render flicker). Shared geos/mats/textures stay cached.
+    for (const [, grp] of this.blobs) {
+      this.scene.remove(grp);
+      const u = grp.userData;
+      ((u.face as THREE.Sprite).material as THREE.Material).dispose();
+      this.disposeName(u.name as THREE.Sprite);
+    }
+    this.blobs.clear();
+    for (const [, mesh] of this.hunterRings) {
+      this.scene.remove(mesh); (mesh.material as THREE.Material).dispose(); mesh.geometry.dispose();
+    }
+    this.hunterRings.clear();
+    for (const [, mesh] of this.chargeRings) {
+      this.scene.remove(mesh); (mesh.material as THREE.Material).dispose(); mesh.geometry.dispose();
+    }
+    this.chargeRings.clear();
+    this.seenChargePool.clear();
+    this.seenPool.clear();
+    this.seenOrbPool.clear();
+    this.orbPrev.clear();
+    this.youRing.visible = false;
+    this.shieldShell.visible = false;
+  }
+
   stats(): { calls: number; tris: number; geos: number; texs: number } {
     const r = this.renderer.info;
     return { calls: r.render.calls, tris: r.render.triangles, geos: r.memory.geometries, texs: r.memory.textures };

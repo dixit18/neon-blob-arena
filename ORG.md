@@ -34,6 +34,12 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 
 **Quality**
 - **Riya "Breaker" Sharma — QA Engineer (quality is her only job).** Owns `QA.md`, hunts lag with numbers (tick ms, fps, snapshot bytes), runs the device matrix and regression checklist. Can block ANY release; nothing ships while red.
+- **Rehan "Why-Not" Qureshi — Decision RedTeam (every game decision gets contradicted).**
+  For each decision he writes the WHY-NOT case: why it fails, what evidence would kill
+  it, what cheaper alternative exists. No game ships, no rule changes, no scope grows
+  without his counter in `DECISIONS.md` ending in a written conclusion. Reports to
+  Vikram, spars with Aarav and Nova alike. Never idle: re-opens closed decisions when
+  new evidence (telemetry, playtests, market shifts) arrives.
 
 ## Time split (so it's unambiguous)
 
@@ -46,6 +52,7 @@ live benchmarks on our own builds. Every claim ships with a URL or a number.
 | Devika "Dot" Menon | 20% (UX research) | 30% (copy/flows) | 50% audits+tickets |
 | Kai | 0% | 80% | 20% integration |
 | Riya "Breaker" Sharma | 10% (repro research) | 0% | 90% QA |
+| Rehan "Why-Not" Qureshi | 30% (decision research) | 0% | 70% counter-memos |
 | Arjun "Signal" Kapoor | 70% (growth research) | 30% (viral mechanics) | advises all |
 | Kabir "Cross" Rao | 70% (research critique) | 0% | 30% advising loops |
 
@@ -66,6 +73,9 @@ Graph: Vision ↔ RedTeam → Nova ⇄ Cross (every finding gets a counter-memo)
     without Nova's sourced finding AND Cross's counter-memo. Uncontradicted R&D is a rumor.
 11. UX gate: Devika owns `TICKETS.md`. No release while a UX-BLOCKER is open; every
     ticket names an owner agent + acceptance criteria + re-test receipt.
+12. Decision gate: every game/rule/scope decision lives in `DECISIONS.md` with WHY,
+    WHY-NOT, and a written conclusion. Rehan must sign the counter. No conclusion,
+    no build.
 
 Live chat: see `AGENT_CHAT.md` (append-only, every agent writes).
 Resume state: see `HANDOFF.md` (read first after any session death).

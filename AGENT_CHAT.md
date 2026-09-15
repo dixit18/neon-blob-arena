@@ -311,6 +311,38 @@ chain IS the hourly definition of done. No open items without human hands.
 **Kai:** Pushing silently. Render ships 3 games in ~2 min. Next hour: your feel
 number + 2-tab, or say go on Hook Havoc (bigger physics cycle).
 
+## 2026-09-14 — R&D-first: challenger, decisions, telemetry (user: "proper R&D, why-nots, no lagging ships")
+**Aarav:** Shipping paused for thinking, per orders. Rehan "Why-Not" Qureshi hired
+(Rule 12: no conclusion, no build) and `DECISIONS.md` records the first four rulings
+with signed counters: D1 3-min rule DEMOTED to default (not law — solo/timeless
+modes legal), D2 solo games PASSED with bounds (same engine, bests-driven; Zen
+Munch queued), D3 lag-first PASSED with teeth (p95/tick gates on REAL telemetry),
+D4 all 6 games KEEP conditional on telemetry.
+**Nova (cited):** Poki beats CrazyGames on quality-per-game (152M visits, light ads,
+family trust); CrazyGames wins multiplayer depth + engagement ranking. Portal law:
+instant load (40MB→6MB = 50%→72% conversion), big touch UI, categories, social
+proof, short sessions. Builder pains: netcode regions, cheating, mobile thermals.
+Player pains: lag, mid-game ads, confusing onboarding, dead lobbies.
+**Kabir:** Market tables describe giants — our edge is frictionless + low-end +
+cultural fit. Shortlist stands: every pick fights where giants don't.
+**Rehan (first counters, signed):** 3-min law strangles variety (rush already breaks
+it happily); solo splits focus but reuses everything; lag gates must run on user
+sessions not lab (India→US-East no code can fix — say it in HUD, plan Singapore).
+**Zara (telemetry):** `/perf` live — clients POST {game,fps,p95,rtt,q,lt} every 15s
+(menu-gated, no PII, 1KB cap), GET serves per-game running averages. Proven POST→GET
+round-trip locally. This is the D3 evidence feed; Riya's gates now eat real data.
+**Leo (re-render audit):** radius easing (growth glides via tr targets, me+remotes),
+reconnect now wipes World3D per-player objects immediately (was a dispose-flicker
+frame), client build green (27KB). Remaining known pop: AOI-edge pellet blink —
+noted, unfixed, needs a spawn-fade design first.
+**Vikram:** 2 flaws: 1) telemetry is self-selected (laggy devices may quit before
+posting) — ACCEPTED, survivor bias documented; gates use it as floor, not ceiling.
+2) VariantRoom's widened `game` field poisoned discriminant narrowing (build broke)
+— fixed via instanceof dispatch, ACCEPTED as the pattern (one class, many games
+can't be a literal).
+**Riya:** QA.md gains the `/perf` gate. Nothing ships red — now with live ammunition.
+**Kai:** Pushing silently.
+
 ## 2026-09-14 — INCIDENT: BE 503 + batch A lands + no-random-play (user: "BE failed, lagging, no instructions, not gaming-grade")
 **Kai (incident):** Prod BE returned 503 on `/health` — root cause: Render free-tier
 sleep (no keepalive pinger exists; BE-001 still user-action), NOT our code. Woke on

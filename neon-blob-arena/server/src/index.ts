@@ -23,6 +23,8 @@ type AnyRoom = Room | PolarRoom | BuffetRoom | VariantRoom;
 const rooms = new Map<string, AnyRoom>();
 let joinsTotal = 0; // PMF stat: connection count since boot (see /stats)
 const joinsByGame: Record<string, number> = {}; // portal social proof per arena
+type PerfAgg = { n: number; fps: number; p95: number; rtt: number; q: number; lt: number };
+const perf: Record<string, PerfAgg> = {}; // D3 lag evidence, per game (see /perf)
 function code() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
 
 function makeRoom(game: GameId, id: string): AnyRoom {
@@ -80,6 +82,32 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ rooms: rooms.size, ticks, joins: joinsTotal, games: joinsByGame, rounds, taunts }));
     return;
   }
+  // Lag telemetry (D3 evidence): clients POST {game,fps,p95,rtt,q,lt} every 15s
+  // while playing. No ids, no PII, 1KB cap. Powers Riya's gates with real data.
+  if (url.pathname === '/perf') {
+    if (req.method === 'GET') { res.end(JSON.stringify(perf)); return; }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => { body += c; if (body.length > 1024) req.destroy(); });
+      req.on('end', () => {
+        try {
+          const p = JSON.parse(body) as Record<string, unknown>;
+          const g = typeof p.game === 'string' ? p.game.slice(0, 12) : 'unknown';
+          const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v) ? v : 0;
+          const a = perf[g] ?? (perf[g] = { n: 0, fps: 0, p95: 0, rtt: 0, q: 0, lt: 0 });
+          a.n++;
+          const k = 1 / Math.min(a.n, 50); // running average, recent-weighted
+          a.fps += (num(p.fps) - a.fps) * k;
+          a.p95 += (num(p.p95) - a.p95) * k;
+          a.rtt += (num(p.rtt) - a.rtt) * k;
+          a.q += (num(p.q) - a.q) * k;
+          a.lt += num(p.lt);
+        } catch { /* malformed: drop */ }
+        res.end(JSON.stringify({ ok: true }));
+      });
+      return;
+    }
+  }
   res.statusCode = 404; res.end(JSON.stringify({ error: 'not found' }));
 });
 
@@ -124,12 +152,12 @@ wss.on('connection', (ws: WebSocket, req) => {
       if (!clean) return; // Effect Schema gate: wrong shape, NaN/Infinity, non-input
       if (typeof clean.seq === 'number' && clean.seq <= conn.lastSeq) return; // drop stale/replay
       if (typeof clean.seq === 'number') conn.lastSeq = clean.seq;
-      if (room.game === 'polar') {
+      if (room instanceof PolarRoom) {
         room.handleInput(id, clean.dx, clean.dy);
         if (clean.flip) room.tryFlip(id);
       } else {
         room.handleInput(id, clean.dx, clean.dy, clean.dash);
-        if (room.game === 'mochi' && clean.fire) room.tryFire(id);
+        if (room instanceof Room && clean.fire) room.tryFire(id);
       }
     } catch { /* ignore malformed */ }
   });
