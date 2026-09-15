@@ -49,7 +49,7 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   Shipped: Beat/Chaos/Think/Surprise-me row ABOVE thumbnails (Chill joins with
   the first Chill game — no fake mapping); Surprise-me = random-arena Quick
   Play; guest PLAY ≤2 taps preserved (no PLAY-path change). Receipt: client
-  build green 36.78KB/14.80gzip (cap ≤38KB, rule <150KB holds).
+  build green 36.78KB/14.80gzip (cap ≤39KB, rule <150KB holds).
 - [UX-019] Daily-seed spec + spoiler-safe card (D9, spec only) — Owner: Aarav
   to assign before Sprint 6 (content owner TBD). Accept: daily seed format +
   spoiler-safe share-card mock + content-pipeline owner named in MARKET row.

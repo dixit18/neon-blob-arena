@@ -243,6 +243,35 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
 - CONCLUSION: Steel client PARKED (S1-4/S1-6 cancelled). New Sprint 3 TRIVIA
   BLITZ: server + transport this turn, client next turn. Doodle → Sprint 4,
   Ludo → Sprint 5. UX-018 mood row ships this turn so the menu visibly changes.
-- Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: trivia is the
-  cheapest genuinely-different verb that keeps bots honest; Doodle's stroke
-  pattern deserves its own sprint, not a shortcut.
+## D11 — reboot from 0: catalogue + menu rebuilt, shell contract kept (user: "remove everything if required, start from 0")
+- WHY reboot (user verdict, Aarav): three reports + one R&D agent + weeks of
+  work still showed one verb on the menu. Another same-verb arena would keep
+  the disease. So the PLAYER-FACING product restarts from 0: menu rebuilt
+  mood-first with new verbs featured and arenas demoted to Classics, catalogue
+  plan rewritten so every slot is a different verb with a share object, and a
+  no-sit instant standard imposed (no screen sits >1s without action or
+  visible progress).
+- WHY keep the shell (Nova): the reports THEMSELVES prescribe "standardised
+  metadata + flexible runtime" and "SDK contract before marketplace" — our
+  rooms/snapshots/bots/backfill/transport IS that contract, proven green
+  across 6 suites in prod. Nuking it burns weeks to re-earn identical
+  guarantees. Removed from zero: thumbnail-first menu hierarchy (rebuilt),
+  arena-first positioning (demoted to Classics), and any future same-verb pick
+  (banned until every loop — daily/social/discovery — owns a game).
+- New catalogue from 0 (one verb each, share object or it doesn't ship):
+  Trivia Blitz (quiz/party — server done, client this turn) → Doodle Duel
+  (draw/guess + moderation) → Ten Seconds (reaction ritual) → Ludo Clash
+  (turn verb, India) → Slingshot Sprint (physics + async ghosts) → Signal Hunt
+  (daily deduction, owner UX-019) → Chain Garden (discovery toy). Arenas stay
+  live under Classics (kept, never featured, no new arenas). Steel sim parked.
+- WHY-NOT (Rehan): reboot theater risk — renaming sections is not new games;
+  scoreboard reads 1 new verb this turn, everything else is plan. Menu
+  reshuffle can confuse existing players (bounds: Classics one tap away, PLAY
+  path untouched, no URL breaks). A "1s" rule without measurement is vibes
+  (bounds: Riya's gate = tap→same-tick visual + WS send, receipted in smoke +
+  DOM checks — progress states count, dead sitting doesn't).
+- CONCLUSION: menu rebuilt + trivia featured + no-sit DoD this turn; catalogue
+  slots locked above; arenas kept live (deleting working games with live
+  players/scores buys nothing — removal applied to positioning, not to games).
+- Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: the engine is
+  infrastructure, the catalogue was the product — we rebooted the right one.

@@ -40,26 +40,27 @@ Definition of done: alpha-gate sequence passes on video/manual, `/stats`
 shows party-switch counters, all suites green, shell regressions zero.
 Mood row taps preserved PLAY conversion (no regression vs baseline).
 
-## Backlog (reordered per D10 — different verbs first, sameness parked)
+## Backlog (rebooted per D11 — one verb per slot, catalogue from 0)
 - Sprint 3: TRIVIA BLITZ (D10 diversifier, MARKET #12) — server sim + answer
-  transport + quiz channel (this turn, Zara) → client quiz panel + card +
-  tutorial + score-card share object (next, Leo) + verify (Riya). First
+  transport + quiz channel (DONE, Zara) → client quiz panel + card +
+  tutorial + score-card share object (THIS TURN, Leo) + verify (Riya). First
   non-arena verb: 8-question party quiz, 2–100 players, bots answer in tiers,
   one built-in 24-Q pack. DoD: suites green, 2-tab + bot quiz playable over
-  WS, share card ships, client build ≤38KB (mood row + quiz copy; rule <150KB holds).
+  WS, share card ships, client build ≤39KB (mood row + quiz face; rule <150KB holds).
+  No-sit (D11): every tap shows visual feedback same-tick + WS send; no screen
+  sits >1s without action or visible progress (receipt: smoke + DOM gate).
 - Sprint 4: Doodle Duel (draw-guess relay, R&D-2 P0) + report/block/mute slice
   (UX-011) + prompt/content filters. Stroke-sync pattern, NOT arena reuse.
-- Sprint 5: Ludo Clash (turn pattern, India) + Hindi strings (UX-006).
+- Sprint 5: Ten Seconds (reaction ritual, docs' ritual loop) — cheapest
+  different verb after trivia; daily board + score-card share object.
+- Sprint 6: Ludo Clash (turn verb, India) + Hindi strings (UX-006).
+- Sprint 7 candidates (D8/D11 playground shortlist): Slingshot Sprint
+  (one-button physics + async ghosts), Signal Hunt (daily deduction — needs
+  UX-019 owner before it moves), Chain Garden (Chill/Discover toy, solo
+  first). All ship a share object or they don't ship.
 - Parked (sameness risk, revisit after diversification signal): Steel client
   (sim green, link-joinable, no menu card), Rumble Race,
   Meteor/Team/Ghost batch B, Cricket Smash, Hook Havoc (spring physics).
-- Sprint 6 candidates (D8 playground shortlist, duel rows first): Slingshot
-  Sprint (one-button physics + async ghosts), Ten Seconds (reaction microgames),
-  Signal Hunt (daily deduction ritual). All cheap on our engine, all ship a
-  share object or they don't ship. Signal Hunt needs UX-019 owner before it moves.
-- Sprint 7 candidate (D9 R&D-4 synthesis, duel row #16): Chain Garden
-  (Chill/Discover toy, place-one-object chain reactions + garden-replay share
-  card). Solo first, visit-friends later; no netcode at launch.
 - CUT until PMF + concurrency health (D9): crowd-machine homepage, MMO/Living
   World, 3D open world, shooter, open UGC level editor, fan-IP clones,
   Portal Rush / One-Minute Arcade as permanent homepage (campaign-only later).

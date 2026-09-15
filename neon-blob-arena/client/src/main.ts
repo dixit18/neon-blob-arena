@@ -46,6 +46,7 @@ type Snap = {
   round: number; // seconds left in the 3-min round
   wells?: { x: number; y: number; r: number }[]; // buffet only: wandering devourers
   v?: { it?: string; zone?: { x: number; y: number; r: number } }; // variants: tag IT + hill zone
+  quiz?: { q: string; opts: string[]; qi: number; qn: number; phase: number; reveal: number; left: number; mine: number; ok: number }; // trivia only
 };
 
 const canvas = document.getElementById('game3d') as HTMLCanvasElement;
@@ -522,6 +523,8 @@ function onSnap(s: Snap) {
   if (s.v?.zone) { zoneState.x = s.v.zone.x; zoneState.y = s.v.zone.y; zoneState.r = s.v.zone.r; zoneState.on = true; }
   else zoneState.on = false;
   liveTaunts = s.taunts || [];
+  if (s.quiz) lastQuiz = s.quiz;
+  renderQuiz();
   // throttled DOM (2Hz max, only on change) — EVERYTHING lives here now.
   // These used to write per-snapshot (~15Hz): layout thrash was a top jank source.
   if (now - lastDomAt > 500) {
@@ -762,13 +765,13 @@ function shareCard() {
     : game === 'steel' ? 'STEEL SWARM' : game === 'trivia' ? 'TRIVIA BLITZ' : 'MOCHI PANIC';
   g.fillText(shareTitle, 300, 80);
   g.fillStyle = '#2B2144'; g.font = '800 30px Nunito, sans-serif';
-  g.fillText(`${myName || 'Mochi'} — mass ${me.score} · ⚔️${me.kills} · 🔥x${me.streak}`, 300, 150);
+  g.fillText(`${myName || 'Mochi'} — ${game === 'trivia' ? `${me.score} pts · ✅${me.kills}` : `mass ${me.score} · ⚔️${me.kills}`} · 🔥x${me.streak}`, 300, 150);
   g.fillStyle = '#5b4f7e'; g.font = '700 26px Nunito, sans-serif';
   g.fillText(`best ${best} · ${LEVELS[myLevel][0]}`, 300, 195);
   g.fillStyle = '#00C2A8'; g.font = '800 30px Nunito, sans-serif';
   g.fillText('come get splatted 👇', 300, 250);
   g.fillStyle = '#2B2144'; g.font = '700 24px Nunito, sans-serif';
-  const link = location.origin + location.pathname + '?room=' + (roomId || 'lobby');
+  const link = location.origin + location.pathname + `?game=${game}&room=` + (roomId || 'lobby');
   g.fillText(link.length > 42 ? link.slice(0, 42) + '…' : link, 300, 290);
   g.fillStyle = '#E84393'; g.font = '700 22px Nunito, sans-serif';
   g.fillText('no signup · 3-min rounds · bots never sleep', 300, 335);
@@ -778,7 +781,10 @@ function shareCard() {
     const file = new File([b], 'blob-arena.png', { type: 'image/png' });
     const nav = navigator as Navigator & { share?: (d: { files?: File[]; title?: string; text?: string }) => Promise<void>; canShare?: (d: { files?: File[] }) => boolean };
     if (nav.canShare?.({ files: [file] }) && nav.share) {
-      nav.share({ files: [file], title: 'Mochi Panic', text: `I munched ${me.score} mass — splat me? ${link}` }).catch(() => download());
+      const shareText = game === 'trivia'
+        ? `I dropped ${me.score} pts in Trivia Blitz (✅${me.kills} right) — outsmart me? ${link}`
+        : `I munched ${me.score} mass — splat me? ${link}`;
+      nav.share({ files: [file], title: GAME_TITLES[game], text: shareText }).catch(() => download());
     } else download();
     function download() {
       const a = document.createElement('a');
@@ -856,6 +862,7 @@ function applyGameMode() {
   dashBtn.textContent = polar ? '⇄ Flip' : '⚡ Dash';
   dashBtn.title = polar ? 'Flip charge (Space)' : 'Dash (Space)';
   el('fireBtn').style.display = game === 'mochi' ? '' : 'none'; // only mochi fires orbs
+  el('dashBtn').style.display = game === 'trivia' ? 'none' : ''; // quiz has no dash
   document.title = game === 'polar' ? 'Polar Panic — 3-min magnetic rounds'
     : game === 'buffet' ? 'Black-Hole Buffet — 3-min gravity rounds'
     : game === 'rush' ? 'Sugar Rush — 90-second blitz'
@@ -881,7 +888,7 @@ function applyGameMode() {
   if (sub) sub.innerHTML = H.s;
   const badge = document.getElementById('gameBadge');
   if (badge) badge.textContent = H.b;
-  document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
+  document.querySelectorAll<HTMLButtonElement>('#menu .gcard[data-game]').forEach(b => {
     b.classList.toggle('sel', b.dataset.game === game);
   });
   history.replaceState(null, '', `?game=${game}${roomId ? `&room=${roomId}` : ''}`);
@@ -897,12 +904,12 @@ function pickGame(g: GameId) {
   const stored = (() => { try { return localStorage.getItem('mp-game'); } catch { return null; } })();
   game = parseGameId(qs.get('game') ?? stored);
 }
-document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
+document.querySelectorAll<HTMLButtonElement>('#menu .gcard[data-game]').forEach(b => {
   b.addEventListener('click', () => { pickGame(parseGameId(b.dataset.game ?? null)); sfx('click'); });
 });
 // UX-018 mood-first discovery (D9/D10): moods map onto arenas, Surprise-me rolls.
 // Zero new deps, zero hot-loop cost — menu DOM only.
-const MOODS: Record<string, GameId> = { beat: 'tag', chaos: 'mochi', think: 'polar' };
+const MOODS: Record<string, GameId> = { beat: 'tag', chaos: 'mochi', think: 'trivia' };
 document.querySelectorAll<HTMLButtonElement>('#moodPick .gcard').forEach(b => {
   b.addEventListener('click', () => {
     if (b.dataset.mood === 'surprise') {
@@ -910,6 +917,62 @@ document.querySelectorAll<HTMLButtonElement>('#moodPick .gcard').forEach(b => {
       pickGame(pool[Math.floor(Math.random() * pool.length)]!);
     } else pickGame(MOODS[b.dataset.mood ?? ''] ?? 'mochi');
     sfx('click');
+  });
+});
+
+// ---------- trivia quiz panel (D11: first non-arena verb gets a face) ----------
+// No-sit: tap marks selected + sends in the same tick (server first-wins +
+// phase-gates, so optimistic UI can never corrupt truth). All writes here are
+// change-guarded like the rest of the menu DOM — zero hot-loop cost.
+type QuizState = { q: string; opts: string[]; qi: number; qn: number; phase: number; reveal: number; left: number; mine: number; ok: number };
+let lastQuiz: QuizState | null = null;
+let quizQi = -1;
+// cached once (never query per snap — zero per-snap alloc, same discipline as plist)
+const quizPanel = document.getElementById('quiz')!;
+const quizQEl = document.getElementById('quizQ')!;
+const quizFillEl = document.getElementById('quizFill') as HTMLElement;
+const quizMetaEl = document.getElementById('quizMeta')!;
+const quizBtnCache = Array.from(document.querySelectorAll<HTMLButtonElement>('#quizOpts button'));
+function renderQuiz() {
+  const show = game === 'trivia' && el('menu').style.display === 'none';
+  if (!show) { if (quizPanel.style.display !== 'none') quizPanel.style.display = 'none'; return; }
+  if (quizPanel.style.display !== 'block') quizPanel.style.display = 'block';
+  const q = lastQuiz;
+  if (!q) return;
+  if (q.qi !== quizQi) { // new question: paint instantly, unlock options
+    quizQi = q.qi;
+    quizQEl.textContent = `Q${q.qi}/${q.qn}: ${q.q}`;
+    quizBtnCache.forEach((b, i) => {
+      b.textContent = `${'ABCD'[i]} · ${q.opts[i] ?? ''}`;
+      b.className = '';
+      b.disabled = false;
+    });
+  }
+  if (q.phase === 1) { // reveal: correct green, mine red if wrong, lock all
+    quizBtnCache.forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.reveal) b.className = 'right';
+      else if (i === q.mine) b.className = 'wrong';
+    });
+  } else if (q.mine !== -1) { // locked in: show it, prevent dead taps
+    quizBtnCache.forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.mine) b.className = 'sel';
+    });
+  }
+  const total = q.phase === 0 ? 15 : 5;
+  quizFillEl.style.width = `${Math.max(0, Math.min(100, (q.left / total) * 100))}%`;
+  const meta = q.phase === 0
+    ? (q.mine === -1 ? `Q${q.qi}/${q.qn} · ${q.left}s · tap!` : `Q${q.qi}/${q.qn} · ${q.left}s · locked`)
+    : (q.ok === 1 ? `✅ +${me.score}` : q.ok === 0 ? `❌ was ${'ABCD'[q.reveal]}` : `Q${q.qi} over`);
+  if (quizMetaEl.textContent !== meta) quizMetaEl.textContent = meta;
+}
+document.querySelectorAll<HTMLButtonElement>('#quizOpts button').forEach(b => {
+  b.addEventListener('click', () => {
+    const i = Number(b.dataset.i);
+    b.className = 'sel'; // instant feedback first (no-sit) — server confirms next snap
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'answer', i }));
+    sfx('click'); buzz(12);
   });
 });
 // D6 personalized landing: ?from=NAME (URL-only, never stored or sent — textContent only)
@@ -1041,11 +1104,11 @@ async function refreshLiveCounts() {
   try {
     const r = await fetch(httpBase + '/rooms');
     const rooms = await r.json() as { id: string; game: string; players: number }[];
-    const tally: Record<string, number> = { mochi: 0, polar: 0, buffet: 0, rush: 0, hill: 0, tag: 0 };
+    const tally: Record<string, number> = { mochi: 0, polar: 0, buffet: 0, rush: 0, hill: 0, tag: 0, steel: 0, trivia: 0 };
     for (const rm of rooms) {
       if (rm.game in tally) tally[rm.game] += rm.players ?? 0;
     }
-    for (const g of ['mochi', 'polar', 'buffet', 'rush', 'hill', 'tag'] as const) {
+    for (const g of ['mochi', 'polar', 'buffet', 'rush', 'hill', 'tag', 'steel', 'trivia'] as const) {
       const s = document.getElementById('live-' + g);
       if (s) s.textContent = tally[g] > 0 ? `🟢 ${tally[g]} live` : 'quiet — be the first!';
     }

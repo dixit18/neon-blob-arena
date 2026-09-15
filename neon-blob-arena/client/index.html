@@ -171,6 +171,23 @@
   #menuMeta span { background:#fff; border:2px solid var(--line); box-shadow:2px 2px 0 var(--ink); padding:6px 12px; border-radius:999px; font-variant-numeric:tabular-nums; }
   #roomLabel { margin-top:10px; font-size:12px; font-weight:700; color:var(--ink-soft); }
   #inviteCta { margin-top:10px; font-size:13px; color:var(--rasp); cursor:pointer; pointer-events:auto; font-weight:800; }
+  /* ---------- trivia quiz panel (in-game bottom sheet, trivia only) ---------- */
+  #quiz { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(120px + env(safe-area-inset-bottom)); z-index:6;
+    width:min(480px, 94vw); background:var(--paper); border:3px solid var(--line); border-radius:18px;
+    box-shadow:4px 4px 0 var(--ink); padding:12px 14px; }
+  #quizQ { font-family:Fredoka,sans-serif; font-size:17px; font-weight:600; margin-bottom:8px; }
+  #quizOpts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  #quizOpts button { cursor:pointer; border:2px solid var(--line); border-radius:12px; padding:12px 8px;
+    font-weight:800; font-size:14px; font-family:Nunito,sans-serif; background:#fff; color:var(--ink); min-height:52px;
+    box-shadow:2px 2px 0 var(--ink); }
+  #quizOpts button:active { transform:translate(2px,2px); box-shadow:none; }
+  #quizOpts button.sel { background:var(--gold); }
+  #quizOpts button.right { background:#B9F5C9; }
+  #quizOpts button.wrong { background:#FFC9D6; }
+  #quizOpts button:disabled { opacity:.92; }
+  #quizBar { height:10px; border:2px solid var(--line); border-radius:999px; margin-top:10px; overflow:hidden; background:#fff; }
+  #quizFill { height:100%; width:100%; background:var(--mint); }
+  #quizMeta { margin-top:6px; font-size:12px; font-weight:800; color:var(--ink-soft); text-align:center; font-variant-numeric:tabular-nums; }
   #dead { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:rgba(43,33,68,.35); padding:16px; }
   #dead .card { background:var(--paper); border:3px solid var(--line); box-shadow:6px 6px 0 var(--ink); padding:24px 30px; border-radius:22px; text-align:center; max-width:340px; }
   #dead h2 { font-family:Fredoka,sans-serif; }
@@ -347,7 +364,11 @@
       <button class="gcard" data-mood="think"><span class="emo">🧠</span><b>Think</b><span>Polar · Tag mind-games</span></button>
       <button class="gcard" data-mood="surprise"><span class="emo">🎲</span><b>Surprise me</b><span>Random arena</span></button>
     </div>
-    <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
+    <div class="gamesLabel">✨ NEW — NOT AN ARENA</div>
+    <div class="games" id="gamePickNew">
+      <button class="gcard" data-game="trivia"><span class="emo">❓</span><b>Trivia Blitz ✨NEW</b><span>8 questions · fastest wins</span><span class="meta">3-min · 2–100 · Easy</span><span class="live" id="live-trivia">…</span></button>
+    </div>
+    <div class="gamesLabel">🕹️ CLASSIC ARENAS</div>
     <div class="games" id="gamePick">
       <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-mochi">…</span></button>
       <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic</b><span>Flip charge · Attract</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-polar">…</span></button>
@@ -389,6 +410,14 @@
     <p id="conduct">💛 Be kind · zero tolerance for creeps · names moderated · biggest squad wins the vibe</p>
     </div>
   </div>
+</div>
+<div id="quiz" style="display:none" role="group" aria-label="Trivia question">
+  <div id="quizQ">…</div>
+  <div id="quizOpts">
+    <button data-i="0">A</button><button data-i="1">B</button><button data-i="2">C</button><button data-i="3">D</button>
+  </div>
+  <div id="quizBar"><div id="quizFill"></div></div>
+  <div id="quizMeta">…</div>
 </div>
 <div id="dead"><div class="card"><h2 id="deadTitle">💥 Splatted!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn">📤 Share score</button></div></div>
 <div id="howto"><div class="card"><h2 id="howTitle">📖 How to play</h2><p class="goal" id="howGoal"></p><ul id="howList"></ul><p class="win" id="howWin"></p><button id="howtoClose">Got it — play!</button></div></div>
