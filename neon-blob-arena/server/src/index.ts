@@ -207,4 +207,7 @@ try {
 } catch (e) {
   console.error('[db] init failed, running on memory leaderboard:', e);
 }
-server.listen(PORT, () => console.log(`[server] blob-arena :${PORT} region=${REGION} tick=${TUNE.TICK_HZ}Hz snap=${TUNE.SNAP_HZ}Hz`));
+// Bind 0.0.0.0 explicitly: Node's default dual-stack bind is IPv6-first and
+// Render's port scanner checks IPv4 — without this the deploy logs "listening"
+// and then dies with "Port scan timeout, no open ports detected" (seen live).
+server.listen(PORT, '0.0.0.0', () => console.log(`[server] blob-arena :${PORT} region=${REGION} tick=${TUNE.TICK_HZ}Hz snap=${TUNE.SNAP_HZ}Hz`));

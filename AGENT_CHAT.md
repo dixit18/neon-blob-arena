@@ -401,3 +401,15 @@ retry path covers it; last-known beats blank).
 **Riya:** TICKETS board is now release-gating alongside QA.md. UX-005 stays OPEN —
 nothing ships red.
 **Kai:** Pushing silently.
+
+## 2026-09-14 — Render port-scan fix (user pasted deploy log: "no open ports detected")
+**Zara (root cause, from the log):** build green, DB connected, server logs
+`listening :10000` — then Render kills it: port scan finds nothing. Classic Node-on-
+Render failure: default dual-stack bind is IPv6-first, Render scans IPv4. One-line
+fix: `server.listen(PORT, '0.0.0.0', ...)`. Proven locally: `0.0.0.0:7763 LISTENING`
++ `/health` over 127.0.0.1. All 83 tests still green.
+**Vikram:** flaw I should have caught in review: never trust platform-default binds —
+ACCEPTED, new standing rule (bind + port + health path verified per deploy change).
+**Riya:** deploy gate extended: any listen/bind change must show `0.0.0.0` in netstat
++ IPv4 health before push. Done this time.
+**Kai:** Pushing. Render rebuilds from this commit — watch the deploy go green.
