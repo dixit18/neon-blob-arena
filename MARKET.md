@@ -88,3 +88,16 @@ question pack + host custom packs later; latency handled by lockout-buzzer with
 server timestamp authority, not client claims. Vs "why not more arenas": 6
 shipped arenas already cover the competitive anchor; sameness is the measured
 risk (D4), and R&D-2 P0 ranks draw/trivia above a 7th arena verb.
+
+## R&D-3 playground shortlist (D8 — every pick must ship a share object)
+| # | Concept | Clip | Nov | Reuse | Fit | Share object | Verdict |
+|---|---|---|---|---|---|---|---|
+| 13 | SLINGSHOT SPRINT — one-button physics race + async ghosts | 8 | 6 | 75% | 9 | ghost challenge ("beat 18.42s") | SPRINT 6 CANDIDATE |
+| 14 | TEN SECONDS — reaction microgame rotation, daily board | 8 | 5 | 70% | 9 | daily score card | SPRINT 6 CANDIDATE |
+| 15 | SIGNAL HUNT — daily deduction ritual, spoiler-safe grid | 7 | 6 | 60% | 8 | result grid (no spoiler) | SPRINT 6 CANDIDATE |
+Cross memos: slingshot reuses integrate/pellet/snapshot whole-cloth (aim =
+launch vector, ghosts = recorded inputs, no concurrency needed); ten-seconds
+is timers + tap targets on the existing shell (cheapest row on this page);
+signal hunt is daily-seeded state + share card (content pipeline = one
+generator + curation, owner TBD before sprint). Vs crowd-machine homepage:
+rejected before concurrency health (R&D-3's own Orbiting-Rooms warning).

@@ -2,6 +2,39 @@
 Rule 12: Rehan must sign the counter. No conclusion, no build. Re-opened when new
 evidence (telemetry at `/perf`, playtests, market shifts) arrives.
 
+## D7 — earn-the-share, kill the beg-button (user: "forward button is worst thinking")
+- WHY (Aarav, Nova cited): R&D on intrinsically-forwarded web hits. (1) WORDLE:
+  one shared daily puzzle (synchronous ritual, everyone compares the same game);
+  spoiler-safe brag grid (emoji squares leak nothing yet invite "I got it in
+  three — you?"; every grid is a free ad carrying the game's name); zero
+  friction (URL → playing in ~10s); purity (no ads/IAP at peak — recommending
+  felt safe); scarcity-as-ritual (can't binge, so it becomes habit + streaks).
+  90 users → 300k → 1M daily in ~10 weeks. (2) NEAL.FUN (~2M monthly, solo dev,
+  Infinite Craft 21M impressions): "internet TOYS, not games" — quirky,
+  2-minute, unique-every-visit curiosities; "asks nothing except attention and
+  generously rewards it"; viral via clips + search, not buttons. Steal the
+  mechanics, never the assets: brag-that-invites-comparison, live shared
+  context, toy-in-2-seconds, zero friction, purity. Our equivalents: challenge
+  text carrying YOUR best ("I hit 240 — beat it"), live "happening NOW" strip
+  from real /rooms + /leaderboard (curiosity a non-player forwards), pokable
+  diorama toy, existing score PNG (our Wordle grid), crown streaks (our ritual).
+- WHY-NOT (Rehan): live strip on an empty server reads "quiet everywhere" —
+  anti-wow that advertises deadness; challenge needs a best score new users
+  don't have (gate or dead button); toy taps risk accidental PLAY rage; three
+  new landing widgets re-add the choice-paralysis D6 just removed; copying
+  Wordle's grid shape or neal's toys invites clone smell + IP shadow.
+- CONCLUSION: SHIP with bounds. KILL generic fwdBtn (banner-blindness begging).
+  Ship: (1) ⚔️ Challenge-a-friend (needs best>0, else coach-dare to play first;
+  text = my best + game + from-link; share→clipboard). (2) Live strip: hottest
+  room (tap = Quick Play crash it) + today's king (tap = dethrone run), quiet
+  fallback brags about bots ("bots hold the arena — come bully them"). (3) Pokable
+  diorama (squish-pop + rotating dare, menu-only, never starts a game). KEEP:
+  from-banner, crown nudge, score PNG (all prompt-after-delight). NO Wordle-grid
+  clone, NO neal toy copies, NO new deps, NO server change (/rooms + /leaderboard
+  already exist). Measure: challenge taps, live-strip taps, from-joins.
+- Status: CONCLUDED. Owner: Aarav + Leo. Signed: Rehan. Cross memo: inspiration
+  only — all expression original mochi; Vikram flaws in chat.
+
 ## D1 — the 3-minute rule (user verdict: "don't like 3 min things")
 - WHY keep (Aarav): rounds create urgency, crown moments make clips, seasons give
   comeback loops; every shipped game was tuned around a timer.
@@ -117,3 +150,34 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   Superseded in part by D5: Steel still next (finish in-flight), then Doodle
   Duel (P0 draw-guess) jumps ahead of Zen/Rumble; Zen stays queued.
 - Status: CONCLUDED. Owner: Aarav. Signed: Rehan.
+
+## D8 — playground-not-marketplace framing, R&D-3 (user: "go through this, update sprint")
+- WHY adopt (Aarav, Nova cited): R&D-3 sharpens D5 rather than replacing it.
+  (1) Player framing = playground ("most interesting place to start playing
+  immediately"), marketplace architecture underneath — matches our shell
+  (catalogue infrastructure + party thesis). (2) 6 DIFFERENTIATED games, every
+  game ships a share object (score image, ghost, drawing chain, challenge) —
+  our 6 live are one verb (D4 sameness risk stands); our score PNG + new
+  challenge link already follow the rule; future picks must pass it.
+  (3) Daily/social/discovery loops with distinct games per loop; cross-game
+  rate as THE platform metric (joins UX-012). (4) Progressive wow + permanent
+  fast lane (our zoom is menu-only, PLAY primary — validated). (5) Budgets:
+  Poki ~5MB initial vs our 35KB — validated, keep. (6) Export HITS not
+  infrastructure (Discord Activity / Devvit later) — Phase 4+. (7) Staged
+  supply (Basic→Full launch on measured response) — adopt when SDK exists.
+  New cheap fits for OUR engine: Slingshot Sprint (one-button physics, ghosts
+  = async competition without concurrency), Ten Seconds (reaction microgames,
+  trivial build), Signal Hunt (daily deduction, solo-friendly ritual).
+- WHY-NOT (Rehan): third portfolio pivot in 24h (arenas → party → playground)
+  risks whiplash with 2 platform sprints still unfinished; a daily game needs
+  a content pipeline nobody owns; crowd-machine spectacle = cold-start +
+  backend-load trap (One Million Checkboxes crashed repeatedly); Phaser/Colyseus
+  defaults would rewrite a proven 35KB/60fps stack for zero player gain.
+- CONCLUSION: ADOPT framing + metrics + shortlist, HOLD order. Sprint order
+  unchanged (Steel → Party → Doodle → Ludo → Trivia). Sprint 6 candidates:
+  Slingshot Sprint, Ten Seconds, Signal Hunt (duel rows #13–15 in MARKET).
+  Cross-game rate joins UX-012 acceptance. DIVERGENCES locked: no Phaser
+  rewrite, no Colyseus migration before paid scale, no crowd-machine homepage
+  before concurrency health, no UGC/SDK before PMF. No code in D8 itself.
+- Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: steal mechanics
+  (share objects, daily ritual, async ghosts), never assets; Vikram flaws in chat.

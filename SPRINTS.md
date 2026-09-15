@@ -45,5 +45,9 @@ shows party-switch counters, all suites green, shell regressions zero.
   build) + SEO/social (UX-008).
 - Parked (sameness risk, revisit after diversification signal): Rumble Race,
   Meteor/Team/Ghost batch B, Cricket Smash, Hook Havoc (spring physics).
+- Sprint 6 candidates (D8 playground shortlist, duel rows first): Slingshot
+  Sprint (one-button physics + async ghosts), Ten Seconds (reaction microgames),
+  Signal Hunt (daily deduction ritual). All cheap on our engine, all ship a
+  share object or they don't ship.
 - Queued (D2 solo): Zen Munch (endless mochi, best-mass persistence).
 - Standing: UptimeRobot (BE-001, user), branch protection (user), UX-005 (user phone).

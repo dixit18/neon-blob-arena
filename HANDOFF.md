@@ -4,6 +4,17 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- P0 CANT-PLAY FIXED + SHIPPED: root cause = Render free-tier BE asleep
+  (probed fresh-boot rooms:0) + fire-and-forget PLAY with whisper-quiet failure.
+  Fix: PLAY state machine (Loading / waking-retry x6 / error pill, buttons lock,
+  silent onclose while joining). Plus: desktop full-bleed grid (UX-017),
+  earn-the-share (challenge-a-friend gated on best, live hottest-room + king
+  strip, pokable diorama — generic fwd killed per D7), Rule 13 + SCORECARD +
+  CI boot-contract gate. Verified: client tsc+vite green 35.08KB/14.21gzip,
+  headless DOM gate 9/9 incl. JS-ran proof, WS play-path 1.1s prod.
+- D8 playground framing adopted (R&D-3): Sprint 6 candidates Slingshot/TenSec/
+  SignalHunt with duel rows; cross-game rate joins UX-012; no Phaser/Colyseus
+  rewrite; order holds (Steel → Party → Doodle → Ludo → Trivia).
 - WOW-LANDING v1 shipped (D6): CSS-only infinite-zoom tunnel hero, marketer
   hierarchy (link-promise badges + shock line + 3 link-first steps), `?from=`
   personalized banner, Forward-the-fun button, crown-win share nudge, 360px
@@ -64,12 +75,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. WOW-LANDING v1 shipped + verified; tree ready to commit.
+- None. P0 + D7 + D8 + accountability shipped; tree ready to commit.
 
 ## Next up (priority order)
-1. USER FEEL CHECK: hard-refresh, try ⚡ Quick Play + 📅 event rows, report HUD `fps/p95`.
+1. USER: hard-refresh prod (~2 min deploy), tap PLAY — expect visible
+   Connecting/waking states, then arena. Add UptimeRobot on /health (BE-001)
+   so the free tier stops napping.
 2. Finish Sprint 1 STEEL SWARM (S1-1 sim → S1-2 suite → S1-4 client → S1-5 verify).
-3. Sprint 2 PARTY PERSISTENCE per new backlog (S2-1 cross-game room code first).
+3. Sprint 2 PARTY PERSISTENCE (S2-1 cross-game room code first).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

@@ -451,3 +451,56 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (receipts):** client tsc + vite green, initial 32.65KB/13.43KB gzip (DoD ≤35KB ✓, rule <150KB ✓), three chunk lazy-unchanged. Server untouched. Manual left: 360px read check + reduced-motion check (human hands).
 **Devika:** UX-014/015 opened and acceptance-written; no UX-BLOCKER. Menu still ≤2 taps to PLAY.
 **Kai:** Committing + pushing. Next: Steel S1-1 sim — no idle.
+
+## 2026-09-15 — P0 CANT-PLAY incident + punishment system (user: "can't play, punish agents")
+**Aarav:** Root cause, with receipts: BE healthy NOW but was freshly booted
+  (rooms:0, tickAvg 0 on first probe) — Render free tier naps without the
+  UptimeRobot pinger (BE-001, user-action, open since 09-14). User's clicks hit
+  a sleeping backend; client answered with whisper-quiet roomLabel text and a
+  fire-and-forget connect. Two failures compounding: infra sleep + silent
+  failure UX. Menu/DOM/WS-path all proven innocent (FE 200, bundle has correct
+  wss host, WS hello+5 snaps in 1.1s, DOM boots with JS-ran proof).
+**Nova:** Blank-screenshot scare closed as artifact: headless screenshot with
+  --disable-gpu painted empty while --dump-dom of the same URL showed full
+  styled content. Lesson recorded: screenshots lie headless, DOM doesn't.
+**Kabir:** Counters: no infra rewrite (free tier is the budget), no
+  auto-wake magic (can't ping ourselves awake from the client reliably).
+  Accepted fix = honest visible states, not pretending sleep doesn't exist.
+**Rehan:** WHY-NOT signed: retry loop could hammer a truly-dead backend and
+  feel like a hung button; 6 tries x (9s + 2.5s) ≈ 69s max feels long. Bounds:
+  buttons lock WITH visible countdown text, every attempt labeled, error state
+  is terminal + tappable, in-game reconnect path untouched.
+**Leo:** Shipped PLAY state machine (playJoin/connectOnce/hello-resolve,
+  waking-retry pill, error pill), desktop full-bleed grid (UX-017, balanced
+  tags proven by parser), challenge-a-friend (best-gated), live hottest+king
+  strip, pokable diorama. Zero hot-loop cost. Build 35.08KB/14.21gzip.
+**Mira:** Owns S-001 (dead gutters + scroll). Remediation = the two-column
+  card she should have drawn first; screenshot gate now forces her proof.
+**Vikram (2 flaws + shared strikes):** 1) retry loop changes roomId mid-join
+  if user hits +Private room while joining — ACCEPTED (next attempt uses the
+  new room; arguably correct). 2) liveHot tap races quickPlay while a join is
+  in flight — ACCEPTED (playJoin re-entry guard swallows it). Shares S-001
+  (reviewed desktop without a 1280px check) and S-002 (never demanded a boot
+  gate) per Rule 13.
+**Riya:** Receipts: client tsc+vite green; headless DOM gate 9/9 (play,
+  challenge, status, hot, king, toy, colPlay, arena label, JS-ran proof);
+  prod WS play-path 1.1s; HTML tag-balance parser clean. Owns S-003 gate duty
+  from here on. Server untouched (suites stay fdaed46-green).
+**Devika:** UX-017 written with screenshot acceptance; no UX-BLOCKER. The
+  user was our QA twice — Rule 13 makes it cost us, not them.
+**Kai:** Committing + pushing. BE-001 pinger is the one user action left.
+
+## 2026-09-15 — R&D-3 playground refinery (user: "go through this, update sprint")
+**Aarav:** Verdict: sharpens D5, third pivot refused. Adopted: playground
+  framing, share-OBJECT rule for every future pick, daily/social/discovery
+  loops, cross-game rate metric, staged supply, export-hits-later.
+**Nova:** Our 35KB initial vs Poki's ~5MB guidance = validated lean; our bots,
+  guest-first, private rooms, report-plan all match R&D-3's MVP lines.
+**Kabir:** Divergences locked: no Phaser rewrite, no Colyseus before paid
+  scale, no crowd-machine homepage before concurrency health, no UGC/SDK
+  before PMF. New shortlist must be cheap on OUR engine: Slingshot (75%
+  reuse), Ten Seconds (70%), Signal Hunt (60% + needs content owner).
+**Rehan:** WHY-NOT signed in D8: pivot whiplash, daily-content pipeline with
+  no owner, crowd-machine backend-load trap. Bounds: order holds, Sprint 6
+  candidates need duel rows (done #13–15) + owners before they move up.
+**Kai:** Committing with the P0 batch (docs-only half of D8).

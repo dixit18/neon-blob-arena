@@ -76,6 +76,13 @@ Graph: Vision ↔ RedTeam → Nova ⇄ Cross (every finding gets a counter-memo)
 12. Decision gate: every game/rule/scope decision lives in `DECISIONS.md` with WHY,
     WHY-NOT, and a written conclusion. Rehan must sign the counter. No conclusion,
     no build.
+13. Accountability: every user-caught miss gets a STRIKE in `SCORECARD.md` (what
+    broke, owner agent, user impact, remediation + timebox). 3 open strikes on one
+    agent = that agent loses ship rights until every one of their strikes is
+    closed AND they author the regression gate that would have caught the class.
+    Reviewers who wave through a miss share the strike (Vikram learned this one
+    the hard way). No silent fixes: the user was our QA once — never twice for
+    the same failure class.
 
 Live chat: see `AGENT_CHAT.md` (append-only, every agent writes).
 Resume state: see `HANDOFF.md` (read first after any session death).

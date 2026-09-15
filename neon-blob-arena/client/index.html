@@ -148,6 +148,20 @@
   .erow b { font-family:Fredoka,sans-serif; font-size:11px; background:var(--ink); color:#fff; border-radius:8px; padding:3px 7px; min-width:42px; text-align:center; }
   .erow span { color:var(--ink-soft); }
   #conduct { margin-top:10px; font-size:11px; font-weight:700; color:var(--ink-soft); }
+  /* P0 cant-play fix: visible join status (waking/retry/error), never a whisper */
+  #playStatus { margin-top:10px; font-weight:800; font-size:13px; background:var(--gold);
+    border:2px solid var(--line); border-radius:12px; padding:8px 12px; box-shadow:var(--shadow); }
+  /* earn-the-share live strip: real happening-NOW proof, curiosity a non-player forwards */
+  .liveStrip { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-bottom:12px; }
+  .liveStrip span { pointer-events:auto; cursor:pointer; font-size:11px; font-weight:800;
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:4px 12px;
+    box-shadow:2px 2px 0 var(--ink); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .liveStrip span:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  #liveHot { background:#FFE9A8; }
+  #liveKing { background:#E7F9F0; }
+  /* pokable toy: the landing itself plays back (menu-only, never starts a game) */
+  #toyStage { cursor:pointer; transition:transform .12s ease; }
+  #toyStage.poked { transform:scale(.96) rotate(-1deg); }
   #menu .row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
   #menu .row button { pointer-events:auto; cursor:pointer; border:2px solid var(--line); box-shadow:var(--shadow); border-radius:14px; padding:14px 26px;
     font-weight:600; font-size:18px; font-family:Fredoka,sans-serif; color:#fff; background:var(--rasp); min-height:52px; }
@@ -178,9 +192,36 @@
     border-radius:12px; padding:8px 10px; margin-bottom:12px; }
   #howtoClose { width:100%; border:2px solid var(--line); box-shadow:var(--shadow); background:var(--rasp); color:#fff;
     border-radius:14px; padding:12px; font-weight:600; font-family:Fredoka,sans-serif; font-size:16px; cursor:pointer; }
+  @media (min-width:1024px) {
+    /* UX-017: desktop full-bleed — no dead gutters, no page scroll on load.
+       Two columns: hero left, arena+actions right (internal scroll only). */
+    #menu { padding:16px; }
+    #menu .card { max-width:1060px; width:min(1060px, calc(100vw - 32px));
+      display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 6fr); gap:4px 24px;
+      padding:20px 26px; max-height:calc(100vh - 32px); overflow:hidden; }
+    #fromBanner { grid-column:1 / -1; margin-bottom:6px; }
+    .colHero { min-height:0; overflow:hidden; }
+    .colPlay { min-height:0; overflow-y:auto; padding:2px 4px 8px 2px; }
+    #menu h1 { font-size:46px; margin-bottom:6px; }
+    .shock { font-size:15px; margin-bottom:8px; }
+    #menu .sub { font-size:13px; margin-bottom:8px; }
+    .zoomstage { margin-bottom:8px; }
+    .zoomstage .diorama { min-height:100px; padding-top:6px; }
+    .liveStrip { margin-bottom:8px; }
+    .howto { margin-bottom:0; }
+    .howto div { flex:1 1 100px; font-size:11px; padding:6px 5px; }
+    .games { margin-bottom:8px; }
+    .gcard { flex:1 1 30%; }
+    #menu input { padding:11px; margin-bottom:8px; }
+    #menu .row { margin-bottom:4px; }
+    #menu .row button { padding:12px 18px; }
+    #playStatus { font-size:12px; }
+    .events { margin-bottom:8px; }
+    #menuMeta { margin-top:10px; }
+  }
   @media (max-height:700px) {
     /* UX-003: PLAY must clear the fold on short landscape phones */
-    .diorama, .zoomstage, .howto, .ticker { display:none; }
+    .diorama, .zoomstage, .howto, .ticker, .liveStrip { display:none; }
     #menu .card { padding:16px 14px; }
     #menu h1 { font-size:32px; }
     #menu .sub { font-size:12px; margin-bottom:8px; }
@@ -225,6 +266,7 @@
     #feed { max-width:44vw; }
     #feed span { font-size:11px; padding:4px 9px; }
     #me { font-size:11px; max-width:40vw; }
+    .liveStrip span { font-size:10px; padding:3px 9px; }
   }
 </style>
 </head>
@@ -253,7 +295,8 @@
 <div id="menu" role="dialog" aria-label="Game menu: choose an arena and play">
   <div class="card">
     <div id="fromBanner"></div>
-    <div class="zoomstage" aria-hidden="true"><div class="zring z1"></div><div class="zring z2"></div><div class="zring z3"></div>
+    <div class="colHero">
+    <div class="zoomstage" id="toyStage" title="Poke the mochi — it pokes back"><div class="zring z1"></div><div class="zring z2"></div><div class="zring z3"></div>
     <div class="diorama">
       <svg class="mochi m1" width="86" height="96" viewBox="0 0 86 96">
         <ellipse cx="43" cy="52" rx="34" ry="36" fill="#E84393" stroke="#2B2144" stroke-width="4"/>
@@ -307,18 +350,22 @@
       <button class="gcard" data-game="tag"><span class="emo">🏃</span><b>Tag Frenzy ✨NEW</b><span>Don't be IT</span><span class="meta">3-min · 2–25 · Easy</span><span class="live" id="live-tag">…</span></button>
     </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
+    <div class="liveStrip" id="liveStrip"><span id="liveHot">scouting the arena…</span><span id="liveKing">…</span></div>
     <div class="howto">
       <div><b>1 · Link 🔗</b>Share one link — friends land straight in</div>
       <div><b>2 · Squad 👥</b>No signup, phones welcome, bots fill gaps</div>
       <div><b>3 · Crown 👑</b>Biggest when ⏱ hits 0 wins — then rematch</div>
     </div>
+    </div>
+    <div class="colPlay">
     <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" aria-label="Your player name" />
     <div class="row">
       <button id="play">▶ &nbsp;PLAY NOW</button>
       <button id="quickPlay" class="ghost" title="Join the fullest arena for this game">⚡ Quick Play</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
-      <button id="fwdBtn" class="ghost fwd" title="Forward this page — shock a friend">😱 Forward the fun</button>
+      <button id="challengeBtn" class="ghost fwd" title="Challenge a friend to beat your best">⚔️ Challenge a friend</button>
     </div>
+    <div id="playStatus" style="display:none"></div>
     <div class="events" id="events">
       <div class="eventsLabel">📅 THIS WEEK — squad nights (free, no signup)</div>
       <div class="erow" data-game="mochi"><b>MON</b> Beginner Munch <span>· mochi · bring a friend</span></div>
@@ -333,6 +380,7 @@
     <p id="roomLabel"></p>
     <p id="inviteCta">🔗 heads-up: copy your invite link BEFORE the round ends — friends land straight in</p>
     <p id="conduct">💛 Be kind · zero tolerance for creeps · names moderated · biggest squad wins the vibe</p>
+    </div>
   </div>
 </div>
 <div id="dead"><div class="card"><h2 id="deadTitle">💥 Splatted!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn">📤 Share score</button></div></div>

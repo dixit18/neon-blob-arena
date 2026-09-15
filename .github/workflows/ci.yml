@@ -44,6 +44,15 @@ jobs:
           cache-dependency-path: neon-blob-arena/client/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: boot contract (S-003 gate — page must boot, buttons wired, no localhost)
+        run: |
+          test -f dist/index.html
+          grep -q 'id="play"' dist/index.html || (echo "BOOT-CONTRACT FAIL: no #play" && exit 1)
+          grep -q 'id="gamePick"' dist/index.html || (echo "BOOT-CONTRACT FAIL: no #gamePick" && exit 1)
+          JS=$(grep -o 'src="[^"]*\.js"' dist/index.html | head -1 | cut -d'"' -f2)
+          test -f "dist/${JS#./}" || (echo "BOOT-CONTRACT FAIL: missing $JS" && exit 1)
+          if grep -Eq 'ws://localhost|ws://127' "dist/${JS#./}"; then echo "BOOT-CONTRACT FAIL: localhost WS baked"; exit 1; fi
+          echo "boot-contract OK ($JS)"
 
   soak:
     needs: [server]

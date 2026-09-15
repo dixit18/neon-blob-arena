@@ -209,6 +209,20 @@ let fireQueued = false; // tap FIRE / click to shoot toward facing (server-autho
 let flipQueued = false; // polar: flip charge (Space / ⇄ button)
 let inputTimer: ReturnType<typeof setInterval> | null = null; // single input loop (reconnects must not stack)
 let conFails = 0; // consecutive WS failures (reset on hello) — drives menu status
+let playJoining = false; // PLAY state machine owns visible status + retries (cant-play fix)
+let playJoinResolve: ((ok: boolean) => void) | null = null; // hello/close settle the pending attempt
+function setPlayStatus(msg: string, show: boolean) {
+  const s = document.getElementById('playStatus');
+  if (!s) return;
+  s.textContent = msg;
+  (s as HTMLElement).style.display = show ? 'block' : 'none';
+}
+function setPlayBusy(busy: boolean) {
+  for (const id of ['play', 'quickPlay', 'newRoom']) {
+    const b = document.getElementById(id) as HTMLButtonElement | null;
+    if (b) b.disabled = busy;
+  }
+}
 function conStatus(msg: string) {
   // Connection feedback lives in the menu's room label — but never clobbers it mid-game.
   if (el('menu').style.display !== 'none') el('roomLabel').textContent = msg;
@@ -254,20 +268,21 @@ el('copyLink').addEventListener('click', async () => {
   catch { prompt('Share this link:', link); }
   setTimeout(() => (el('copyLink').textContent = '🔗 Invite'), 1500);
 });
-el('fwdBtn').addEventListener('click', async () => {
-  // D6 forward-the-fun: pre-populated shock text, native share → clipboard.
+el('challengeBtn').addEventListener('click', async () => {
+  // D7 earn-the-share: YOUR best is the dare (Wordle-brag logic). → clipboard.
   // Menu-only, zero hot-loop cost. Personalized via ?from= on copyLink.
   sfx('click');
   const link = location.origin + location.pathname + `?game=${game}` + (roomId ? `&room=${roomId}` : '');
-  const text = `😱 This page shocked me — a browser game with NO signup. Tap, pick a name, you're in my arena:`;
+  if (best <= 0) { el('roomLabel').textContent = 'Play one round first - then your score becomes the dare.'; return; }
+  const text = `I hit ${best} mass in ${GAME_TITLES[game]}. Beat it - no signup, 5 seconds:`;
   const nav = navigator as Navigator & { share?: (d: { title?: string; text?: string; url?: string }) => Promise<void> };
   if (nav.share) {
     try { await nav.share({ title: 'Mochi Panic', text, url: link }); } catch { /* dismissed */ }
     return;
   }
-  try { await navigator.clipboard.writeText(`${text} ${link}`); el('fwdBtn').textContent = '✅ Link copied!'; }
-  catch { prompt('Forward this to shock a friend:', `${text} ${link}`); }
-  setTimeout(() => (el('fwdBtn').textContent = '😱 Forward the fun'), 1500);
+  try { await navigator.clipboard.writeText(`${text} ${link}`); el('challengeBtn').textContent = '✅ Dare copied!'; }
+  catch { prompt('Challenge a friend to beat you:', `${text} ${link}`); }
+  setTimeout(() => (el('challengeBtn').textContent = '\u2694\ufe0f Challenge a friend'), 1500);
 });
 
 function inputDir(): { dx: number; dy: number } {
@@ -313,6 +328,8 @@ function connect(name: string) {
       game = parseGameId(m.game ?? null); // server is truth (unknown → default)
       applyGameMode();
       conFails = 0; // connected: silence any retry warnings
+      setPlayStatus('', false);
+      if (playJoinResolve) { const r = playJoinResolve; playJoinResolve = null; r(true); }
       history.replaceState(null, '', `?game=${game}&room=${roomId}`);
       el('roomLabel').textContent = `${GAME_TITLES[game]} · Room ${roomId} — friends with this link land straight in`;
       el('roomPill').textContent = `🎲 room ${roomId}`;
@@ -375,9 +392,12 @@ function connect(name: string) {
     // Pre-game failure (menu still up): stay explicit — no hammering a waking
     // server — but SAY so. In-game drops keep the silent 1.5s auto-retry.
     if (el('menu').style.display !== 'none') {
-      conStatus(conFails >= 2
-        ? `⚠️ Can't reach the arena — server may be waking (~30s). Tap PLAY to retry.`
-        : `🔄 Couldn't connect — tap PLAY to retry.`);
+      if (playJoinResolve) { const r = playJoinResolve; playJoinResolve = null; r(false); }
+      else if (!playJoining) {
+        conStatus(conFails >= 2
+          ? `⚠️ Can't reach the arena — server may be waking (~30s). Tap PLAY to retry.`
+          : `🔄 Couldn't connect — tap PLAY to retry.`);
+      }
     } else {
       setTimeout(() => { if (el('menu').style.display === 'none') connect(name); }, 1500);
     }
@@ -867,10 +887,24 @@ document.querySelectorAll<HTMLButtonElement>('#gamePick .gcard').forEach(b => {
   }
 }
 applyGameMode();
-let connecting = false; // double-click guard: one PLAY = one socket, one world
-el('play').addEventListener('click', async () => {
-  if (connecting) return;
-  connecting = true;
+function connectOnce(name: string, timeoutMs = 9000): Promise<boolean> {
+  // One join attempt as a promise: hello resolves true, close/error/timeout false.
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (ok: boolean) => { if (!done) { done = true; playJoinResolve = null; resolve(ok); } };
+    playJoinResolve = finish;
+    try { connect(name); } catch { finish(false); return; }
+    setTimeout(() => {
+      if (!done) { finish(false); try { ws?.close(); } catch { /* retry loop owns recovery */ } }
+    }, timeoutMs);
+  });
+}
+async function playJoin() {
+  // Visible join state machine (cant-play fix): loading 3D → waking/retries →
+  // playing/error. Buttons lock while joining; status never whispers.
+  if (playJoining) return;
+  playJoining = true;
+  setPlayBusy(true);
   try {
     audio(); sfx('click'); // unlock WebAudio on user gesture
     const btn = el('play') as HTMLButtonElement;
@@ -879,26 +913,31 @@ el('play').addEventListener('click', async () => {
     myName = n;
     // lazy 3D: menu stays instant, three.js chunk loads on first PLAY
     if (!world && !worldFailed) {
+      setPlayStatus('Loading 3D arena…', true);
       const old = btn.textContent;
-      btn.textContent = '⏳ LOADING 3D…';
-      btn.disabled = true;
+      btn.textContent = 'LOADING 3D…';
       await ensureWorld();
-      btn.disabled = false;
       btn.textContent = old;
-      if (!world) {
-        coach('⚠️ 3D failed to load — check connection & retry');
-        return;
-      }
+      if (!world) { setPlayStatus('3D failed to load — check connection and tap PLAY.', true); return; }
     }
-    if (!world) {
-      coach('⚠️ 3D failed to load — check connection & retry');
-      return;
+    if (!world) { setPlayStatus('3D failed to load — check connection and tap PLAY.', true); return; }
+    for (let attempt = 1; attempt <= 6; attempt++) {
+      setPlayStatus(attempt === 1 ? 'Connecting to the arena…' : `Server waking (free tier sleeps) — retry ${attempt}/6…`, true);
+      conStatus(attempt === 1 ? 'Connecting to the arena…' : `Waking server… (attempt ${attempt}/6)`);
+      // eslint-disable-next-line no-await-in-loop
+      const ok = await connectOnce(n);
+      if (ok) { setPlayStatus('', false); return; }
+      await new Promise((r) => setTimeout(r, 2500));
     }
-    connect(n);
+    conFails++;
+    setPlayStatus('Still unreachable after 6 tries — check your net and tap PLAY to retry.', true);
+    conStatus(`Can't reach the arena — tap PLAY to retry.`);
   } finally {
-    connecting = false;
+    playJoining = false;
+    setPlayBusy(false);
   }
-});
+}
+el('play').addEventListener('click', () => { void playJoin(); });
 el('newRoom').addEventListener('click', () => {
   roomId = Math.random().toString(36).slice(2, 6).toUpperCase();
   history.replaceState(null, '', `?room=${roomId}`);
@@ -928,7 +967,7 @@ el('crownLine').textContent = `👑 crowns: ${Number(localStorage.getItem('blob-
 el('shareBtn').addEventListener('click', () => { sfx('click'); shareCard(); });
 void uiMenuIn();
 uiPressify('#play');
-uiPressify('#fwdBtn');
+uiPressify('#challengeBtn');
 uiPressify('#quickPlay');
 uiPressify('#dashBtn');
 uiPressify('#fireBtn');
@@ -978,6 +1017,55 @@ async function refreshLiveCounts() {
 }
 setInterval(refreshLiveCounts, 5000);
 void refreshLiveCounts();
+// D7 earn-the-share live strip: real happening-NOW proof (menu-only polls).
+async function refreshLiveStrip() {
+  if (el('menu').style.display === 'none') return;
+  try {
+    const r = await fetch(httpBase + '/rooms');
+    const rooms = await r.json() as { id: string; game: string; players: number; humans?: number }[];
+    let hot: { id: string; game: string; occ: number } | null = null;
+    for (const rm of rooms) {
+      const occ = rm.humans ?? rm.players ?? 0;
+      if (occ > 0 && (!hot || occ > hot.occ)) hot = { id: rm.id, game: rm.game, occ };
+    }
+    const lh = document.getElementById('liveHot');
+    if (lh) lh.textContent = hot ? `\U0001F525 ${GAME_TITLES[hot.game as GameId] ?? hot.game} room ${hot.id} \u2014 ${hot.occ} inside \u00B7 tap to crash it` : `\U0001F916 Bots hold every arena \u2014 tap to bully them`;
+  } catch { /* keep last */ }
+}
+async function refreshKing() {
+  if (el('menu').style.display === 'none') return;
+  try {
+    const r = await fetch(httpBase + '/leaderboard');
+    const rows = await r.json() as { n: string; s: number }[];
+    const k = document.getElementById('liveKing');
+    if (k) k.textContent = rows.length > 0 ? `\U0001F451 King: ${rows[0].n} \u2014 ${rows[0].s} \u00B7 tap to dethrone` : `\U0001F451 No king yet \u2014 claim the crown`;
+  } catch { /* keep last */ }
+}
+setInterval(refreshLiveStrip, 8000);
+setInterval(refreshKing, 25000);
+void refreshLiveStrip();
+void refreshKing();
+el('liveHot').addEventListener('click', () => {
+  const t = document.getElementById('liveHot')?.textContent || '';
+  if (t.charAt(0) === `\U0001F916`) (el('play') as HTMLButtonElement).click();
+  else (el('quickPlay') as HTMLButtonElement).click();
+});
+el('liveKing').addEventListener('click', () => { (el('play') as HTMLButtonElement).click(); });
+// D7 pokable toy: the landing plays back (menu-only, never starts a game).
+const TOY_DARES = [
+  'Poked! Rivals squish the same way \u2014 hit PLAY',
+  'The mochi felt that. Imagine 25 of them.',
+  'Warm-up complete. The arena awaits.',
+];
+let toyPokes = 0;
+el('toyStage').addEventListener('pointerdown', () => {
+  if (el('menu').style.display === 'none') return;
+  sfx('click');
+  const st = el('toyStage');
+  st.classList.add('poked');
+  setTimeout(() => st.classList.remove('poked'), 160);
+  el('roomLabel').textContent = TOY_DARES[toyPokes++ % TOY_DARES.length];
+});
 
 // WEB-MARKETPLACE (physical-doc → web):
 // - People liquidity: Quick Play drops a solo into the fullest non-full room of
