@@ -106,6 +106,8 @@
   .gcard .emo { font-size:26px; display:block; }
   .gcard b { display:block; font-family:Fredoka,sans-serif; font-size:15px; font-weight:600; }
   .gcard span { font-size:11px; font-weight:800; color:var(--ink-soft); }
+  .gcard .meta { display:block; margin-top:2px; font-size:10px; font-weight:800; color:var(--ink);
+    background:#FFF4DE; border:1.5px solid var(--line); border-radius:999px; padding:1px 7px; }
   .gcard .live { display:block; margin-top:4px; font-size:11px; color:var(--ink); background:#E7F9F0;
     border:2px solid var(--line); border-radius:999px; padding:2px 8px; }
   .gcard.sel { background:var(--gold); transform:rotate(-1deg); }
@@ -116,6 +118,16 @@
   #menu input { pointer-events:auto; width:100%; padding:13px; border-radius:14px; border:2px solid var(--line);
     background:#fff; color:var(--ink); font-size:17px; font-weight:700; text-align:center; margin-bottom:10px; font-family:Nunito,sans-serif; }
   #menu input::placeholder { color:#a79fc4; }
+  /* web marketplace: weekly squad nights (retention programming, zero server cost) */
+  .events { margin:0 0 12px; text-align:left; }
+  .eventsLabel { font-family:Fredoka,sans-serif; font-size:12px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:6px; text-align:center; }
+  .erow { pointer-events:auto; cursor:pointer; display:flex; gap:8px; align-items:center; background:#fff;
+    border:2px solid var(--line); border-radius:12px; padding:6px 10px; margin-bottom:6px; font-size:12px; font-weight:800;
+    box-shadow:2px 2px 0 var(--ink); }
+  .erow:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .erow b { font-family:Fredoka,sans-serif; font-size:11px; background:var(--ink); color:#fff; border-radius:8px; padding:3px 7px; min-width:42px; text-align:center; }
+  .erow span { color:var(--ink-soft); }
+  #conduct { margin-top:10px; font-size:11px; font-weight:700; color:var(--ink-soft); }
   #menu .row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
   #menu .row button { pointer-events:auto; cursor:pointer; border:2px solid var(--line); box-shadow:var(--shadow); border-radius:14px; padding:14px 26px;
     font-weight:600; font-size:18px; font-family:Fredoka,sans-serif; color:#fff; background:var(--rasp); min-height:52px; }
@@ -244,12 +256,12 @@
     <p class="sub" id="gameSub">Munch. Dash. Splat. Get crowned before the clock hits zero.<br/>No signup — squishing in under 5 seconds.</p>
     <div class="gamesLabel">🕹️ CHOOSE YOUR ARENA</div>
     <div class="games" id="gamePick">
-      <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="live" id="live-mochi">…</span></button>
-      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic</b><span>Flip charge · Attract</span><span class="live" id="live-polar">…</span></button>
-      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet</b><span>Slingshot wells · Dash</span><span class="live" id="live-buffet">…</span></button>
-      <button class="gcard" data-game="rush"><span class="emo">🍬</span><b>Sugar Rush ✨NEW</b><span>90s blitz · 2x pellets</span><span class="live" id="live-rush">…</span></button>
-      <button class="gcard" data-game="hill"><span class="emo">⛰️</span><b>King Hill ✨NEW</b><span>Hold center · Score</span><span class="live" id="live-hill">…</span></button>
-      <button class="gcard" data-game="tag"><span class="emo">🏃</span><b>Tag Frenzy ✨NEW</b><span>Don't be IT</span><span class="live" id="live-tag">…</span></button>
+      <button class="gcard sel" data-game="mochi"><span class="emo">🍩</span><b>Mochi Panic</b><span>Munch · Dash · Splat</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-mochi">…</span></button>
+      <button class="gcard" data-game="polar"><span class="emo">🧲</span><b>Polar Panic</b><span>Flip charge · Attract</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-polar">…</span></button>
+      <button class="gcard" data-game="buffet"><span class="emo">🕳️</span><b>Hole Buffet</b><span>Slingshot wells · Dash</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-buffet">…</span></button>
+      <button class="gcard" data-game="rush"><span class="emo">🍬</span><b>Sugar Rush ✨NEW</b><span>90s blitz · 2x pellets</span><span class="meta">90s · 1–25 · Easy</span><span class="live" id="live-rush">…</span></button>
+      <button class="gcard" data-game="hill"><span class="emo">⛰️</span><b>King Hill ✨NEW</b><span>Hold center · Score</span><span class="meta">3-min · 1–25 · Easy</span><span class="live" id="live-hill">…</span></button>
+      <button class="gcard" data-game="tag"><span class="emo">🏃</span><b>Tag Frenzy ✨NEW</b><span>Don't be IT</span><span class="meta">3-min · 2–25 · Easy</span><span class="live" id="live-tag">…</span></button>
     </div>
     <div class="ticker"><span id="pcountHero">… online</span> · no signup · bots never sleep</div>
     <div class="howto">
@@ -260,12 +272,23 @@
     <input id="name" maxlength="14" placeholder="your mochi name…" autocomplete="off" aria-label="Your player name" />
     <div class="row">
       <button id="play">▶ &nbsp;PLAY NOW</button>
+      <button id="quickPlay" class="ghost" title="Join the fullest arena for this game">⚡ Quick Play</button>
       <button id="newRoom" class="ghost" title="Private room for friends">+ Private room</button>
+    </div>
+    <div class="events" id="events">
+      <div class="eventsLabel">📅 THIS WEEK — squad nights (free, no signup)</div>
+      <div class="erow" data-game="mochi"><b>MON</b> Beginner Munch <span>· mochi · bring a friend</span></div>
+      <div class="erow" data-game="tag"><b>TUE</b> Tag Ladder <span>· tag · survive to score</span></div>
+      <div class="erow" data-game="rush"><b>WED</b> Blitz Night <span>· rush · 90s rounds</span></div>
+      <div class="erow" data-game="polar"><b>THU</b> Flip Clinic <span>· polar · learn the vacuum</span></div>
+      <div class="erow" data-game="hill"><b>SAT</b> Hill Crown <span>· hill · hold the ring</span></div>
+      <div class="erow" data-game="buffet"><b>SUN</b> Hole Survival <span>· buffet · ride the rim</span></div>
     </div>
     <p id="howLink" style="margin-top:10px;font-size:13px;font-weight:800;color:var(--rasp);cursor:pointer;pointer-events:auto">📖 How to play — rules for every arena</p>
     <div id="menuMeta"><span id="pcount">… online</span><span id="bestLine">🏅 best: —</span><span id="crownLine">👑 crowns: —</span><span id="roomPill">🎲 public arena</span></div>
     <p id="roomLabel"></p>
     <p id="inviteCta">🔗 heads-up: copy your invite link BEFORE the round ends — friends land straight in</p>
+    <p id="conduct">💛 Be kind · zero tolerance for creeps · names moderated · biggest squad wins the vibe</p>
   </div>
 </div>
 <div id="dead"><div class="card"><h2 id="deadTitle">💥 Splatted!</h2><p id="deadSub"></p><button id="respawn">Respawn</button><button id="shareBtn">📤 Share score</button></div></div>

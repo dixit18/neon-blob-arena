@@ -413,3 +413,14 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya:** deploy gate extended: any listen/bind change must show `0.0.0.0` in netstat
 + IPv4 health before push. Done this time.
 **Kai:** Pushing. Render rebuilds from this commit — watch the deploy go green.
+
+## 2026-09-15 — WEB-MARKETPLACE v1 (physical doc to web, user: make sure we are web based)
+**Aarav:** Physical-venue doc is useful as mechanisms, not real estate. KEEP 4 liquidities + pyramid + events-as-retention + safety; CUT hourly pricing, F&B, m2 floor-plan, VR capex, sponsorship base-case. Web law stays: ?game=&room= plays in <5s, bots never sleep.
+**Nova:** Maps cleanly — Fortress events to squad nights, Draughts teachability to how-to+objective pill, NQ64 free-consoles to free public arenas, T1 fandom to crowns/seasons, SideQuest app to /rooms+/catalog+quick-play (web first).
+**Kabir:** Counter held: no venue prices ported (Seoul/London/Vegas rates are local costs, not web prices); no F&B code; no lease math. Only portable unit: joins/rounds/requeue in /stats.
+**Rehan:** WHY-NOT signed: web has no scarce tables, so scarcity play is fullest-room join + invite links, not reservations. Ship content+people liquidity now.
+**Zara:** Shipped GAMES meta (duration/players/level/vibe) + GET /catalog. Probe :7759 health ok + catalog mochi=3-min/rush=90s. No sim touch.
+**Leo:** Shipped cards meta, Quick Play fullest-room join, THIS WEEK rows pre-pick games, conduct line. Menu-only fetches, zero hot-loop alloc. Build 31.67KB/13.13KB gzip.
+**Vikram:** 2 flaws: 1) Quick Play trusts counts bots inflate — ACCEPTED (humans-first sort, empty routes to fresh+invite). 2) Events are static not scheduled rooms — ACCEPTED (recurrence test first).
+**Riya:** Receipts: server tsc + 4 suites PASSED, client tsc+vite green, probe health+catalog+rooms. Manual left: Quick Play + event-row on phone.
+**Kai:** Committing + pushing. Next: Steel Swarm sim resumes on this shell.

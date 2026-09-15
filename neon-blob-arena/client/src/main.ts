@@ -901,6 +901,7 @@ el('crownLine').textContent = `👑 crowns: ${Number(localStorage.getItem('blob-
 el('shareBtn').addEventListener('click', () => { sfx('click'); shareCard(); });
 void uiMenuIn();
 uiPressify('#play');
+uiPressify('#quickPlay');
 uiPressify('#dashBtn');
 uiPressify('#fireBtn');
 
@@ -949,6 +950,44 @@ async function refreshLiveCounts() {
 }
 setInterval(refreshLiveCounts, 5000);
 void refreshLiveCounts();
+
+// WEB-MARKETPLACE (physical-doc → web):
+// - People liquidity: Quick Play drops a solo into the fullest non-full room of
+//   the picked game (the "Play with me!" table marker, but for browsers).
+// - Content liquidity: event rows pre-pick a game so squads skip choice paralysis.
+// Menu-only fetches, zero hot-loop cost, server matchmakes when roomId is empty.
+el('quickPlay').addEventListener('click', async () => {
+  sfx('click');
+  try {
+    conStatus('⚡ Finding the liveliest arena…');
+    const r = await fetch(httpBase + '/rooms');
+    const rooms = await r.json() as { id: string; game: string; players: number; humans?: number }[];
+    const mine = rooms.filter((rm) => rm.game === game)
+      .sort((a, b) => (b.humans ?? b.players ?? 0) - (a.humans ?? a.players ?? 0));
+    const top = mine[0];
+    const occ = top ? (top.humans ?? top.players ?? 0) : 0;
+    if (top && occ > 0 && occ < 25) {
+      roomId = top.id;
+      history.replaceState(null, '', `?game=${game}&room=${roomId}`);
+      el('roomLabel').textContent = `⚡ Quick Play → ${GAME_TITLES[game]} room ${roomId} (${occ} inside)`;
+    } else {
+      roomId = '';
+      history.replaceState(null, '', `?game=${game}`);
+      el('roomLabel').textContent = `⚡ Quick Play → fresh ${GAME_TITLES[game]} arena (you're first — invite!)`;
+    }
+  } catch {
+    roomId = '';
+    history.replaceState(null, '', `?game=${game}`);
+  }
+  (el('play') as HTMLButtonElement).click();
+});
+document.querySelectorAll<HTMLDivElement>('#events .erow').forEach((row) => {
+  row.addEventListener('click', () => {
+    pickGame(parseGameId(row.dataset.game ?? null));
+    sfx('click');
+    el('roomLabel').textContent = `${GAME_TITLES[game]} night picked — hit PLAY or Quick Play to squad up`;
+  });
+});
 
 // lag telemetry: this device's sessions feed the /perf dashboard (D3 evidence).
 // 15s cadence, menu-gated, no PII — just numbers Riya's gates run on.

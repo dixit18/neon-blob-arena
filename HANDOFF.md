@@ -4,6 +4,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- WEB-MARKETPLACE v1 shipped (physical-doc → web translation):
+  server `GAMES` now carries duration/players/level/vibe + `GET /catalog`;
+  client cards show `3-min · 1–25 · Easy` meta, ⚡ Quick Play joins fullest room,
+  📅 THIS WEEK squad nights pre-pick games, 💛 conduct line live.
+  Verified: server tsc + 4 suites green, client build 31.67KB/13.13KB gzip,
+  probe :7759 health ok + catalog mochi=3-min/rush=90s.
 - Shipped: v2 MOCHI PANIC (`13bbd68`) — light candy-pop full re-theme (landing+HUD+3D),
   feel fixes (damped reconcile, 2Hz DOM, loop guards, smooth shake, DPR governor),
   memory pass (pools, zero per-frame alloc, name-texture ownership).
@@ -44,11 +50,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. Render BE port-scan fix shipped (0.0.0.0 bind); awaiting dashboard green.
+- None. WEB-MARKETPLACE v1 shipped + verified; tree ready to commit.
 
 ## Next up (priority order)
-1. USER FEEL CHECK: hard-refresh, report HUD `fps/p95` + try POLAR (`?game=polar`).
-2. Manual 2-tab checklist per `QA.md` (both games now).
+1. USER FEEL CHECK: hard-refresh, try ⚡ Quick Play + 📅 event rows, report HUD `fps/p95`.
+2. Playtest: 3 friends + `?game=&room=` links, PMF numbers (`/stats` + `/catalog`).
+3. Sprint 1 STEEL SWARM resumes (S1-1 sim) — marketplace shell now web-ready.
 3. Playtest: 3 friends + `?game=&room=` links, PMF numbers (`/stats`).
 
 ## Session-survival protocol (Rule 9, mandatory)

@@ -4,13 +4,23 @@ export interface Vec { x: number; y: number }
 // Marketplace: game ids ride `?game=<id>` (default mochi). Rooms are namespaced
 // per game; snapshot transport shape is shared, games add optional fields.
 export type GameId = 'mochi' | 'polar' | 'buffet' | 'rush' | 'hill' | 'tag';
-export const GAMES: Record<GameId, { title: string; blurb: string }> = {
-  mochi: { title: 'Mochi Panic', blurb: 'Munch · Dash · Splat · Crown' },
-  polar: { title: 'Polar Panic', blurb: 'Flip charge · Attract · Repel' },
-  buffet: { title: 'Black-Hole Buffet', blurb: 'Slingshot wells · Devour' },
-  rush: { title: 'Sugar Rush', blurb: '2x pellets · 90s blitz' },
-  hill: { title: 'King Hill', blurb: 'Hold the center · Score' },
-  tag: { title: 'Tag Frenzy', blurb: "Don't be IT" },
+// Web translation of the physical-venue "portfolio pyramid + content liquidity":
+// every arena is labeled by duration / group size / complexity / vibe so a squad
+// can pick in <5s with zero staff help. Same fields drive /catalog + menu cards.
+export interface GameMeta {
+  title: string; blurb: string;
+  duration: string; // e.g. "3-min" / "90s" — session fit, not a hard lock
+  players: string; // e.g. "1–25" — sweet-spot group size per room
+  level: string; // complexity: "Easy" for all 6 today (gateway-first pyramid)
+  vibe: string; // social energy: "Party FFA" / "Tricky" / "Survival" / "Blitz" / "King-of-hill"
+}
+export const GAMES: Record<GameId, GameMeta> = {
+  mochi: { title: 'Mochi Panic', blurb: 'Munch · Dash · Splat · Crown', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'Party FFA' },
+  polar: { title: 'Polar Panic', blurb: 'Flip charge · Attract · Repel', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'Tricky' },
+  buffet: { title: 'Black-Hole Buffet', blurb: 'Slingshot wells · Devour', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'Survival' },
+  rush: { title: 'Sugar Rush', blurb: '2x pellets · 90s blitz', duration: '90s', players: '1–25', level: 'Easy', vibe: 'Blitz' },
+  hill: { title: 'King Hill', blurb: 'Hold the center · Score', duration: '3-min', players: '1–25', level: 'Easy', vibe: 'King-of-hill' },
+  tag: { title: 'Tag Frenzy', blurb: "Don't be IT", duration: '3-min', players: '2–25', level: 'Easy', vibe: 'Party chase' },
 };
 export function parseGame(raw: unknown): GameId {
   if (raw === 'polar' || raw === 'buffet' || raw === 'rush' || raw === 'hill' || raw === 'tag') return raw;

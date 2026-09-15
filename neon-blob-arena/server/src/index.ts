@@ -9,7 +9,7 @@ import { Room } from './game.js';
 import { PolarRoom } from './polar.js';
 import { BuffetRoom } from './buffet.js';
 import { VariantRoom } from './arcade.js';
-import { TUNE, parseGame, type GameId } from './types.js';
+import { TUNE, parseGame, GAMES, type GameId } from './types.js';
 import { validateInput } from './validate.js';
 import { initDb, topScores, dbReady } from './db.js';
 
@@ -68,6 +68,12 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/rooms') {
     res.end(JSON.stringify([...rooms.values()].map(r => ({ id: r.id, game: r.game, players: r.size, humans: [...r.players.values()].filter(p => !p.isBot).length }))));
+    return;
+  }
+  if (url.pathname === '/catalog') {
+    // Web content-liquidity API: curated catalogue with duration/group/level/vibe
+    // so squads can pick without choice paralysis. Mirrors client cards.
+    res.end(JSON.stringify(GAMES));
     return;
   }
   if (url.pathname === '/leaderboard') {
