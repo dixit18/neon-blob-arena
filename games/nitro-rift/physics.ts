@@ -1,10 +1,10 @@
 // games/nitro-rift/physics — pure fixed-step race physics.
-// WASM SEAM (slice 2, ticket NR-4): this file is the TypeScript authority AND
-// the future spec for a Rust crate (crates/race-phys). Both sides will
-// implement stepRacer over plain numbers with identical constants; the CI
-// determinism test below pins the TS side now, the Rust side carries the same
-// vectors when it lands. Swapping in WASM later touches imports only —
-// sim.ts never learns which engine stepped it.
+// WASM SEAM (NR-4 LANDED as crates/race-phys): this file is the TypeScript
+// authority; the Rust crate mirrors stepRacer op-for-op over f64s with
+// identical constants. Parity is PROVEN, not claimed: scripts/vectors.mjs +
+// crates/race-phys/examples/vectors.rs print identical lines on 7 vectors
+// (boost/coast/pad/bump/glide/clamp). A future wasm-pack build swaps this
+// module import-for-import — sim.ts never learns which engine stepped it.
 export const TRACK_LEN = 1200;
 export const LANES = 4;
 export const BASE_SPEED = 60; // units per second

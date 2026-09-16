@@ -740,3 +740,22 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   contract, HUD place pill covers the rest).
 **Devika:** NR-3 → Done. Next: NR-4 (chained).
 **Kai:** Committing (no push).
+
+## 2026-09-16 — NR-4: Rust mirror + proven parity (chained, no waiting)
+**Zara:** crates/race-phys lands (Cargo.toml zero-dep, cdylib+rlib, lib.rs
+  mirrors stepRacer op-for-op, 4 Rust tests green incl. a constants-match
+  test). Parity is measured: scripts/vectors.mjs vs examples/vectors.rs print
+  byte-identical lines on 7 vectors (boost/coast/pad/bump/slow/glide/clamp).
+  tsconfig/CI untouched (crates/ outside all globs); target/ gitignored.
+**Riya (receipts):** cargo test 4/4; parity diff zero; server tsc + web build
+  unaffected (no TS behavior change). wasm-pack build stays future work —
+  the seam is the deliverable, not the .wasm.
+**Vikram (2 flaws):** 1) parity covers 7 vectors, not the full state space —
+  ACCEPTED (vectors span every branch; fuzz lands with the wasm swap).
+  2) Rust f64 == TS f64 only when op order matches — ACCEPTED (enforced by
+  the constants test + side-by-side files, reviewed).
+**Kabir:** Counter satisfied: no Rust in the hot path until measured need —
+  the crate is a mirror + proof, TS stays authoritative. D12 zero-Rust holds
+  for services.
+**Devika:** NR-4 → Done. Next: G-0 (chained).
+**Kai:** Committing (no push).

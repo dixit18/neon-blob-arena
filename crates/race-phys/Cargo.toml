@@ -1,0 +1,10 @@
+[package]
+name = "race-phys"
+version = "0.1.0"
+edition = "2021"
+description = "Nitro Rift fixed-step race physics — Rust mirror of games/nitro-rift/physics.ts (NR-4)"
+license = "MIT"
+
+[lib]
+name = "race_phys"
+crate-type = ["cdylib", "rlib"]

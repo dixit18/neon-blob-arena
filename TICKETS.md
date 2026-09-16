@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [NR-4] Nitro slice 4: Rust/WASM physics — Done: crates/race-phys lands
+  (zero-dep, cargo test 4/4), 7 parity vectors bit-identical TS↔Rust,
+  swap stays import-only. Receipt below.
 - [NR-3] Nitro slice 3: ✨ 3D toggle — Done: same lazy loader (threepipe
   0.5.1 → three 0.160.0 → 2D), track + lanes + cars + pads + lap line,
   engine version in status, HUD updates in both modes. Receipt: build green.

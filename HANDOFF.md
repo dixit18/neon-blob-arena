@@ -39,6 +39,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   pads, lap line, version status), HUD live in both modes, 2D default.
   Verified: web build green (nitro chunk 6.64KB, shell 18.49KB).
   Next: NR-4 (Rust/WASM physics crate) — chained, no waiting.
+- NR-4 SHIPPED: crates/race-phys (zero-dep Rust mirror, cargo test 4/4) +
+  7 parity vectors bit-identical TS↔Rust (vectors.mjs vs examples/vectors.rs,
+  zero diff). TS stays authoritative; WASM swap is import-only whenever.
+  Next: G-0 (mixed-game soak) — chained, no waiting.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
