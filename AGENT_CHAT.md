@@ -774,3 +774,23 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   without waiting. The only stops remain human-hands items.
 **Devika:** G-0 → Done. Board: slice-2 queue empty; LD slice-down is mine.
 **Kai:** Committing (no push).
+
+## 2026-09-16 — LD-1: ludo engine pinned + deploy red fixed (no waiting)
+**Zara:** LD-1: the sim was complete but unproven — now 24 headless tests pin
+  every LD-1 clause (2–4 seats, dice, exact-finish, captures, safe cells,
+  home-run sanctuary, extra turns, three-6s forfeit, 15s/10s timers, token
+  pick via answer, leaving, snapshots, determinism). One sim fix: empty room
+  resets to lobby from ANY phase (leaving during final stuck at final).
+**Riya (receipts):** 24/24 green + server tsc clean. Full suite rides the
+  push close-out.
+**Kai (deploy):** User's Render log root-caused, not guessed: (1) origin/main
+  predates the ludo `scores` type fix (fixed locally days ago in spirit, never
+  pushed — my miss, now pushed); (2) Dockerfile ran floating `npm install`,
+  reopening the unpinned-compiler class. Fix: `npm ci` (lock pins TS 5.9.3 =
+  the exact compiler green on this box). Deterministic deploys or nothing.
+**Vikram:** 2 flaws: 1) web static build still floats? — CHECKED, `npm ci`
+  already (render.yaml line 26), ACCEPTED. 2) push ships 8 slices to prod at
+  once — ACCEPTED (every slice is test-gated; soak green; alternative is
+  rotting behind origin).
+**Devika:** LD-1 → Done. Next: LD-2 (ludo bots).
+**Kai:** Pushing (user's deploy log IS the ship order).

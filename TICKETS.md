@@ -25,9 +25,7 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   Riya. Accept: tickAvg <5, 0 unhandled, receipts in chat. Blocks slice-2 release.
 
 ## Open (prioritized) — Sprint 5 LUDO CLASH (pull in order, Rule 14)
-- [LD-1] Sim: turn board engine — Owner: Zara. Accept: 2–4 players, dice +
-  exact-finish, captures on unsafe cells, 6s extra turns, 15s turn timer,
-  token pick via `answer`; ≥20 headless tests green in `games/ludo-clash/`.
+- [LD-1] Sim — DONE (see Done section; 24/24 green).
 - [LD-2] Bots: roll + pick with tiers — Owner: Zara. Accept: bots prefer
   capture > leave-base > finish, 20% casual picks; instant fill to 4;
   labelled.
@@ -91,6 +89,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [LD-1] Ludo sim engine — Done: 24 headless tests (seats/dice/exact-finish/
+  captures/safe/home-run/extra-turns/three-6s/timers/leaving/snapshots),
+  empty-room lobby reset fix. Receipt: 24/24 + tsc clean.
 - [G-0] Mixed-game soak — Done: scripts/soak.ts (30 clients × 4 games,
   30s, valid chatter). Receipt: 30/30 connected, 400 snaps/s, tickAvg
   0.08ms/max 0.9ms, 0 msg errors, 0 unhandled. SOAK GREEN.

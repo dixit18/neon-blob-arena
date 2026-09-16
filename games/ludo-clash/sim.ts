@@ -67,6 +67,11 @@ export class LudoSim {
   leave(id: string): void {
     if (!this.players.delete(id)) return;
     this.order = this.order.filter((x) => x !== id);
+    if (this.order.length === 0) {
+      this.phase = 'lobby'; // empty room always resets, whatever the phase
+      this.phaseUntil = 0;
+      return;
+    }
     if (this.phase === 'play') {
       if (this.order.length === 1) {
         const champ = this.players.get(this.order[0]!);
@@ -77,9 +82,6 @@ export class LudoSim {
         }
         this.phase = 'final';
         this.phaseUntil = this.time + FINAL_MS;
-      } else if (this.order.length === 0) {
-        this.phase = 'lobby';
-        this.phaseUntil = 0;
       } else {
         this.turnPos = this.turnPos % this.order.length;
         this.beginTurn();

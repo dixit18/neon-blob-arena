@@ -50,6 +50,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   before the crew pulls. Human-hands list unchanged: phone checks (/employees
   read, blaze sticks, nitro buttons, ✨ taps), Render STUDIO_KEY + push,
   UptimeRobot, Tripo key.
+- LD-1 SHIPPED: ludo turn engine pinned by 24 headless tests (seats, dice,
+  exact-finish, captures, safe cells, home-run sanctuary, extra turns, three
+  6s forfeit, roll/pick timers, leaving, snapshots, determinism) + empty-room
+  lobby-reset fix. Verified: 24/24 + server tsc clean.
+- DEPLOY RED → FIX (user pasted Render log): origin/main still predates the
+  ludo `scores` type fix, and Dockerfile floated `npm install` (unpinned
+  compiler class). Fix: Dockerfile now `npm ci` (lock pins TS 5.9.3, the same
+  compiler green locally) + pushing fixed main. Next: LD-2 (ludo bots).
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
