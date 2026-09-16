@@ -709,3 +709,19 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Kai:** Committing (no push).
 
 ## 2026-09-16 — NR-2: first-across + chase window + laps (chained, no waiting)
+**Zara:** 2 laps per heat (RACE_DIST = 2400). First across plants winAt +
+  chase feed; heat ends on all-finished, chase-over (10s), or 60s timeout.
+  places() already ranked finishers-first — chase gives it meaning. Snapshot
+  carries lap (you + racers), ghost carries laps:2. No protocol change.
+**Leo:** Client renders lap-relative (prog wraps per lap, finish line is the
+  lap line), HUD shows `heat H · lap L/2`. Nitro chunk 4.95→4.99KB.
+**Riya (receipts):** 195/195 green (8 new NR-2 suite); both builds green;
+  slice-1 e2e still green (bots race 2 laps fine). Caught in-loop: two test-
+  setup errors of mine (coasting bot crossed first; steps coast past the
+  line) — fixed in tests, sim innocent both times.
+**Vikram (2 flaws):** 1) chase winner idles 10s with nothing to do —
+  ACCEPTED (straggler battle is the show; winner coasts, feed says so).
+  2) laps double heat length, bots may spread the grid thin — ACCEPTED
+  (rubber-band keeps packs; G-0 soak watches).
+**Devika:** NR-2 → Done. Next: NR-3 (chained).
+**Kai:** Committing (no push).

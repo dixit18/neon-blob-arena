@@ -8,8 +8,8 @@ export interface MountCtx { server: string; game: string; room: string; name: st
 type Snap = {
   t: string; phase: string; heat: number; endsInMs: number;
   pads: { at: number; lane: number }[];
-  you: { prog: number; lane: number; boost: number; place: number };
-  racers: { n: string; prog: number; lane: number; you: boolean; bot: boolean; fin: boolean }[];
+  you: { prog: number; lane: number; boost: number; place: number; lap: number };
+  racers: { n: string; prog: number; lane: number; you: boolean; bot: boolean; fin: boolean; lap: number }[];
   feed: string[];
 };
 
@@ -108,9 +108,10 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     for (let i = 1; i < LANES; i++) {
       g.beginPath(); g.moveTo(i * laneW, 0); g.lineTo(i * laneW, H); g.stroke();
     }
-    // camera: you stay at 78% height, world scrolls
-    const cam = snap.you.prog - TRACK * 0.22;
-    const yOf = (prog: number): number => H * 0.9 - ((prog - cam) / (TRACK * 0.55)) * H;
+    // camera: you stay at 78% height, world scrolls (lap-relative: prog wraps)
+    const myLapProg = snap.you.prog % TRACK;
+    const cam = myLapProg - TRACK * 0.22;
+    const yOf = (prog: number): number => H * 0.9 - (((prog % TRACK) - cam) / (TRACK * 0.55)) * H;
     // finish line
     const fy = yOf(TRACK);
     if (fy > -20 && fy < H + 20) {
@@ -145,7 +146,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     }
     placeP.textContent = `P${snap.you.place || '–'}/${snap.racers.length}`;
     boostP.textContent = `⚡ ${snap.you.boost}`;
-    heatP.textContent = `🏁 heat ${snap.heat}`;
+    heatP.textContent = `🏁 heat ${snap.heat} · lap ${snap.you.lap ?? 1}/2`;
     feed.textContent = snap.feed.join(' · ');
     if (snap.phase === 'lobby') say('heat forms… first across takes it');
     else if (snap.phase === 'race') say(`P${snap.you.place} — pads refill boost, bumps cost speed`);

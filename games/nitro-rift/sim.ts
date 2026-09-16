@@ -25,8 +25,8 @@ export interface NitroSnapshot {
   heat: number;
   endsInMs: number;
   pads: { at: number; lane: number }[];
-  you: { prog: number; lane: number; boost: number; place: number };
-  racers: { n: string; prog: number; lane: number; you: boolean; bot: boolean; fin: boolean }[];
+  you: { prog: number; lane: number; boost: number; place: number; lap: number };
+  racers: { n: string; prog: number; lane: number; you: boolean; bot: boolean; fin: boolean; lap: number }[];
   feed: string[];
 }
 
@@ -34,6 +34,11 @@ export const LOBBY_MS = 1500;
 export const HEAT_MS = 60_000;
 export const FINAL_MS = 5000;
 export const PADS = 6;
+// NR-2: 2 laps per heat. First across the full distance plants the flag;
+// stragglers get a 10s chase window to fight for places, then the heat ends.
+export const LAPS = 2;
+export const RACE_DIST = TRACK_LEN * LAPS;
+export const CHASE_MS = 10_000;
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -55,6 +60,8 @@ export class NitroSim {
   feed: string[] = [];
   private rand: () => number = mulberry32(21);
   private raceStart = 0;
+  /** First-across flag time (0 = nobody home yet). */
+  private winAt = 0;
 
   humanCount(): number { let n = 0; for (const r of this.racers.values()) if (!r.isBot) n++; return n; }
   playerCount(): number { return this.racers.size; }
@@ -104,10 +111,17 @@ export class NitroSim {
         if (r.finishedAt !== 0) continue;
         const others = all.filter((o) => o.id !== r.id).map((o) => ({ prog: o.st.prog, lane: o.st.lane }));
         stepRacer(r.st, { steer: r.steer, boost: r.boostHeld }, this.pads, others, this.time, dtMs);
-        if (r.st.prog >= TRACK_LEN && r.finishedAt === 0) r.finishedAt = this.time;
+        if (r.st.prog >= RACE_DIST && r.finishedAt === 0) {
+          r.finishedAt = this.time;
+          if (this.winAt === 0) {
+            this.winAt = this.time;
+            this.pushFeed(`🏁 ${r.name} takes the flag — 10s chase for places!`);
+          }
+        }
       }
       const everyFin = all.length > 0 && all.every((r) => r.finishedAt !== 0);
-      if (everyFin || this.time - this.raceStart >= HEAT_MS) this.endHeat();
+      const chaseOver = this.winAt !== 0 && this.time - this.winAt >= CHASE_MS;
+      if (everyFin || chaseOver || this.time - this.raceStart >= HEAT_MS) this.endHeat();
       return;
     }
     if (this.phase === 'final') {
@@ -118,6 +132,7 @@ export class NitroSim {
   private startHeat(): void {
     this.phase = 'race';
     this.raceStart = this.time;
+    this.winAt = 0;
     const r = this.rand;
     this.pads = [];
     for (let i = 0; i < PADS; i++) {
@@ -162,7 +177,7 @@ export class NitroSim {
       room,
       title: win ? `👻 ${win.name} set the pace in heat ${this.heatNo} — chase it!` : '👻 no pace set yet — be the ghost!',
       url: buildGameUrl(origin, 'nitro-rift', room),
-      data: { heat: this.heatNo, seed: this.heatNo * 40503 + 11, laps: 1 },
+      data: { heat: this.heatNo, seed: this.heatNo * 40503 + 11, laps: LAPS },
     };
   }
 
@@ -170,6 +185,7 @@ export class NitroSim {
     const me = this.racers.get(pid);
     const order = this.places();
     const place = me ? order.indexOf(me) + 1 : 0;
+    const lapOf = (prog: number): number => Math.min(LAPS, Math.floor(prog / TRACK_LEN) + 1);
     return {
       t: 'nitro',
       phase: this.phase,
@@ -181,10 +197,11 @@ export class NitroSim {
         lane: Math.round((me?.st.lane ?? 0) * 10) / 10,
         boost: Math.round(me?.st.boost ?? 0),
         place,
+        lap: lapOf(me?.st.prog ?? 0),
       },
       racers: order.slice(0, 8).map((r) => ({
         n: r.name, prog: Math.round(r.st.prog), lane: Math.round(r.st.lane),
-        you: r.id === pid, bot: r.isBot, fin: r.finishedAt !== 0,
+        you: r.id === pid, bot: r.isBot, fin: r.finishedAt !== 0, lap: lapOf(r.st.prog),
       })),
       feed: [...this.feed],
     };

@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [NR-2] Nitro slice 2: first-across + chase + laps — Done: 2 laps/heat,
+  flag + 10s chase window, finishers outrank stragglers, lap in snapshot/HUD,
+  ghost carries laps:2. Receipt: 195/195 green.
 - [BZ-3] Blaze slice 3: threepipe art pass — Done: pinned CDN (threepipe
   0.5.1 +esm, three 0.160.0 module), rapid HUD pill, squad-colored 3D blobs,
   version in status line, 2D default intact. Receipt: builds green.

@@ -31,6 +31,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   receipts → pull next, same turn. Only human-hands items stop the line
   (phone checks, Render dashboard, secrets, prod push).
   Next: NR-2 (nitro first-across + chase window + laps) — in progress.
+- NR-2 SHIPPED: 2 laps/heat, first-across plants the flag, 10s chase for
+  places, finishers outrank stragglers, lap in snapshot + HUD, ghost laps:2.
+  Verified: 195/195 tests (8 new), both builds green (nitro chunk 4.99KB).
+  Next: NR-3 (nitro ✨3D toggle) — chained, no waiting.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

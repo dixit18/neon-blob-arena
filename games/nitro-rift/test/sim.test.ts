@@ -2,7 +2,7 @@
 // bumps, places, budgets, determinism. No sockets.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { NitroSim, HEAT_MS } from '../sim.js';
+import { NitroSim, HEAT_MS, RACE_DIST } from '../sim.js';
 import { stepRacer, TRACK_LEN } from '../physics.js';
 
 const TICK = 50;
@@ -72,9 +72,9 @@ describe('nitro sim', () => {
   it('finishing crowns the heat, then a fresh heat resets the grid', () => {
     const s = withRace(2);
     // park the whole grid at the line: every finisher ends the heat
-    // (first-across + chase window is slice 2, ticket NR-3).
+    // (NR-2 covers first-across + chase below).
     for (const r of s.racers.values()) {
-      r.st.prog = TRACK_LEN - 1;
+      r.st.prog = RACE_DIST - 1;
       s.drive(r.id, 0, true);
     }
     let t = 0;
@@ -141,5 +141,104 @@ describe('nitro sim', () => {
     const g = s.ghost('ABCD', 'https://x.test');
     assert.deepEqual(assertArtifact(g), []);
     assert.ok((g.url as string).includes('nitro-rift'));
+    assert.equal((g.data as { laps: number }).laps, 2);
+  });
+});
+
+describe('nitro NR-2: flag, chase, laps', () => {
+  it('crossing lap 1 is not finishing — lap 2 begins', () => {
+    const s = withRace(1);
+    const r = s.racers.get('h0')!;
+    r.st.prog = TRACK_LEN + 10;
+    s.step(TICK);
+    assert.equal(r.finishedAt, 0);
+    assert.equal(s.phase, 'race');
+    assert.equal(s.snapshot('h0').you.lap, 2);
+  });
+
+  it('first across plants the flag, race continues for the chase', () => {
+    const s = withRace(2);
+    const a = s.racers.get('h0')!;
+    const b = s.racers.get('h1')!;
+    a.st.prog = RACE_DIST - 1;
+    b.st.prog = 100;
+    s.drive('h0', 0, true);
+    s.step(TICK);
+    assert.notEqual(a.finishedAt, 0);
+    assert.equal(s.phase, 'race'); // chase window, not final
+    assert.ok(s.feed.some((f) => f.includes('🏁') && f.includes('chase')));
+  });
+
+  it('chase expiry ends the heat with stragglers out', () => {
+    const s = withRace(2);
+    s.racers.get('h0')!.st.prog = RACE_DIST - 1;
+    s.racers.get('h1')!.st.prog = 100;
+    s.drive('h0', 0, true);
+    let t = 0;
+    while (s.phase === 'race' && t < 20_000) { s.step(TICK); t += TICK; }
+    assert.equal(s.phase, 'final');
+    assert.ok(s.feed.some((f) => f.includes('🏆')));
+  });
+
+  it('a chase-window finisher outranks every non-finisher', () => {
+    const s = withRace(3);
+    const [a, b, c] = ['h0', 'h1', 'h2'].map((id) => s.racers.get(id)!);
+    a.st.prog = RACE_DIST - 1;
+    b.st.prog = RACE_DIST - 50;
+    c.st.prog = 100; // far back — never finishes inside the chase
+    s.drive('h0', 0, true);
+    s.drive('h1', 0, true);
+    let t = 0;
+    while (s.phase === 'race' && t < 20_000) { s.step(TICK); t += TICK; }
+    assert.equal(s.phase, 'final');
+    const order = s.places().map((r) => r.id);
+    assert.deepEqual(order, ['h0', 'h1', 'h2']);
+  });
+
+  it('a full 2-lap heat crowns the first finisher', () => {
+    const s = withRace(2);
+    for (const r of s.racers.values()) {
+      r.st.prog = RACE_DIST - 1;
+      s.drive(r.id, 0, true);
+    }
+    let t = 0;
+    while (s.phase === 'race' && t < 10_000) { s.step(TICK); t += TICK; }
+    assert.equal(s.phase, 'final');
+    assert.equal(s.places()[0]!.wins, 1);
+  });
+
+  it('snapshot lap counts 1 then 2 across the line', () => {
+    const s = withRace(1);
+    assert.equal(s.snapshot('h0').you.lap, 1);
+    // inspect the line without stepping (steps coast forward 3u/tick)
+    const r = s.racers.get('h0')!;
+    r.st.prog = TRACK_LEN - 1;
+    assert.equal(s.snapshot('h0').you.lap, 1);
+    r.st.prog = TRACK_LEN + 1;
+    assert.equal(s.snapshot('h0').you.lap, 2);
+  });
+
+  it('fresh heat resets laps, prog, and the flag', () => {
+    const s = withRace(2);
+    for (const r of s.racers.values()) {
+      r.st.prog = RACE_DIST - 1;
+      s.drive(r.id, 0, true);
+    }
+    let t = 0;
+    while (s.phase === 'race' && t < 10_000) { s.step(TICK); t += TICK; }
+    while (s.phase === 'final') s.step(TICK);
+    assert.equal(s.phase, 'lobby');
+    assert.equal(s.heatNo, 2);
+    const snap = s.snapshot('h0');
+    assert.equal(snap.you.lap, 1);
+    assert.equal(snap.you.prog, 0);
+  });
+
+  it('2-lap heat snapshot stays ≤1.5KB', () => {
+    const s = withRace(2);
+    const r = s.racers.get('h0')!;
+    r.st.prog = TRACK_LEN + 500; // mid lap 2
+    s.step(TICK);
+    assert.ok(Buffer.byteLength(JSON.stringify(s.snapshot('h0'))) <= 1536);
   });
 });
