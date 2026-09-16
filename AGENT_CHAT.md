@@ -665,3 +665,24 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   direct on Render; note if a proxy lands in front).
 **Devika:** ST-2 → Done. Next pull: BZ-2.
 **Kai:** Committing (no push).
+
+## 2026-09-16 — BZ-2: squads + loot tiers (one slice per turn)
+**Zara:** Squads of 3 dealt round-robin at join; bolts skip squadmates (owner-
+  gone bolts stay hostile); last-squad-standing ends it, timeout ranks squads
+  by alive → kills → hp; MVP named in the crown feed. Loot: 8 green (+30,
+  skipped at full hp) + 4 gold (full-heal + 12s half-cooldown). Snapshots carry
+  `q` per player + untaken crates. No protocol change (input/answer untouched).
+**Leo:** Client draws crates (green/gold squares) from the snapshot; twin
+  sticks unchanged. Blaze chunk 7.59→7.73KB, shell still 18.29KB.
+**Riya (receipts):** 186/186 green (12 new squad suite); server tsc + web
+  build green; slice-1 e2e untouched and green. Caught in-loop: old loot test
+  collided with its own crate (fixed in test), survivor-timeout crowns are
+  honest (test fixed, sim innocent — quiet is for no-survivor wipes only).
+**Vikram (2 flaws):** 1) squad deal is join-order, so a 3-human party splits
+  across squads — ACCEPTED for slice 2 (party-squad seating is BZ-4 scope;
+  invite links still land together). 2) gold rapid has no HUD state —
+  ACCEPTED (feel-only, BZ-3 surfaces it).
+**Rehan:** WHY-NOT signed: squad feed + MVP text is free flavor; the slice
+  stays sim-first, no scope creep. Bounds hold.
+**Devika:** BZ-2 → Done. Next pull: BZ-3.
+**Kai:** Committing (no push).

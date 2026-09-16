@@ -1,8 +1,10 @@
 // games/blaze-squad/sim — squad survival (freefire-like, browser-safe).
-// Top-down last-one-standing in a shrinking safe zone: move (dx/dy), aim+fire
-// energy bolts, grab loot crates to heal. No realistic weapons, no gore —
-// stunned blobs pop into confetti and re-queue. Pure deterministic sim: time
-// advances only via step(dtMs), seeded PRNG per round, headless-testable.
+// Top-down LAST-SQUAD-STANDING in a shrinking safe zone: squads of 3 (BZ-2),
+// move (dx/dy), aim+fire energy bolts, grab tiered loot (green heals, gold
+// full-heals + rapid-fire). Friendly fire is OFF — bolts pass through
+// squadmates. No realistic weapons, no gore — stunned blobs pop into confetti
+// and re-queue. Pure deterministic sim: time advances only via step(dtMs),
+// seeded PRNG per round, headless-testable.
 // Server-authoritative: clients send intent (move/fire), truth comes back.
 import { buildGameUrl, type ShareArtifact } from '../../packages/share/src/index.js';
 
@@ -12,6 +14,8 @@ export interface BlazePlayer {
   id: string;
   name: string;
   isBot: boolean;
+  /** Squad 0|1|2, dealt round-robin at join. Friendly fire is off. */
+  sq: number;
   x: number;
   y: number;
   hp: number;
@@ -19,12 +23,15 @@ export interface BlazePlayer {
   kills: number;
   aim: number;
   nextFireAt: number;
+  /** Gold-crate rapid-fire burns until this sim-time. */
+  rapidUntil: number;
   dx: number;
   dy: number;
 }
 
 export interface BlazeBolt { x: number; y: number; vx: number; vy: number; life: number; owner: string; active: boolean }
-export interface BlazeCrate { x: number; y: number; taken: boolean }
+/** tier 0 = green heal, tier 1 = gold full-heal + rapid-fire. */
+export interface BlazeCrate { x: number; y: number; taken: boolean; tier: 0 | 1 }
 
 export interface BlazeSnapshot {
   t: 'blaze';
@@ -32,7 +39,9 @@ export interface BlazeSnapshot {
   zone: { x: number; y: number; r: number; nextInMs: number };
   endsInMs: number;
   you: { hp: number; alive: boolean; kills: number };
-  players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number }[];
+  players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number; q: number }[];
+  /** Untaken crates only (taken ones are noise on the wire). */
+  crates: { x: number; y: number; t: number }[];
   feed: string[];
 }
 
@@ -52,6 +61,9 @@ export const ZONE_RADII = [60, 44, 30, 18, 10];
 export const ZONE_DPS = 4;
 export const CRATES = 12;
 export const CRATE_HEAL = 30;
+export const SQUAD_SIZE = 3;
+export const SQUAD_NAMES = ['🔥 Ember', '🌊 Tide', '⚡ Volt'];
+export const RAPID_MS = 12_000;
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -77,6 +89,7 @@ export class BlazeSim {
   zoneStage = 0;
   feed: string[] = [];
   private rand: () => number = mulberry32(7);
+  private joinSeq = 0;
 
   humanCount(): number { let n = 0; for (const p of this.players.values()) if (!p.isBot) n++; return n; }
   playerCount(): number { return this.players.size; }
@@ -87,8 +100,9 @@ export class BlazeSim {
     const r = this.rand;
     this.players.set(id, {
       id, name, isBot,
+      sq: this.joinSeq++ % SQUAD_NAMES.length,
       x: 20 + r() * 60, y: 20 + r() * 60,
-      hp: MAX_HP, alive: true, kills: 0, aim: 0, nextFireAt: 0, dx: 0, dy: 0,
+      hp: MAX_HP, alive: true, kills: 0, aim: 0, nextFireAt: 0, rapidUntil: 0, dx: 0, dy: 0,
     });
     if (!isBot && this.phase === 'lobby' && this.phaseUntil === 0) {
       this.phaseUntil = this.time + LOBBY_MS;
@@ -121,7 +135,8 @@ export class BlazeSim {
       this.bolts.push(slot);
     }
     p.aim = aim;
-    p.nextFireAt = at + FIRE_CD_MS;
+    const cd = at < p.rapidUntil ? FIRE_CD_MS / 2 : FIRE_CD_MS; // gold-crate rapid
+    p.nextFireAt = at + cd;
     slot.x = p.x; slot.y = p.y;
     slot.vx = Math.cos(aim) * BOLT_SPEED; slot.vy = Math.sin(aim) * BOLT_SPEED;
     slot.life = BOLT_LIFE_MS; slot.owner = id; slot.active = true;
@@ -151,12 +166,19 @@ export class BlazeSim {
         // zone burn
         const d = Math.hypot(p.x - this.zone.x, p.y - this.zone.y);
         if (d > this.zone.r) this.hurt(p, ZONE_DPS * dt, null);
-        // loot
+        // loot: green heals the hurt, gold full-heals + rapid-fire
         for (const c of this.crates) {
           if (c.taken) continue;
-          if (Math.hypot(p.x - c.x, p.y - c.y) < 3 && p.hp < MAX_HP) {
+          if (Math.hypot(p.x - c.x, p.y - c.y) >= 3) continue;
+          if (c.tier === 0) {
+            if (p.hp >= MAX_HP) continue; // leave it for a hurt teammate
             c.taken = true;
             p.hp = Math.min(MAX_HP, p.hp + CRATE_HEAL);
+          } else {
+            if (p.hp >= MAX_HP && this.time < p.rapidUntil) continue;
+            c.taken = true;
+            p.hp = MAX_HP;
+            p.rapidUntil = this.time + RAPID_MS;
           }
         }
       }
@@ -169,6 +191,8 @@ export class BlazeSim {
         if (b.x < 0 || b.y < 0 || b.x > ARENA || b.y > ARENA) { b.active = false; continue; }
         for (const p of this.players.values()) {
           if (!p.alive || p.id === b.owner) continue;
+          const owner = this.players.get(b.owner);
+          if (owner && owner.sq === p.sq) continue; // friendly fire is OFF
           if (Math.hypot(p.x - b.x, p.y - b.y) < 1.8) {
             b.active = false;
             this.hurt(p, BOLT_DMG, b.owner);
@@ -176,11 +200,16 @@ export class BlazeSim {
           }
         }
       }
-      // Lone-survivor ends the round only when there was someone to beat:
-      // a solo sim (or a room of bots-clocked-out stragglers) fights the
-      // clock instead, so zone/loot/timeout paths stay provable headless.
-      const loneWinner = this.aliveCount() <= 1 && this.playerCount() > 1;
-      if (loneWinner || this.time - this.fightStart >= ROUND_MS) this.endFight();
+      // Last SQUAD standing ends the round (BZ-2): lone-winner needs a rival
+      // squad in the room, otherwise the clock decides (solo/small-room rule).
+      const populated = new Set<number>();
+      const aliveSq = new Set<number>();
+      for (const p of this.players.values()) {
+        populated.add(p.sq);
+        if (p.alive) aliveSq.add(p.sq);
+      }
+      const squadDecided = aliveSq.size <= 1 && populated.size > 1;
+      if (squadDecided || this.time - this.fightStart >= ROUND_MS) this.endFight();
       return;
     }
     if (this.phase === 'final') {
@@ -198,9 +227,9 @@ export class BlazeSim {
     const r = this.rand;
     this.crates = [];
     for (let i = 0; i < CRATES; i++) {
-      this.crates.push({ x: 8 + r() * 84, y: 8 + r() * 84, taken: false });
+      this.crates.push({ x: 8 + r() * 84, y: 8 + r() * 84, taken: false, tier: i % 3 === 0 ? 1 : 0 });
     }
-    this.pushFeed(`⚔️ round ${this.roundNo} — last blob popping wins!`);
+    this.pushFeed(`⚔️ round ${this.roundNo} — last squad popping wins!`);
   }
 
   private hurt(p: BlazePlayer, dmg: number, by: string | null): void {
@@ -219,12 +248,27 @@ export class BlazeSim {
   }
 
   private endFight(): void {
-    let win: BlazePlayer | null = null;
+    // Rank squads: alive first, then kills, then total hp. MVP = top killer
+    // of the winning squad.
+    const sq = new Map<number, { kills: number; hp: number; alive: boolean }>();
     for (const p of this.players.values()) {
-      if (!win || (p.alive && !win.alive) || (p.alive === win.alive && (p.kills > win.kills || (p.kills === win.kills && p.hp > win.hp)))) win = p;
+      const s = sq.get(p.sq) ?? { kills: 0, hp: 0, alive: false };
+      s.kills += p.kills;
+      s.hp += p.hp;
+      s.alive = s.alive || p.alive;
+      sq.set(p.sq, s);
     }
-    if (win && (win.alive || win.kills > 0)) this.pushFeed(`🏆 ${win.name} takes round ${this.roundNo} (${win.kills} pops)!`);
-    else this.pushFeed(`round ${this.roundNo} ends quiet — no pops.`);
+    const order = [...sq.entries()].sort((a, b) =>
+      (b[1].alive ? 1 : 0) - (a[1].alive ? 1 : 0) || b[1].kills - a[1].kills || b[1].hp - a[1].hp);
+    const top = order[0] ?? null;
+    if (top && (top[1].alive || top[1].kills > 0)) {
+      let mvp: BlazePlayer | null = null;
+      for (const p of this.players.values()) {
+        if (p.sq !== top[0]) continue;
+        if (!mvp || p.kills > mvp.kills || (p.kills === mvp.kills && p.hp > mvp.hp)) mvp = p;
+      }
+      this.pushFeed(`🏆 ${SQUAD_NAMES[top[0]]} squad takes round ${this.roundNo}! MVP ${mvp?.name ?? '?'} (${mvp?.kills ?? 0} pops)`);
+    } else this.pushFeed(`round ${this.roundNo} ends quiet — no pops.`);
     this.phase = 'final';
     this.phaseUntil = this.time + FINAL_MS;
   }
@@ -235,7 +279,7 @@ export class BlazeSim {
     for (const p of this.players.values()) {
       const r = this.rand;
       p.x = 20 + r() * 60; p.y = 20 + r() * 60;
-      p.hp = MAX_HP; p.alive = true; p.kills = 0; p.dx = 0; p.dy = 0;
+      p.hp = MAX_HP; p.alive = true; p.kills = 0; p.dx = 0; p.dy = 0; p.rapidUntil = 0;
     }
     for (const b of this.bolts) b.active = false;
     this.phase = 'lobby';
@@ -278,8 +322,9 @@ export class BlazeSim {
       you: { hp: Math.ceil(me?.hp ?? 0), alive: me?.alive ?? false, kills: me?.kills ?? 0 },
       players: [...this.players.values()].slice(0, 12).map((p) => ({
         n: p.name, hp: Math.ceil(p.hp), alive: p.alive, you: p.id === pid, bot: p.isBot,
-        x: Math.round(p.x), y: Math.round(p.y),
+        x: Math.round(p.x), y: Math.round(p.y), q: p.sq,
       })),
+      crates: this.crates.filter((c) => !c.taken).map((c) => ({ x: Math.round(c.x), y: Math.round(c.y), t: c.tier })),
       feed: [...this.feed],
     };
   }

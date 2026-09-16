@@ -116,13 +116,13 @@ describe('blaze sim', () => {
   it('loot heals the hurt, capped at max', () => {
     const s = withFight(1);
     const p = s.players.get('h0')!;
-    const c = s.crates[0]!;
+    const c = s.crates.find((x) => x.tier === 0)!; // green heals +30
     p.hp = 40;
     p.x = c.x; p.y = c.y;
     s.step(TICK);
     assert.equal(c.taken, true);
     assert.equal(p.hp, 70);
-    const c2 = s.crates[1]!;
+    const c2 = s.crates.find((x) => x.tier === 0 && !x.taken)!; // another green
     p.hp = 95;
     p.x = c2.x; p.y = c2.y;
     s.step(TICK);

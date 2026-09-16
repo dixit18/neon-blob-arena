@@ -13,7 +13,8 @@ type Snap = {
   zone: { x: number; y: number; r: number; nextInMs: number };
   endsInMs: number;
   you: { hp: number; alive: boolean; kills: number };
-  players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number }[];
+  players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number; q: number }[];
+  crates: { x: number; y: number; t: number }[];
   feed: string[];
 };
 
@@ -186,6 +187,11 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     g.beginPath();
     g.arc(snap.zone.x * k, snap.zone.y * k, snap.zone.r * k, 0, Math.PI * 2);
     g.stroke();
+    for (const c of snap.crates ?? []) {
+      g.fillStyle = c.t === 1 ? '#FFD93D' : '#3DFF8A';
+      const s2 = k * (c.t === 1 ? 1.5 : 1.1);
+      g.fillRect(c.x * k - s2 / 2, c.y * k - s2 / 2, s2, s2);
+    }
     for (const p of snap.players) {
       if (!p.alive) continue;
       g.beginPath();

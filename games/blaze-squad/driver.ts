@@ -40,6 +40,7 @@ export function createBlazeDriver(rand: () => number = Math.random): RoomDriver 
     let best: { dx: number; dy: number; d: number } | null = null;
     for (const p of sim.players.values()) {
       if (p.id === id || !p.alive) continue;
+      if (p.sq === me.sq) continue; // squadmate: friendly fire is off, don't aim
       const dx = p.x - me.x;
       const dy = p.y - me.y;
       const d = Math.hypot(dx, dy);

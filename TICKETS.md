@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [BZ-2] Blaze slice 2: squads + loot tiers — Done: squads of 3 round-robin,
+  friendly-fire off, last-squad-standing + MVP feed, green/gold crates
+  (gold = full-heal + 12s rapid), crates in snapshot. Receipt: 186/186 green.
 - [ST-2] Studio hardening — Done: fail-closed gate on all /studio/* routes
   (STUDIO_KEY match, else loopback-only), 403/429 receipts, client key prompt
   (sessionStorage) + pagehide poll kill. Receipt: 174/174 tests green.

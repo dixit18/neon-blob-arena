@@ -19,6 +19,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   for the key (sessionStorage) + pagehide kills the poll. Verified: 174/174
   tests (2 new), server tsc + web build green (shell still 18.29KB).
   Next: BZ-2 (blaze squads + loot tiers) — one slice per turn.
+- BZ-2 SHIPPED: squads of 3 (round-robin deal, friendly-fire off,
+  last-squad-standing + MVP feed) + tiered loot (green heal, gold full-heal +
+  12s rapid) + crates in snapshot/client. Verified: 186/186 tests (12 new),
+  server tsc + web build green (shell 18.29KB, blaze chunk 7.73KB).
+  Next: BZ-3 (threepipe art pass) — one slice per turn.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
