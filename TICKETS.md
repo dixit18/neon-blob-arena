@@ -14,6 +14,19 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   Riya (e2e) + Kai (wire-up). Status: SHIPPED (8/8 e2e, 279/279 suite,
   6-game soak GREEN, web build green, room chunk 5.45KB).
 
+## Open (prioritized) — Landing SAGA ZOOM (SG-1, starts on user approval)
+- [LZ-1] Saga data + engine rebind — Owner: Leo + Zara. Accept: `sagas.ts`
+  (2 sagas × 6 chapters: title + 2-line beat + motif + palette + game portal),
+  dive engine reads chapters (depth → chapter index, caption carries story),
+  random worlds deleted.
+- [LZ-2] Chapter motifs — Owner: Mira + Leo. Accept: per-chapter palette +
+  motif art on existing renderer (no new engine), 2D fallback intact.
+- [LZ-3] Cliffhanger + chapter share — Owner: Leo + Zara. Accept: saga end =
+  cliffhanger + challenge link; 📸 shares the chapter moment (title + link).
+- [LZ-4] Saga gates — Owner: Riya. Accept: web build green, shell ≤60KB,
+  saga chunk ≤25KB, 360px clean, reduced-motion off, PLAY stays primary.
+  Blocks release if red.
+
 ## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
 - [RT-1] Sim — DONE (24/24 green).
 - [RT-2] Bots — DONE (7/7 green).

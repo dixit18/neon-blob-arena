@@ -914,3 +914,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (final receipts):** 279/279 suite green (39 new), server tsc clean, web build green (room 5.45KB, shell 18.96KB), 6-game soak 30/30 @389/s tickAvg 0.07/max 1.4ms, 0 errors, 0 unhandled. SOAK GREEN.
 **Aarav:** Sprint 4 DONE. Next: Sprint 5 GHOSTLINE — Devika slices GH-1..GH-6. Standing user actions unchanged: UptimeRobot (BE-001), Render STUDIO_KEY, phone checks.
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — SG-1: story-driven zoom landing (user: random zoom is out, story zoom is in)
+**User (verbatim, new tracker `SUGGESTIONS.md`):** first page = infinite zoom BUT story-based, not random — stories like Game of Thrones / One Piece structure; zooming moves the story forward; story pulls people back.
+**Aarav:** Orthodox version this refuses: spectacle zoom with no narrative (our tunnel/dive/rift — pretty, forgettable). New law: every zoom band must earn its depth with story. IP bound: original sagas only, never GoT/One Piece content.
+**Rehan (counter, signed):** story zoom risks a novel on the landing (reading delays PLAY) + season promises need a content pipeline or the cliffhanger lies. Bounds shipped: ≤2 lines per chapter, PLAY primary always, Season 2 = dated promise only when pipeline owner named (UX-019 pattern).
+**Vikram:** 2 flaws: 1) chapter text at 360px competes with PLAY — ACCEPTED (short-screen hides saga, same as dive). 2) two sagas double content QA — ACCEPTED (one saga ships first, second rides LZ-2 only if gates hold).
+**Devika:** LZ-1..LZ-4 queued in TICKETS.md. No build until user approves the saga outlines — we do not repeat the unapproved-zoom mistake.
+**Kai:** Committing docs. Build starts on APPROVE.

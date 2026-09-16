@@ -208,13 +208,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SPRINT 4 READ THE ROOM SHIPPED (verb PREDICT, first party/social game):
-  vote rounds on 14 curated prompts → reveal crowns → Party Fingerprint.
-  `games/read-the-room/` (sim + driver + 31 headless tests),
-  `apps/web/src/games/read-the-room.ts` (5.45KB chunk), driver registered,
-  8/8 e2e, 6-game soak GREEN. Product bugs killed: instant-bot reveals +
-  stale-close eviction (server guard in app.ts onGone). Tree will be CLEAN
-  after this commit; 279/279 green, both builds green.
+- SG-1 STORY-DRIVEN ZOOM LANDING (user order): saga chapters replace random
+  zoom. Outlines proposed in chat 2026-09-16, waiting on user APPROVE/edits.
+  On approve: LZ-1..LZ-4 pull in order (sagas.ts → motifs → cliffhanger/share
+  → gates), random zoom deleted at ship. Tracker: `SUGGESTIONS.md`.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
