@@ -10,6 +10,7 @@
 // reduced motion). DPR governor + hidden-tab pause + zero per-frame alloc.
 import { type World } from './descent.js';
 import { chaptersOf } from './sagas.js';
+import { makeNoise2D, fbm, hashSeed, lsystem } from './procgen.js';
 import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
   layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
@@ -214,6 +215,10 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   // SG-1: chapters replace random worlds — same World shape, story carried.
   const WORLDS = chaptersOf(opts.saga ?? 0);
   const ACCENT = WORLDS.map((w) => hexColor(w.accent));
+  const mulberry = (seed: number): (() => number) => {
+    let a = seed >>> 0;
+    return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  };
 
   const renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
   renderer.toneMapping = T.ACESFilmicToneMapping;
@@ -338,10 +343,54 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   scene.add(shardMesh);
   const shardDummy = new T.Object3D();
 
+  // ---------- cinematic atmosphere: foreground fronds (IMAX parallax) +
+  // light shafts. They ride the camera (repositioned, never reallocated);
+  // dark silhouettes up front + additive shafts = instant depth on any scene.
+  const fronds: any[] = [];
+  const frondMat = new T.SpriteMaterial({ map: glowTex, color: 0x030304, transparent: true, opacity: 0.55, depthWrite: false });
+  for (let i = 0; i < 4; i++) {
+    const f = new T.Sprite(frondMat);
+    const wide = i % 2 === 0;
+    f.scale.set(wide ? 46 : 26, wide ? 16 : 34, 1);
+    f.userData.side = i < 2 ? -1 : 1;
+    f.userData.lane = i % 2;
+    scene.add(f);
+    fronds.push(f);
+  }
+  const shafts: any[] = [];
+  const shaftMat = new T.MeshBasicMaterial({ color: 0xfff6d8, transparent: true, opacity: 0.05, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide });
+  for (let i = 0; i < 3; i++) {
+    const m = new T.Mesh(GEO.plane, shaftMat);
+    m.scale.set(10 + i * 7, 130, 1);
+    m.rotation.z = 0.35 + i * 0.12;
+    m.userData.lane = i;
+    scene.add(m);
+    shafts.push(m);
+  }
+  const fogTarget = new T.Color('#070708');
+  const moteTarget = new T.Color('#c6f135');
+
   // ---------- biome builders (one group per world heart) ----------
   function buildBiome(group: any, index: number, seed: number, world: World): void {
-    const accent = ACCENT[index]!;
-    const rand = (() => { let a = seed >>> 0; return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
+    const accent = hexColor(world.accent); // SG-1: the CHAPTER's accent, not the builder's
+    const rand = mulberry(seed);
+    const noise = makeNoise2D(hashSeed(`${world.name}|${seed}`));
+    // Baked fBm roughening (build-time once per lap recycle — zero per-frame
+    // cost, no normal recompute: all biome mats are unlit). Clones only: SHARED
+    // GEO must never be touched.
+    const roughen = (geo: any, freq: number, amt: number): any => {
+      const g = geo.clone();
+      const pos = g.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const n = fbm(noise, x * freq + 7.3, (y + z) * freq, 3);
+        const s = 1 + n * amt;
+        pos.setXYZ(i, x * s, y * s, z * s);
+      }
+      return g;
+    };
     const add = (mesh: any, x: number, y: number, z: number): any => { mesh.position.set(x, y, z); group.add(mesh); return mesh; };
     const glow = (color: number, s: number, x: number, y: number, z: number): void => {
       const sp = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color, transparent: true, opacity: 0.55, depthWrite: false, blending: T.AdditiveBlending }));
@@ -368,7 +417,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       }
     } else if (index === 1) {
       // CANDY DUNES — faceted dune mound + orbiting sprinkles
-      const dune = add(new T.Mesh(GEO.sphere, mat(0x5b2d5e, { wireframe: true })), 0, -3, 0);
+      const dune = add(new T.Mesh(roughen(GEO.sphere, 0.35, 0.17), mat(0x5b2d5e, { wireframe: true })), 0, -3, 0);
       dune.scale.set(11, 4.5, 11);
       glow(accent, 30, 0, 2, -2);
       for (let i = 0; i < 16; i++) {
@@ -440,7 +489,111 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
         add(sp, (rand() - 0.5) * 16, (rand() - 0.5) * 14, -6 - i * 3);
       }
     }
-    void world;
+    // ---- LZ-2 motif overlay: the chapter's signature, built from shared
+    // primitives + chapter accent + seed. One draw call per Points/Line set,
+    // static meshes ride the camera's motion (parallax = life, zero CPU).
+    const motif = (world as World & { motif?: string }).motif ?? '';
+    const mseed = hashSeed(`${world.name}|${motif}|${seed}`);
+    const mr = mulberry(mseed);
+    const scatter = (n: number, color: number, size: number, sx: number, sy: number, sz: number, y0: number): void => {
+      const pp = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        pp[i * 3] = (mr() - 0.5) * sx;
+        pp[i * 3 + 1] = y0 + mr() * sy;
+        pp[i * 3 + 2] = (mr() - 0.5) * sz;
+      }
+      const gg = new T.BufferGeometry();
+      gg.setAttribute('position', new T.BufferAttribute(pp, 3));
+      const pts = new T.Points(gg, new T.PointsMaterial({ color, size, transparent: true, opacity: 0.85, depthWrite: false }));
+      (pts as any).userData.embers = true;
+      group.add(pts);
+    };
+    const vineLines = (axiom: string, rules: Record<string, string>, x0: number, y0: number, step: number): void => {
+      const s = lsystem(axiom, rules, 3);
+      const pts: number[] = [];
+      const stack: number[] = [];
+      let a = -Math.PI / 2;
+      let px = x0;
+      let py = y0;
+      for (const ch of s) {
+        if (ch === 'F') {
+          const nx = px + Math.cos(a) * step;
+          const ny = py + Math.sin(a) * step;
+          pts.push(px, py, 0, nx, ny, 0);
+          px = nx;
+          py = ny;
+        } else if (ch === '+') { a += 0.42; } else if (ch === '-') { a -= 0.42; }
+        else if (ch === '[') { stack.push(px, py, a); }
+        else if (ch === ']') { a = stack.pop() ?? a; py = stack.pop() ?? py; px = stack.pop() ?? px; }
+      }
+      const gg = new T.BufferGeometry();
+      gg.setAttribute('position', new T.BufferAttribute(new Float32Array(pts), 3));
+      group.add(new T.LineSegments(gg, new T.LineBasicMaterial({ color: 0x2e5e4e, transparent: true, opacity: 0.9 })));
+    };
+    if (motif === 'ash dunes' || motif === 'lantern cliffs' || motif === 'volcanic isle') {
+      scatter(46, hexColor(motif === 'volcanic isle' ? '#FF7A1A' : '#C9BFAE'), 0.9, 30, 20, 16, -6);
+      if (motif === 'lantern cliffs') {
+        for (let i = 0; i < 5; i++) glow(accent, 7 + mr() * 5, -12 + i * 6 + mr() * 3, -2 + mr() * 10, -3);
+      }
+      if (motif === 'volcanic isle') {
+        const cone = add(new T.Mesh(roughen(GEO.cone, 0.3, 0.22), mat(0x0d0605)), 0, -4, -6);
+        cone.scale.set(9, 13, 9);
+        glow(0xff5a1a, 26, 0, 3.5, -6); // crater mouth
+      }
+    } else if (motif === 'reef lanes') {
+      const lp: number[] = [];
+      for (let i = 0; i < 7; i++) {
+        const y = -4 + i * 1.8;
+        lp.push(-16, y, -2, 16, y + (mr() - 0.5) * 3, -2);
+      }
+      const gg = new T.BufferGeometry();
+      gg.setAttribute('position', new T.BufferAttribute(new Float32Array(lp), 3));
+      group.add(new T.LineSegments(gg, new T.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.4 })));
+      scatter(30, accent, 0.8, 30, 14, 12, -5);
+    } else if (motif === 'trial rings' || motif === 'whirlpool rings') {
+      for (let i = 0; i < (motif === 'whirlpool rings' ? 2 : 1); i++) {
+        const r = add(new T.Mesh(GEO.ring, ringMat(accent, 2.7 + i)), 0, 1 - i * 2, -3);
+        const s = 13 + i * 4;
+        r.scale.set(s, s, 1);
+        r.rotation.x = Math.PI / 2.1 + i * 0.3;
+        (r as any).userData.orbitRing = (i === 0 ? -0.16 : 0.1);
+      }
+      glow(accent, 20, 0, 1, -3);
+    } else if (motif === 'mask garden' || motif === 'parley cove') {
+      vineLines('F', { F: 'F[+F]F[-F]F' }, -6, -8, 1.4);
+      vineLines('F', { F: 'FF-[-F+F]+[+F-F]' }, 6, -8, 1.2);
+      for (let i = 0; i < 3; i++) {
+        const bx = -7 + i * 7;
+        add(new T.Mesh(GEO.cyl, mat(0x2a2a34)), bx, -4, 1).scale.set(0.9, 7, 0.9);
+        const head = add(new T.Mesh(GEO.sphere, mat(accent, { transparent: true, opacity: 0.92 })), bx, 0.6, 1);
+        head.scale.set(1.5, 1.9, 1.2);
+        glow(accent, 10, bx, 0.6, 1.5);
+      }
+    } else if (motif === 'living chart' || motif === 'star mural' || motif === 'crown forge') {
+      const lp: number[] = [];
+      let px = -14;
+      let py = -2;
+      for (let i = 0; i < 7; i++) {
+        const nx = px + 3 + mr() * 3;
+        const ny = py + (mr() - 0.5) * 7;
+        lp.push(px, py, -2, nx, ny, -2);
+        px = nx;
+        py = ny;
+      }
+      const gg = new T.BufferGeometry();
+      gg.setAttribute('position', new T.BufferAttribute(new Float32Array(lp), 3));
+      group.add(new T.LineSegments(gg, new T.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.75 })));
+      scatter(36, 0xffffff, 0.7, 30, 18, 10, -6);
+      if (motif === 'crown forge') {
+        const band = add(new T.Mesh(GEO.ring, ringMat(accent, 4.2)), 0, 2, -2);
+        band.scale.set(9, 9, 1);
+        band.rotation.x = -Math.PI / 2.3;
+        (band as any).userData.orbitRing = 0.08;
+        glow(accent, 24, 0, 2, -2);
+      } else {
+        glow(0x7a5cff, 30, 0, 0, -8); // nebula heart
+      }
+    }
   }
 
   // ---------- lap groups (2 live laps, recycled endlessly) ----------
@@ -694,6 +847,26 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     skyUni.uTop.value.set(fw.sky1);
     skyUni.uBot.value.set(fw.sky0);
     skyUni.uAccent.value.set(fw.accent);
+    // atmosphere breathes with the story: fog + spore tint ease to the faced
+    // chapter (lerp, never snap — a hard cut would read as a loading hitch).
+    fogTarget.set(fw.sky0);
+    scene.fog.color.lerp(fogTarget, 0.04);
+    moteTarget.set(fw.accent);
+    (motes.material as any).color.lerp(moteTarget, 0.04);
+    // foreground fronds + light shafts ride the camera: near-layer parallax.
+    for (const f of fronds) {
+      const s = f.userData.side as number;
+      const lane = f.userData.lane as number;
+      f.position.set(
+        camera.position.x + s * (26 + lane * 10) + Math.sin(t * 0.5 + lane * 2.1) * 3,
+        camera.position.y - 6 + lane * 12 + Math.sin(t * 0.34 + s) * 1.5,
+        camZ + 18 + lane * 6,
+      );
+    }
+    for (const m of shafts) {
+      const lane = m.userData.lane as number;
+      m.position.set(camera.position.x - 14 + lane * 13, camera.position.y + 8, camZ - 40 - lane * 22);
+    }
     for (const [, m] of ringMatCache) (m.uniforms.uTime as { value: number }).value = t;
     stars1.rotation.z = t * 0.002;
     stars2.rotation.z = -t * 0.0015;
@@ -818,6 +991,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       try { visObs.disconnect(); } catch { /* gone */ }
       window.removeEventListener('resize', resize);
       try { cap.remove(); photo.remove(); fpsChip.remove(); steerHint.remove(); } catch { /* gone */ }
+      try { frondMat.dispose(); shaftMat.dispose(); } catch { /* gone */ }
       try { renderer.dispose(); } catch { /* gone */ }
     },
   };

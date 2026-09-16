@@ -3,6 +3,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { SAGAS, chaptersOf, sagaAt, MAX_BEAT } from './sagas.js';
+import { MOTIF_KEYS } from './motifs.js';
 import { GAMES } from '../../../packages/catalog/src/index.js';
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -62,6 +63,15 @@ describe('sagas', () => {
     assert.equal(new Set(SAGAS.map((s) => s.id)).size, 2);
     for (const s of SAGAS) {
       assert.equal(new Set(s.chapters.map((c) => c.name)).size, 6);
+    }
+  });
+
+  it('every chapter motif has a painter — the coverage oath', () => {
+    const keys = new Set(MOTIF_KEYS);
+    for (const s of SAGAS) {
+      for (const c of s.chapters) {
+        assert.ok(c.motif && keys.has(c.motif), `${s.id}/${c.name}: motif '${c.motif}' unpainted`);
+      }
     }
   });
 });

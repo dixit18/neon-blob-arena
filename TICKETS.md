@@ -18,8 +18,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [LZ-1] Saga data + engine rebind — DONE (sagas.ts 2×6, both engines read
   chapters, saga tabs + ?saga=, 16/16 tests, build green shell 21.81KB).
   Owner: Leo + Zara.
-- [LZ-2] Chapter motifs — Owner: Mira + Leo. Accept: per-chapter palette +
-  motif art on existing renderer (no new engine), 2D fallback intact.
+- [LZ-2] Chapter motifs — DONE (procgen core + 2D motif weather + 3D overlays
+  + fog/shafts/fronds; 28/28 web tests, BROWSER GREEN, dive 24.98KB ≤25KB,
+  shell 28.84KB ≤60KB). Owner: Mira + Leo.
 - [LZ-3] Cliffhanger + chapter share — Owner: Leo + Zara. Accept: saga end =
   cliffhanger + challenge link; 📸 shares the chapter moment (title + link).
 - [LZ-4] Saga gates — Owner: Riya. Accept: web build green, shell ≤60KB,

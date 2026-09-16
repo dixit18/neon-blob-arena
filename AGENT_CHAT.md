@@ -931,3 +931,14 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** 2 flaws: 1) shell +2.85KB for content — ACCEPTED (budget holds, tabs need it at paint). 2) chapters reuse old biome art (a mask ball in an ink garden is a costume, not a set) — ACCEPTED as LZ-1 explicitly; LZ-2 paints true motifs.
 **Aarav:** Next: LZ-2 motifs → LZ-3 cliffhanger/share → LZ-4 gates. Random-worlds copy is gone from the landing.
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — R&D: procedural generation (user links) → LZ-2 SHIPPED cinematic
+**User:** five procgen links (Autodesk 403 + Medium 403 — stated, not hidden) + "map what you have to do, then build so everything looks real".
+**Nova (harvest, cited):** Wiki — seeded PRNG/map-seed (determinism oath), Perlin/Simplex + fBm + domain warp, L-systems (flora), Voronoi (cracks/shells), "procedural oatmeal" (Compton — infinite samey = dead; our answer: author-driven chapters, procedural detail inside), imperfect factories. Planet thread + terrain builds — GPU vertex displacement + elevation coloring, CPU does uTime only; phone-proven rules (no per-frame normals, DPR cap, off-screen pause — all already our law).
+**Kabir (counter):** oatmeal warning cuts both ways — 11 motifs from shared techniques risk sameyness. Held by: distinct params + composites per motif, story captions carry identity, coverage oath test.
+**Mira + Leo (LZ-2 build):** `procgen.ts` (hashSeed/hash2/value-noise/fBm/warp/Voronoi/L-system/GLSL simplex, 7/7 tests) → `motifs.ts` 2D weather (ash drift, lanterns, voronoi glow-webs, orbit spirals, L-vines + mask lanterns, self-drawing chart + X-marks-victory, star links; seeded cache, zero per-frame alloc) → 3D overlays (chapter accent fix, baked fBm dune/volcano, motif signatures: crown band, crater, chart lines, vine lines, whirlpool rings) → atmosphere (fog + spore tint ease to faced chapter, foreground fronds, light shafts, shared mats, disposed on stop).
+**User (bar raised mid-build):** Avatar/IMAX amazement, no random 3D, no sound, take the time. Answered: parallax fronds + shafts + bioluminescent accents + breathing fog are the web-budget Avatar kit; honest line — stylized cinematic, not film VFX.
+**Vikram:** 2 flaws: 1) dive chunk 25.12KB broke the 25KB gate — FIXED by refactor (shared mulberry, 24.98KB, gate holds by 20 bytes, stated not hidden). 2) first browser run was theater (dead servers, error pages "passed") — root-caused to Start-Process, reran on live stack; gate markers fixed (id="games" was D14-dead, now saga markers).
+**Riya (receipts):** 28/28 web tests (incl. motif-coverage oath), web build green (dive 24.98KB, shell 28.84KB), BROWSER GREEN on live stack — edge landing 7/7 + nitro 3/3 + 360px paint, firefox both pages non-blank.
+**Aarav:** Next: LZ-3 cliffhanger + chapter share.
+**Kai:** Committing + pushing.

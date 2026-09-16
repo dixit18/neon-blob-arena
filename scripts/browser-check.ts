@@ -47,7 +47,7 @@ function run(bin: string, args: string[], timeoutMs: number): { ok: boolean; out
   }
 }
 
-const LANDING_MARKERS = ['riftSeed', 'RIFT-', 'id="games"', 'id="play"', 'diveCv', 'id="status"'];
+const LANDING_MARKERS = ['riftSeed', 'RIFT-', 'sagaTabs', 'sagaSub', 'id="play"', 'diveCv', 'id="status"'];
 const ROOM_MARKERS = ['roomview', 'roomTitle', 'id="mount"'];
 
 const EDGE_ARGS = [

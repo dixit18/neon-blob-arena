@@ -4,6 +4,7 @@
 // Zero assets. DPR-capped, reduced-motion safe, pauses offscreen.
 import { rng, BONE, LIME, MAG, CYAN, GOLD, INK } from './art.js';
 import { chaptersOf } from './sagas.js';
+import { paintMotif2D } from './motifs.js';
 
 export interface World {
   name: string;
@@ -298,6 +299,10 @@ export function startDescent(
     const zoom = 1 + frac * 1.6;
     drawWorld(wA, wA.biome ?? wi, cx, cy, R * zoom, reduced ? 0 : t, 1 - frac * 0.85);
     if (frac > 0.02) drawWorld(wB, wB.biome ?? ((wi + 1) % WORLDS.length), cx, cy, R * (zoom - 1.6), reduced ? 0 : t, Math.min(1, frac * 1.4));
+    // LZ-2: procedural motif layer — the chapter's own weather, seeded + cached.
+    const mt = reduced ? 0 : t;
+    if (wA.motif) paintMotif2D(ctx, wA.motif, wA, cx, cy, R * zoom, mt, 1 - frac * 0.85, W, H);
+    if (frac > 0.02 && wB.motif) paintMotif2D(ctx, wB.motif, wB, cx, cy, R * (zoom - 1.6), mt, Math.min(1, frac * 1.4), W, H);
 
     // portal heart + label
     ctx.globalAlpha = 1;

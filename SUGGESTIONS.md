@@ -15,6 +15,8 @@ random so it will be more and people tends to come"
   Thrones / One Piece names, characters, or art. Epic-serial structure, our worlds.
 - Status: outlines APPROVED by user 2026-09-16. LZ-1 SHIPPED (sagas.ts +
   both engines rebound to chapters + saga tabs + ?saga=; 16/16 tests, web
-  build green, shell 21.81KB). Next: LZ-2 motifs, LZ-3 cliffhanger/share.
+  build green, shell 21.81KB). LZ-2 SHIPPED (procgen core + 2D motif weather
+  + 3D motif overlays + cinematic atmosphere; 28/28 web tests, BROWSER GREEN,
+  dive 24.98KB / shell 28.84KB). Next: LZ-3 cliffhanger/share.
 - Tickets: LZ-1..LZ-4 (TICKETS.md, Landing saga queue). Build starts on approval.
 - Replaces: random zoom tunnel + dive + rift fly-through (deleted when saga ships).
