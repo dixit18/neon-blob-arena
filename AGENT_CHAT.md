@@ -902,3 +902,15 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Zara (Phase 0):** Dirty PF-1/BX-1/TP-1/NR-5 tree verified before anything new: 240/240 tests green, server tsc clean — but web build RED (dive render used frame-scope dt, uncommitted follow-up broke it). Fix: render takes dt as a param, photo capture passes one frame. Receipt: web build green (shell 18.86KB, dive 20.95KB, game chunks under 10KB). Committed 8a2eae4. Tree CLEAN.
 **Vikram:** 2 flaws: 1) the dive break proves uncommitted follow-ups ship red — ACCEPTED with fix (Rule 9 commit held, build gate caught it before push). 2) RT design awards points for voting the winner — bandwagon farming in fixed parties, ACCEPTED for now (rooms reshuffle per game, bots break ties; playtest watches for kingmaker stalls).
 **Kai:** Pushing Phase 0. Next: RT-1 sim engine.
+
+## 2026-09-16 — SPRINT 4 READ THE ROOM SHIPPED (6th playable game)
+**Zara (RT-1):** Vote engine live — `games/read-the-room/sim.ts` (lobby→vote→reveal→final, 14 authored prompts, seeded rotation, no repeats, 1-vote dedup, no self-votes, +1 received / +2 crowd-read, leaver voids, last-one crown, empty reset, stateless reconnect-safe snapshots). Receipt: 24/24 headless green.
+**Zara (RT-2):** Tiered bots — sharps vote the points leader, casuals random 30%, instant party of 4, labelled. Receipt: 7/7 green.
+**Leo + Zara (RT-3):** Party Fingerprint (per-round crowns + winner + re-entry URL). Receipt: `assertArtifact` clean mid-game and crowned.
+**Leo (RT-4 + optimisation):** Question/vote/reveal client, 5.45KB chunk — render-key cache (buttons rebuild on state change only) + HUD cache (zero 15Hz DOM writes; countdown line refreshes solo). No shell growth (18.96KB).
+**Riya (RT-5):** 8/8 e2e over real sockets — hello/token, instant party, ballot lock, no-double-score under spam (tally ≤ seats), bad-input survival, p95 ≤2KB wire, reconnect-keeps-question, rounds self-advance. Release UNBLOCKED.
+**Kai (RT-6):** Driver registered — `?game=read-the-room&room=` plays.
+**Vikram (2 catches, both product bugs not test bugs):** 1) instant-bot reveals (~100ms rounds — humans could never vote, clients only saw reveal). Fix: human-paced bot delays (sharp 2-5s, casual 4-9s, 20s cap holds). 2) stale-close evicts fresh reclaim (mobile flap → reconnect → instant evict). Fix: server-side stale-close guard in `onGone` (shared code — full suite re-proves all games).
+**Riya (final receipts):** 279/279 suite green (39 new), server tsc clean, web build green (room 5.45KB, shell 18.96KB), 6-game soak 30/30 @389/s tickAvg 0.07/max 1.4ms, 0 errors, 0 unhandled. SOAK GREEN.
+**Aarav:** Sprint 4 DONE. Next: Sprint 5 GHOSTLINE — Devika slices GH-1..GH-6. Standing user actions unchanged: UptimeRobot (BE-001), Render STUDIO_KEY, phone checks.
+**Kai:** Committing + pushing.

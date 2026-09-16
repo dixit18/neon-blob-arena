@@ -144,7 +144,7 @@ describe('read-the-room sim', () => {
       }
       assert.equal(s.phase, 'reveal');
       s.step(REVEAL_MS);
-      if (s.phase === 'vote') seen.add(s.question());
+      if ((s.phase as string) === 'vote') seen.add(s.question());
     }
     assert.equal(seen.size, ROUNDS);
   });

@@ -208,22 +208,18 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SPRINT 4 READ THE ROOM (verb PREDICT, first party/social game): vote rounds
-  on curated prompts → reveal crowns → Party Fingerprint share. Files:
-  `games/read-the-room/sim.ts + driver.ts + test/*.test.ts`,
-  `apps/web/src/games/read-the-room.ts`, `apps/server/src/app.ts` (register),
-  `TICKETS.md` (RT-1..RT-6). DoD: ≥20 sim tests + 8 E2E, 15 players,
-  reconnect keeps question, no double-score, p95 ≤2KB.
-- Phase 0 DONE: dirty PF-1/BX-1/TP-1/NR-5 tree verified (240/240 tests,
-  server tsc clean) + dive `dt` build break fixed → web build green (shell
-  18.86KB) → committed 8a2eae4. Tree CLEAN.
+- SPRINT 4 READ THE ROOM SHIPPED (verb PREDICT, first party/social game):
+  vote rounds on 14 curated prompts → reveal crowns → Party Fingerprint.
+  `games/read-the-room/` (sim + driver + 31 headless tests),
+  `apps/web/src/games/read-the-room.ts` (5.45KB chunk), driver registered,
+  8/8 e2e, 6-game soak GREEN. Product bugs killed: instant-bot reveals +
+  stale-close eviction (server guard in app.ts onGone). Tree will be CLEAN
+  after this commit; 279/279 green, both builds green.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. [RT-1] Read-the-room sim + tests (Zara) — IN PROGRESS.
-2. [RT-2] Room bots (Zara) — next pull.
-3. [RT-3] Party Fingerprint share (Leo + Zara).
-4. [RT-4] Room client (Leo). [RT-5] E2E (Riya, blocks release). [RT-6] Wire-up (Kai).
-5. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
+1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
+   Devika to slice GH-1..GH-6; crew pulls on sight.
+2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

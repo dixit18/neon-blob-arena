@@ -11,29 +11,16 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   vista share, portals for all 5 games. Status: SHIPPED (D13, build green
   + 7 layout tests).
 - Sprint 4 READ THE ROOM — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: RT-1 IN PROGRESS (sim engine).
+  Riya (e2e) + Kai (wire-up). Status: SHIPPED (8/8 e2e, 279/279 suite,
+  6-game soak GREEN, web build green, room chunk 5.45KB).
 
-## Open (prioritized) — Sprint 4 READ THE ROOM (pull in order, Rule 14)
-- [RT-1] Sim: vote + reveal + scoring engine — Owner: Zara. Accept: phases
-  lobby→vote→reveal→final, curated prompts (≥12, seeded rotation, no repeat
-  within a game), one-vote-per-round dedup (second vote ignored), scoring
-  (+2 picked-the-crowd-favorite, +1 per vote received, most-picked crowned),
-  vote/reveal timers with auto-resolve, leaving (leaver's votes void, last-one
-  wins), empty-room lobby reset, reconnect-safe stateless snapshots,
-  ≥20 headless tests green.
-- [RT-2] Bots: social vote with tiers — Owner: Zara. Accept: sharps vote the
-  current points leader (social bias), casuals random 30%; instant fill to 4
-  for solo humans; labelled; ≥6 new headless tests.
-- [RT-3] Share: Party Fingerprint — Owner: Leo + Zara. Accept: per-question
-  crowns + winner + re-entry URL validates via `packages/share` asserts.
-- [RT-4] Client: question card + vote buttons + reveal — Owner: Leo. Accept:
-  question renders, one-tap vote same-tick, reveal shows crowns + standings,
-  360px clean, chunk ≤250KB; mounts at `apps/web/src/games/read-the-room.ts`.
-- [RT-5] E2E x8 + snapshot budget — Owner: Riya. Accept: 8 end-to-end checks
-  green incl. reconnect-keeps-question + no-double-score; snapshot p95 ≤2KB;
-  receipts in chat. Blocks release if red.
-- [RT-6] Wire-up: register driver — Owner: Kai. Accept: `read-the-room`
-  plays at `?game=read-the-room&room=`; catalog already lists it.
+## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
+- [RT-1] Sim — DONE (24/24 green).
+- [RT-2] Bots — DONE (7/7 green).
+- [RT-3] Share — DONE (asserts green mid-game + crowned).
+- [RT-4] Client — DONE (build green, 5.45KB).
+- [RT-5] E2E — DONE (8/8 green, release unblocked).
+- [RT-6] Wire-up — DONE (driver registered).
 
 ## Open (prioritized) — SLICE-2 QUEUE (small parts only, Rule: one slice per turn)
 - [ST-2] Studio hardening — Owner: Zara + Leo. Accept: STUDIO_KEY enforced
@@ -121,6 +108,15 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [RT-1..RT-6] READ THE ROOM playable end-to-end — Done: vote engine (14
+  prompts, seeded rotation, dedup, +1 received / +2 crowd-read, leaver voids,
+  last-one crown, empty reset) + tiered 🤖 bots (sharps read the leader,
+  human-paced 2-9s delays) + Party Fingerprint + question/vote/reveal client
+  (render-key + HUD caches, zero 15Hz DOM churn) + driver registered. Two
+  product bugs caught by receipts: instant-bot reveals (humans unplayable) +
+  stale-close evicting fresh reclaims (server guard). Receipt: 279/279 suite
+  (39 new), 8/8 e2e, 6-game soak 30/30 @389/s tickAvg 0.07ms SOAK GREEN,
+  web build green (room chunk 5.45KB, shell 18.96KB), server tsc clean.
 - [PF-1] Perf truth: fps + p95 pills live — Done: shared fps-meter (rolling
   fps/p95, 0 per-frame alloc, headless-tested core 4/4) in blaze + nitro HUD
   (+3D mode tracking) and dive fps chip; lossy 15s beacon to POST /perf with

@@ -15,6 +15,15 @@ export function createRoomDriver(rand: () => number = Math.random): RoomDriver {
   const sim = new RoomSim(rand);
   const bots = new Map<string, 0 | 1>(); // id → tier (0 sharp, 1 casual)
   let botSeq = 0;
+  // Bots vote like humans read: sharps in 2-5s, casuals in 4-9s. Instant bot
+  // votes used to reveal the round in ~100ms — humans could never play, and
+  // 15Hz clients only ever saw `reveal`. The 20s window still caps dawdlers.
+  let dueRound = '';
+  const dueAt = new Map<string, number>(); // botId → sim-time ms when it votes
+
+  function voteDelayMs(tier: 0 | 1): number {
+    return tier === 0 ? 2000 + rand() * 3000 : 4000 + rand() * 5000;
+  }
 
   function ensureBots(): void {
     const humans = [...sim.players.values()].filter((p) => !p.isBot).length;
@@ -52,6 +61,14 @@ export function createRoomDriver(rand: () => number = Math.random): RoomDriver {
   function botAct(id: string): void {
     if (sim.phase !== 'vote' || sim.votes.has(id)) return;
     if (!sim.order.includes(id)) return;
+    const key = `${sim.gameNo}:${sim.roundNo}`;
+    if (key !== dueRound) { dueRound = key; dueAt.clear(); } // fresh round, fresh dues
+    let due = dueAt.get(id);
+    if (due === undefined) {
+      due = sim.time + voteDelayMs(bots.get(id) ?? 0);
+      dueAt.set(id, due);
+    }
+    if (sim.time < due) return; // still "reading" — humans get first move
     const tier = bots.get(id) ?? 0;
     const pick = tier === 0 || rand() >= CASUAL_RANDOM ? sharpPick(id) : randomPick(id);
     if (pick >= 0) sim.vote(id, pick);

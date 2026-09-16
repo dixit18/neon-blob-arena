@@ -17,6 +17,7 @@ import { createDoodleDriver } from '../../../games/doodle-duel/driver.js';
 import { createBlazeDriver } from '../../../games/blaze-squad/driver.js';
 import { createNitroDriver } from '../../../games/nitro-rift/driver.js';
 import { createLudoDriver } from '../../../games/ludo-clash/driver.js';
+import { createRoomDriver } from '../../../games/read-the-room/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -41,6 +42,7 @@ export function createApp(opts: { region?: string } = {}) {
   registry.register('blaze-squad', () => createBlazeDriver()); // squad survival, zone shrink
   registry.register('nitro-rift', () => createNitroDriver()); // lane racing, ghost pace
   registry.register('ludo-clash', () => createLudoDriver()); // LD-6: turn board, dice + picks
+  registry.register('read-the-room', () => createRoomDriver()); // RT-6: party vote, crowns + fingerprint
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   const studio = new StudioFeed();
   seedFeed(studio);
@@ -289,6 +291,9 @@ export function createApp(opts: { region?: string } = {}) {
     });
 
     const onGone = () => {
+      // Stale-close guard: a fast reclaim replaces connsOf(pid) with the new
+      // socket — the old socket's close must not evict the fresh session.
+      if (connsOf(roomRef).get(pid)?.ws !== ws) return;
       // hold BEFORE leave: holdSlot requires current membership, leave frees it.
       if (conn.token) registry.holdSlot(roomRef, pid, Date.now(), conn.token);
       registry.leave(roomRef, pid);

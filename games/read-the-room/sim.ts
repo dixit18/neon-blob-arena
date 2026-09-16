@@ -312,7 +312,7 @@ export class RoomSim {
       game: 'read-the-room',
       room,
       title: done && champ
-        ? `👑 ${champ.n} read the room best (${champ.score})!`
+        ? `👑 ${champ.n} read the room best (${champ.s})!`
         : '🔮 the party is still voting — come read them!',
       url: buildGameUrl(origin, 'read-the-room', room),
       data: {
