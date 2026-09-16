@@ -113,11 +113,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DOODLE DUEL Sprint 4 (crew running autonomously, no prompts): tickets DD-1..DD-6
-  written; building. Files: `TICKETS.md`, `packages/catalog` (+doodle-duel),
-  `games/doodle-duel/sim.ts` + `test/` (new). Design: drawer draws live via
-  strokeBatch, guessers pick 1-of-4 titles via answer (no open chat, Rule 4);
-  bots guess, never draw. Goal: sim + ≥20 tests green, then driver+client.
+- DOODLE DUEL SHIPPED (crew autonomous): DD-1..DD-6 done. draw/guess sim
+  (40s drawings, 16-stroke packed snapshots, curated 24-prompt pack, drawer
+  rotation, drawer bail merges to next drawing via reveal) + guessing bots
+  (never draw) + canvas client (same-tick paint, packed-stroke render) +
+  DD-5 e2e x6 + catalog manifest. Verified: 124/124 tests, both tsc clean,
+  web build green (doodle chunk 4.81KB). Pushing now.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. USER in Render dashboard for `playground-server`: Events tab state? Logs show
