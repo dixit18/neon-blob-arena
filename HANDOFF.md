@@ -208,10 +208,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SG-1 STORY-DRIVEN ZOOM LANDING (user order): saga chapters replace random
-  zoom. Outlines proposed in chat 2026-09-16, waiting on user APPROVE/edits.
-  On approve: LZ-1..LZ-4 pull in order (sagas.ts → motifs → cliffhanger/share
-  → gates), random zoom deleted at ship. Tracker: `SUGGESTIONS.md`.
+- SG-1 STORY ZOOM: LZ-1 SHIPPED (sagas.ts 2×6 approved chapters, both engines
+  rebound, saga tabs + ?saga=, 16/16 tests, web build green shell 21.81KB).
+  Next: LZ-2 chapter motifs (Mira + Leo) — true art per motif key, no new
+  engine. Tracker: `SUGGESTIONS.md`.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —

@@ -922,3 +922,12 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** 2 flaws: 1) chapter text at 360px competes with PLAY — ACCEPTED (short-screen hides saga, same as dive). 2) two sagas double content QA — ACCEPTED (one saga ships first, second rides LZ-2 only if gates hold).
 **Devika:** LZ-1..LZ-4 queued in TICKETS.md. No build until user approves the saga outlines — we do not repeat the unapproved-zoom mistake.
 **Kai:** Committing docs. Build starts on APPROVE.
+
+## 2026-09-16 — LZ-1 SHIPPED: the zoom reads stories now (SG-1 approved)
+**User:** APPROVE on both saga outlines (Cinder Throne + Salt & Starlight).
+**Leo (LZ-1):** `sagas.ts` lands — 2 sagas × 6 chapters (title + one-line beat + portal + palette + biome pointer + LZ-2 motif key), World-compatible so both renderers consume it. 2D descent + 3D dive rebound: depth index = chapter, captions carry title + beat, portals jump to the chapter's game, per-chapter skies flow through. Saga tabs + `?saga=` + localStorage pick the book; rebootable dive boot. Copy: kicker + sub rewritten story-first, PLAY untouched and primary.
+**Zara:** One honest cost: shell 18.96 → 21.81KB (story data rides the shell for instant tabs) — still 36% of the 60KB budget. Dive chunk flat (20.98KB).
+**Riya:** Receipts: 7/7 saga tests (shape, portal honesty vs catalog, all-six-games-per-saga, beat length, hex/biome validity, clamp) + 9/9 layout untouched = 16/16; web build green. Caught in-loop: test imported catalog one level short; S2 finale portalled room instead of ludo (outline fidelity fix).
+**Vikram:** 2 flaws: 1) shell +2.85KB for content — ACCEPTED (budget holds, tabs need it at paint). 2) chapters reuse old biome art (a mask ball in an ink garden is a costume, not a set) — ACCEPTED as LZ-1 explicitly; LZ-2 paints true motifs.
+**Aarav:** Next: LZ-2 motifs → LZ-3 cliffhanger/share → LZ-4 gates. Random-worlds copy is gone from the landing.
+**Kai:** Committing + pushing.

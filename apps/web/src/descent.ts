@@ -3,6 +3,7 @@
 // descend; each world's heart is a portal that jumps you into play.
 // Zero assets. DPR-capped, reduced-motion safe, pauses offscreen.
 import { rng, BONE, LIME, MAG, CYAN, GOLD, INK } from './art.js';
+import { chaptersOf } from './sagas.js';
 
 export interface World {
   name: string;
@@ -11,6 +12,9 @@ export interface World {
   sky0: string;
   sky1: string;
   accent: string;
+  /** SG-1: chapters point at the art builder they reuse (LZ-2 paints motifs). */
+  biome?: number;
+  motif?: string;
 }
 
 export const WORLDS: World[] = [
@@ -26,8 +30,10 @@ interface Speck { x: number; y: number; z: number; tw: number }
 
 export function startDescent(
   cv: HTMLCanvasElement,
-  opts: { onPortal?: (game: string) => void } = {},
+  opts: { onPortal?: (game: string) => void; saga?: number } = {},
 ): { stop: () => void } {
+  // SG-1: the dive reads saga chapters, not random worlds — depth turns pages.
+  const WORLDS = chaptersOf(opts.saga ?? 0);
   const ctx = cv.getContext('2d')!;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rand = rng(4242);
@@ -290,8 +296,8 @@ export function startDescent(
     ctx.fillRect(0, 0, W, H);
 
     const zoom = 1 + frac * 1.6;
-    drawWorld(wA, wi, cx, cy, R * zoom, reduced ? 0 : t, 1 - frac * 0.85);
-    if (frac > 0.02) drawWorld(wB, (wi + 1) % WORLDS.length, cx, cy, R * (zoom - 1.6), reduced ? 0 : t, Math.min(1, frac * 1.4));
+    drawWorld(wA, wA.biome ?? wi, cx, cy, R * zoom, reduced ? 0 : t, 1 - frac * 0.85);
+    if (frac > 0.02) drawWorld(wB, wB.biome ?? ((wi + 1) % WORLDS.length), cx, cy, R * (zoom - 1.6), reduced ? 0 : t, Math.min(1, frac * 1.4));
 
     // portal heart + label
     ctx.globalAlpha = 1;

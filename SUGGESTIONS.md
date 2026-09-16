@@ -13,7 +13,8 @@ random so it will be more and people tends to come"
   ending on a cliffhanger + play portal. Retention comes from story, not motion.
 - IP bound (non-negotiable, stated to user): original sagas only — no Game of
   Thrones / One Piece names, characters, or art. Epic-serial structure, our worlds.
-- Status: design proposed in chat 2026-09-16 (two 6-chapter sagas mapped to the
-  6 live games). Waiting on user: APPROVE outlines or paste edits.
+- Status: outlines APPROVED by user 2026-09-16. LZ-1 SHIPPED (sagas.ts +
+  both engines rebound to chapters + saga tabs + ?saga=; 16/16 tests, web
+  build green, shell 21.81KB). Next: LZ-2 motifs, LZ-3 cliffhanger/share.
 - Tickets: LZ-1..LZ-4 (TICKETS.md, Landing saga queue). Build starts on approval.
 - Replaces: random zoom tunnel + dive + rift fly-through (deleted when saga ships).

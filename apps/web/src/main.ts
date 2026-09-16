@@ -4,6 +4,7 @@
 import { genGuestId, genName } from '../../../packages/identity/src/index.js';
 import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
 import { startDescent } from './descent.js';
+import { SAGAS, sagaAt } from './sagas.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -48,9 +49,49 @@ function divePortal(game: string): void {
   resolveGame(game, true);
 }
 try {
-  const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
-  if (dive) {
-    const flat = startDescent(dive, { onPortal: divePortal });
+  // SG-1: the dive reads a saga — tabs + ?saga= pick the book, chapters turn.
+  let sagaIdx = 0;
+  const sagaParam = Number.parseInt(qs.get('saga') ?? '', 10);
+  try {
+    const saved = Number.parseInt(localStorage.getItem('pg-saga') ?? '', 10);
+    sagaIdx = Number.isInteger(sagaParam) ? sagaParam : (Number.isInteger(saved) ? saved : 0);
+  } catch { sagaIdx = Number.isInteger(sagaParam) ? sagaParam : 0; }
+  sagaIdx = SAGAS.indexOf(sagaAt(sagaIdx));
+  let stopDive: (() => void) | null = null;
+  const paintSagaTabs = (): void => {
+    const tabs = document.getElementById('sagaTabs');
+    const sub = document.getElementById('sagaSub');
+    if (sub) sub.textContent = sagaAt(sagaIdx).sub;
+    if (!tabs) return;
+    tabs.innerHTML = '';
+    SAGAS.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = s.name;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', i === sagaIdx ? 'true' : 'false');
+      b.disabled = i === sagaIdx;
+      b.addEventListener('click', () => {
+        if (i === sagaIdx) return;
+        sagaIdx = i;
+        try { localStorage.setItem('pg-saga', String(i)); } catch { /* private */ }
+        try {
+          const u = new URL(location.href);
+          u.searchParams.set('saga', String(i));
+          history.replaceState(null, '', u.toString());
+        } catch { /* private */ }
+        paintSagaTabs();
+        bootDive(i);
+      });
+      tabs.appendChild(b);
+    });
+  };
+  const bootDive = (saga: number): void => {
+    const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
+    if (!dive) return;
+    try { stopDive?.(); } catch { /* gone */ }
+    const flat = startDescent(dive, { onPortal: divePortal, saga });
+    stopDive = flat.stop;
     const upgrade = (): void => {
       void (async () => {
         try {
@@ -60,12 +101,14 @@ try {
           const ram = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? null;
           const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (!mod.shouldUse3D({ webgl, ramGB: ram, reducedMotion: reduced })) return;
-          flat.stop();
-          await mod.startDive3D(dive, {
+          try { stopDive?.(); } catch { /* gone */ }
+          const d3 = await mod.startDive3D(dive, {
             onPortal: divePortal,
             onFace: (game: string) => resolveGame(game, false),
             rift,
+            saga,
           });
+          stopDive = d3.stop;
         } catch { /* 2D stays — art never blocks play */ }
       })();
     };
@@ -74,7 +117,9 @@ try {
     } else {
       globalThis.setTimeout(upgrade, 1200);
     }
-  }
+  };
+  paintSagaTabs();
+  bootDive(sagaIdx);
 } catch { /* art never blocks play */ }
 const SERVER =
   qs.get('server') ||

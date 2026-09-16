@@ -8,7 +8,8 @@
 // Budgets: 0 shell bytes (dynamic import only), own code ≤25KB, three.js from
 // CDN at runtime, 2D descent.ts stays as the fallback (WebGL fail / 2GB RAM /
 // reduced motion). DPR governor + hidden-tab pause + zero per-frame alloc.
-import { WORLDS, type World } from './descent.js';
+import { type World } from './descent.js';
+import { chaptersOf } from './sagas.js';
 import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
   layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
@@ -25,6 +26,8 @@ export interface Dive3DOpts {
   /** Fires when the faced world changes (face-follow PLAY bar). */
   onFace?: (game: string) => void;
   rift?: string;
+  /** SG-1: which saga the dive reads (depth turns its pages). */
+  saga?: number;
 }
 
 function hexColor(h: string): number {
@@ -208,6 +211,8 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   if (label) cv.setAttribute('aria-label', label);
   oldCv.replaceWith(cv);
   const T = await import(/* @vite-ignore */ THREE_PIN);
+  // SG-1: chapters replace random worlds — same World shape, story carried.
+  const WORLDS = chaptersOf(opts.saga ?? 0);
   const ACCENT = WORLDS.map((w) => hexColor(w.accent));
 
   const renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
@@ -479,9 +484,10 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       hearts.push({ x: p.x, z: p.z, game: p.world.game });
       const holder = new T.Group();
       holder.position.set(p.x, 0, p.z);
-      buildBiome(holder, p.index, p.seed, p.world);
+      const bi = p.world.biome ?? p.index; // chapter reuses a builder till LZ-2
+      buildBiome(holder, bi, p.seed, p.world);
       // resident spirit: the world's soul, bobbing above its heart.
-      const spirit = new T.Sprite(new T.SpriteMaterial({ map: spirits[p.index], transparent: true, depthWrite: false }));
+      const spirit = new T.Sprite(new T.SpriteMaterial({ map: spirits[bi], transparent: true, depthWrite: false }));
       spirit.scale.set(7, 7, 1);
       spirit.position.set(0, 11, 0);
       (spirit as any).userData.spirit = { base: 11, ph: (p.seed % 628) / 100 };
