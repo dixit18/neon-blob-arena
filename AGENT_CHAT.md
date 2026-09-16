@@ -648,3 +648,20 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Devika:** Board queued: ST-2/BZ-2/BZ-3/NR-2/NR-3/NR-4/G-0 in TICKETS.md;
   Sprint 10 (slice discipline) in SPRINTS.md. No UX-BLOCKER.
 **Kai:** Committing (no push — user ships prod).
+
+## 2026-09-16 — ST-2: studio fails closed (slice discipline, one slice per turn)
+**Zara:** Gate is fail-closed on all three `/studio/*` routes: STUDIO_KEY set
+  → key must match (query or header); unset → loopback-only. Rate cap stays
+  30/min with 429 receipts. No sim touched.
+**Leo:** Client asks for the key once on 403 (sessionStorage, never
+  localStorage), retries once, surfaces locked/wrong-key/flood states;
+  pagehide kills the 3s poll. Menu-only polling unchanged. Chunk 7.58→8.61KB
+  (lazy, shell still 18.29KB).
+**Riya (receipts):** 174/174 green (2 new: key-gate 403/201 + flood 429);
+  server tsc + web build green. No open items without human hands.
+**Vikram (2 flaws):** 1) key travels as query param option (logs leak) —
+  ACCEPTED (header is primary, query is fallback for curl; ST-3 can drop it).
+  2) loopback check trusts remoteAddress behind proxies — ACCEPTED (prod runs
+  direct on Render; note if a proxy lands in front).
+**Devika:** ST-2 → Done. Next pull: BZ-2.
+**Kai:** Committing (no push).

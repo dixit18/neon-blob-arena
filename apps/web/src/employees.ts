@@ -154,11 +154,35 @@ export async function mount(el: HTMLElement, ctx: StudioCtx): Promise<void> {
     return employees.find((e) => e.id === id)?.name.split(' ')[0] ?? '???';
   }
 
+  // ST-2: optional STUDIO_KEY. Asked once on a 403, kept in sessionStorage
+  // (never localStorage — the key must not outlive the tab).
+  function studioKey(): string {
+    try { return sessionStorage.getItem('pg-studio-key') || ''; } catch { return ''; }
+  }
+  async function ensureKey(): Promise<string> {
+    let k = studioKey();
+    if (k) return k;
+    try {
+      k = prompt('Studio is locked — paste STUDIO_KEY:') || '';
+      if (k) sessionStorage.setItem('pg-studio-key', k);
+    } catch { /* headless */ }
+    return k;
+  }
+
   async function refresh(): Promise<void> {
     if (closed || document.hidden) return;
     try {
       const base = ctx.server.replace(/^ws/, 'http');
-      const r = await fetch(`${base}/studio/employees`);
+      const headers: Record<string, string> = {};
+      const k = studioKey();
+      if (k) headers['x-studio-key'] = k;
+      let r = await fetch(`${base}/studio/employees`, { headers });
+      if (r.status === 403) {
+        const nk = await ensureKey();
+        if (!nk) { stat.textContent = 'studio locked — needs STUDIO_KEY'; return; }
+        r = await fetch(`${base}/studio/employees`, { headers: { 'x-studio-key': nk } });
+      }
+      if (r.status === 403) { stat.textContent = 'studio locked — wrong key'; return; }
       if (!r.ok) { stat.textContent = 'studio unreachable — is the server awake?'; return; }
       const j = (await r.json()) as { employees: Employee[]; feed: Thought[]; count: number };
       employees = j.employees ?? [];
@@ -176,11 +200,26 @@ export async function mount(el: HTMLElement, ctx: StudioCtx): Promise<void> {
     stat.textContent = 'sending…';
     try {
       const base = ctx.server.replace(/^ws/, 'http');
-      const r = await fetch(`${base}/studio/thought`, {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const k = studioKey();
+      if (k) headers['x-studio-key'] = k;
+      let r = await fetch(`${base}/studio/thought`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ by: 'boss', channel, kind: 'reply', text }),
       });
+      if (r.status === 403) {
+        const nk = await ensureKey();
+        if (nk) {
+          r = await fetch(`${base}/studio/thought`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-studio-key': nk },
+            body: JSON.stringify({ by: 'boss', channel, kind: 'reply', text }),
+          });
+        }
+      }
+      if (r.status === 403) { stat.textContent = 'studio locked — wrong key'; input.value = text; return; }
+      if (r.status === 429) { stat.textContent = 'slow down — one thought at a time'; input.value = text; return; }
       if (!r.ok) stat.textContent = 'send failed — retry';
       else { await refresh(); stat.textContent = 'sent — the crew sees it on their next pull'; }
     } catch { stat.textContent = 'send failed — server asleep?'; }
@@ -192,6 +231,7 @@ export async function mount(el: HTMLElement, ctx: StudioCtx): Promise<void> {
   await refresh();
   const timer = window.setInterval(() => { void refresh(); }, 3000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) void refresh(); });
+  window.addEventListener('pagehide', () => { closed = true; window.clearInterval(timer); }); // ST-2: poll never outlives the view
   new MutationObserver(() => {
     if (!document.contains(el)) { closed = true; window.clearInterval(timer); }
   }).observe(document.body, { childList: true, subtree: true });

@@ -66,10 +66,25 @@ export function createApp(opts: { region?: string } = {}) {
       return;
     }
     // Hidden owner studio (OpenMausBot-style threads). NEVER linked from the
-    // player shell, NEVER in /catalog. noindex always; optional STUDIO_KEY
-    // gate: when set, POSTs need ?key= or x-studio-key to match.
+    // player shell, NEVER in /catalog. noindex always. ST-2 fail-closed gate:
+    // with STUDIO_KEY set, every /studio/* call needs ?key= or x-studio-key
+    // to match; without it, only loopback may enter (prod fails closed).
+    const studioAllowed = (u: URL): boolean => {
+      const need = process.env.STUDIO_KEY || '';
+      const got = u.searchParams.get('key') || req.headers['x-studio-key'] || '';
+      if (need) return got === need;
+      const ip = req.socket.remoteAddress || '';
+      return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+    };
+    const studioDenied = (): boolean => {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      res.statusCode = 403;
+      res.end(JSON.stringify({ error: 'studio locked' }));
+      return true;
+    };
     if (url.pathname === '/studio/employees' && req.method === 'GET') {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      if (!studioAllowed(url)) return studioDenied();
       const since = Number(url.searchParams.get('since') || 0);
       res.end(JSON.stringify({
         employees: EMPLOYEES.map((e) => ({ ...e, lastSeen: studio.lastSeenBy(e.id) })),
@@ -81,6 +96,7 @@ export function createApp(opts: { region?: string } = {}) {
     }
     if (url.pathname === '/studio/feed' && req.method === 'GET') {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      if (!studioAllowed(url)) return studioDenied();
       const ch = url.searchParams.get('channel') || undefined;
       const by = url.searchParams.get('by') || undefined;
       const limit = Math.min(Number(url.searchParams.get('limit') || 50), 200);
@@ -91,9 +107,7 @@ export function createApp(opts: { region?: string } = {}) {
     }
     if (url.pathname === '/studio/thought' && req.method === 'POST') {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-      const need = process.env.STUDIO_KEY || '';
-      const got = url.searchParams.get('key') || req.headers['x-studio-key'] || '';
-      if (need && got !== need) { res.statusCode = 403; res.end(JSON.stringify({ error: 'forbidden' })); return; }
+      if (!studioAllowed(url)) return studioDenied();
       const ip = (req.socket.remoteAddress || '?') + '';
       const now = Date.now();
       const hits = (studioHits.get(ip) ?? []).filter((t) => now - t < 60_000);

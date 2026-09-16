@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [ST-2] Studio hardening — Done: fail-closed gate on all /studio/* routes
+  (STUDIO_KEY match, else loopback-only), 403/429 receipts, client key prompt
+  (sessionStorage) + pagehide poll kill. Receipt: 174/174 tests green.
 - [DD-1..DD-6] DOODLE DUEL live drawing rooms — Done: draw/guess sim (packed
   snapshots ≤4KB, curated prompts, bail path) + guessing bots + canvas
   client + 6 E2E. Receipt: 124/124 tests green.

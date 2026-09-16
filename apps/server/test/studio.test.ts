@@ -59,4 +59,42 @@ describe('studio endpoints', () => {
     assert.ok(cat.some((g) => g.id === 'nitro-rift'));
     assert.equal(new Set(cat.map((g) => g.verb)).size, cat.length);
   });
+  it('ST-2: STUDIO_KEY gates every studio route; loopback stays free without it', async () => {
+    process.env.STUDIO_KEY = 'slice-two';
+    try {
+      for (const path of ['/studio/employees', '/studio/feed?channel=build']) {
+        assert.equal((await fetch(`${base}${path}`)).status, 403);
+      }
+      const denied = await fetch(`${base}/studio/thought`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ by: 'boss', channel: 'build', text: 'nope' }),
+      });
+      assert.equal(denied.status, 403);
+      const ok = await fetch(`${base}/studio/thought`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-studio-key': 'slice-two' },
+        body: JSON.stringify({ by: 'boss', channel: 'build', kind: 'reply', text: 'key works' }),
+      });
+      assert.equal(ok.status, 201);
+      assert.equal((await fetch(`${base}/studio/feed?channel=build&key=slice-two`)).status, 200);
+      assert.equal((await fetch(`${base}/studio/employees?key=slice-two`)).status, 200);
+    } finally {
+      delete process.env.STUDIO_KEY;
+    }
+    assert.equal((await fetch(`${base}/studio/employees`)).status, 200); // loopback free again
+  });
+  it('ST-2: POST flood trips 429, never throws', async () => {
+    const statuses = new Set<number>();
+    for (let i = 0; i < 30; i++) {
+      const r = await fetch(`${base}/studio/thought`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ by: 'kai', channel: 'build', kind: 'receipt', text: `flood ${i}` }),
+      });
+      statuses.add(r.status);
+      await r.text();
+    }
+    assert.ok(statuses.has(429), '30/min cap trips');
+  });
 });

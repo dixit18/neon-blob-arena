@@ -14,6 +14,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   Fixed pre-existing red: ludo `scores` type. Next: slice-2 queue
   (ST-2/BZ-2/BZ-3/NR-2/NR-3/NR-4/G-0) — Devika owns the board. Skill installed:
   threejs-3d-generator (needs Tripo key; unused this turn).
+- ST-2 SHIPPED (slice-2 queue): studio fails closed — STUDIO_KEY match or
+  loopback-only on all /studio/* routes, 403/429 receipts, client prompts once
+  for the key (sessionStorage) + pagehide kills the poll. Verified: 174/174
+  tests (2 new), server tsc + web build green (shell still 18.29KB).
+  Next: BZ-2 (blaze squads + loot tiers) — one slice per turn.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
