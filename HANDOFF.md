@@ -102,9 +102,17 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- None. D12 pivot turn complete; tree ready to commit (see Next up).
+- Prod-wiring fix SHIPPED (`39af9cf`): web fallback was `wss://playground.example.com`
+  (dead placeholder) → now `wss://playground-server.onrender.com`; `render.yaml`
+  pins `VITE_SERVER` to the same. Verified: 53/53 tests, web build 4.85KB green,
+  local boot `/health` ok. BUT prod `playground-server/health` still 503 after
+  8-probe wake loop (~2min) + code proven boot-clean locally — needs dashboard
+  eyes (Events/Logs) to see why Render holds it at 503.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
+1. USER in Render dashboard for `playground-server`: Events tab state? Logs show
+   `[server] playground :10000`? Paste last 20 log lines back here.
+2. USER only for: UptimeRobot on /health (BE-001) once server is green.
 1. [RR-1] Reflex Riot sim + tests (Zara).
 2. [RR-2] Riot bots (Zara) — parallel with RR-1.
 3. [RR-3] Replay + Chaos Strip (Leo + Zara).
