@@ -66,6 +66,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   crown title, re-entry URL, honest mid-game). Verified: 3/3 + tsc clean.
   Pushing. Next: LD-4 (canvas board client). Deploy: Render rebuilding from
   LD-2 push — /health watch stays open.
+- LD-4 SHIPPED: canvas client (superellipse 52-loop, home lanes, corner
+  bases, glowing tappable options, ROLL lock + Space/1-4 keys). Verified: web
+  build green (ludo chunk 5.53KB, shell 18.58KB). NOTE: ludo still unregistered
+  server-side (refuses) — LD-6 wires it. Next: LD-6 + LD-5 e2e.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

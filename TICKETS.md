@@ -28,6 +28,7 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [LD-1] Sim — DONE (see Done section; 24/24 green).
 - [LD-2] Bots — DONE (see Done section; 8/8 green).
 - [LD-3] Share — DONE (see Done section; 3/3 green).
+- [LD-4] Client — DONE (see Done section; build green, 5.53KB).
 - [LD-2] Bots: roll + pick with tiers — Owner: Zara. Accept: bots prefer
   capture > leave-base > finish, 20% casual picks; instant fill to 4;
   labelled.
@@ -91,6 +92,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [LD-4] Ludo client — Done: parametric canvas board (52-loop + home lanes
+  + bases + crown), same-tick ROLL, tappable options + 1-4 keys, 360px-first.
+  Receipt: web build green, ludo chunk 5.53KB (≤250KB).
 - [LD-3] Ludo share — Done: ResultGrid (final board + winner + re-entry URL,
   honest mid-game, last-one-racing crown). Receipt: 3/3 + tsc clean.
 - [LD-2] Ludo bots — Done: tiered driver (sharp/casual, capture >

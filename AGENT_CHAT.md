@@ -820,3 +820,17 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** No flaws — pure exporter, zero sim touch, budget untouched.
 **Devika:** LD-3 → Done. Next: LD-4 (canvas client).
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — LD-4: ludo canvas client (chained, deploy watch on)
+**Leo:** Parametric board — superellipse 52-loop, 4 home lanes into the
+  center crown, corner bases, seat-colored tokens, glowing tappable options
+  (34px hit slop), ROLL locks same-tick, Space/1-4 keys, coach line per phase.
+  No assets, 360px-first, touch-action manipulation. Ludo chunk 5.53KB.
+**Riya (receipts):** web tsc + vite green. E2E + wire-up ride LD-5/LD-6 —
+  client is NOT playable until the server registers the driver (still
+  refuses; honest firewall).
+**Vikram (2 flaws):** 1) stylized loop isn't a regulation ludo cross —
+  ACCEPTED (readability over geography; exactness lives in the sim).
+  2) no visual dice pips, just a number — ACCEPTED (LD-7 polish candidate).
+**Devika:** LD-4 → Done. Next: LD-6 then LD-5 (dependency order).
+**Kai:** Committing (push rides LD-6).
