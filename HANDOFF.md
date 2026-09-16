@@ -113,14 +113,12 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- CRAFT PASS (user verdict: R&D promised wow, we shipped grey boxes — owned).
-  Shipped: `apps/web/src/art.ts` (procedural RIFT descent backdrop, pooled
-  bursts, synthesized sfx — zero assets), living landing (glass cards, mood
-  tints the rift, staggered entrances), riot juice (countdown ring, score
-  pops, streak fire, win/tick sounds), doodle ink/paper (per-stroke inks,
-  grid paper, phase + guess sounds). Verified: 124/124 tests, both tsc,
-  web build green (landing 10.3KB, riot 6.45KB, doodle 5.29KB — budgets
-  hold). Pushing now. Next: prod health re-probe; Ludo Sprint 5 tickets.
+- THE DIVE SHIPPED (user: zoomquilt-grade or nothing — no excuses): endless
+  procedural zoom through 6 worlds (`apps/web/src/descent.ts`), scroll/drag/
+  auto-drift, portal taps lock a game + scroll to PLAY. Landing 17.7KB.
+  Ludo sim sits WIP (untested) — LD tickets written, build resumes there.
+  STILL NEEDED from user: 2–3 reference screenshots pasted here (I cannot
+  see images) and/or agent-browser enablement.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. USER in Render dashboard for `playground-server`: Events tab state? Logs show
