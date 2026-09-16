@@ -15,10 +15,10 @@ export interface World {
 
 export const WORLDS: World[] = [
   { name: 'ORBIT RINGS', sub: 'reflex-riot lives here — react!', game: 'reflex-riot', sky0: '#0B0B16', sky1: '#1E1033', accent: MAG },
-  { name: 'CANDY DUNES', sub: 'sweet ground, fast feet', game: 'reflex-riot', sky0: '#2B1030', sky1: '#4A1545', accent: LIME },
+  { name: 'CANDY DUNES', sub: 'blaze-squad lives here — survive!', game: 'blaze-squad', sky0: '#2B1030', sky1: '#4A1545', accent: LIME },
   { name: 'INK GARDEN', sub: 'doodle-duel lives here — draw!', game: 'doodle-duel', sky0: '#101014', sky1: '#23232E', accent: BONE },
-  { name: 'NEON REEF', sub: 'ludo-clash lives here — race!', game: 'ludo-clash', sky0: '#04141A', sky1: '#0A2E3A', accent: CYAN },
-  { name: 'EMBER DEEP', sub: 'hold your nerve', game: 'ludo-clash', sky0: '#160B08', sky1: '#3A1408', accent: GOLD },
+  { name: 'NEON REEF', sub: 'nitro-rift lives here — race!', game: 'nitro-rift', sky0: '#04141A', sky1: '#0A2E3A', accent: CYAN },
+  { name: 'EMBER DEEP', sub: 'ludo-clash lives here — race home!', game: 'ludo-clash', sky0: '#160B08', sky1: '#3A1408', accent: GOLD },
   { name: 'STAR NURSERY', sub: 'everything loops — dive again', game: 'reflex-riot', sky0: '#050510', sky1: '#141433', accent: LIME },
 ];
 

@@ -21,23 +21,43 @@ try {
   }
 } catch { /* art never blocks play */ }
 window.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
-// The dive: endless zoom through the worlds. Tapping a world locks it in.
+// The dive: endless zoom through the worlds. 2D paints instantly (first
+// paint never waits); the 3D dive upgrades lazily on idle when the device
+// can stun (WebGL + motion OK + >2GB RAM). Any failure stays 2D, silently.
+function divePortal(game: string): void {
+  sfx.pop();
+  void catalog.then((games) => {
+    const g = games.find((x) => x.id === game) ?? games[0];
+    if (!g) { status('that world is still being excavated.'); return; }
+    picked = g;
+    try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
+    status(`${g.id}: ${g.hook} — hit PLAY!`);
+    document.getElementById('games')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
 try {
   const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
   if (dive) {
-    startDescent(dive, {
-      onPortal: (game) => {
-        sfx.pop();
-        void catalog.then((games) => {
-          const g = games.find((x) => x.id === game) ?? games[0];
-          if (!g) { status('that world is still being excavated.'); return; }
-          picked = g;
-          try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
-          status(`${g.id}: ${g.hook} — hit PLAY!`);
-          document.getElementById('games')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-      },
-    });
+    const flat = startDescent(dive, { onPortal: divePortal });
+    const upgrade = (): void => {
+      void (async () => {
+        try {
+          const mod = await import('./dive3d.js');
+          const probe = document.createElement('canvas');
+          const webgl = !!(probe.getContext('webgl2') ?? probe.getContext('webgl'));
+          const ram = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? null;
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (!mod.shouldUse3D({ webgl, ramGB: ram, reducedMotion: reduced })) return;
+          flat.stop();
+          await mod.startDive3D(dive, { onPortal: divePortal, rift });
+        } catch { /* 2D stays — art never blocks play */ }
+      })();
+    };
+    if ('requestIdleCallback' in window) {
+      (window as unknown as { requestIdleCallback: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback(upgrade, { timeout: 2500 });
+    } else {
+      globalThis.setTimeout(upgrade, 1200);
+    }
   }
 } catch { /* art never blocks play */ }
 const SERVER =

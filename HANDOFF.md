@@ -4,6 +4,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- RD-1 SHIPPED (user: share-worthy 3D, take the time): RIFT DIVE 3D — GLSL
+  nebula sky, flowing energy rings, 6 biome dioramas, chase camera with vista
+  slow-downs, 📸 photo share (PNG + rift link), portals for all 5 games. Lazy
+  post-paint (2D first), 2D fallback forever. Verified: 7 layout tests, web
+  build green (shell 19.19KB, dive chunk 15.10KB). Pushing.
 - SLICE 1 SHIPPED (user: small parts only, keep shipping): hidden /employees
   studio live (`packages/studio` + 3 endpoints + lazy 7.58KB view — roster,
   threads, channels, Boss composer; never linked/indexed) + blaze-squad core

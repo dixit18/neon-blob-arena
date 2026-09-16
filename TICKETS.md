@@ -6,7 +6,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- (clear — everything below re-tested green)
+- RD-1 RIFT DIVE 3D flagship — Owner: Leo + Mira + Riya. Accept: lazy
+  post-paint upgrade, 2D fallback intact, shell ≤60KB, own chunk ≤25KB,
+  vista share, portals for all 5 games. Status: SHIPPED (D13, build green
+  + 7 layout tests).
 
 ## Open (prioritized) — SLICE-2 QUEUE (small parts only, Rule: one slice per turn)
 - [ST-2] Studio hardening — Owner: Zara + Leo. Accept: STUDIO_KEY enforced

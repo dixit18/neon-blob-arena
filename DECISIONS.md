@@ -281,3 +281,25 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
 - CONCLUSION: pivot APPROVED. Delete legacy FE/BE, scaffold Foundation this turn, Reflex Riot next.
 - Status: CONCLUDED. Owner: Aarav. Signed: Rehan. Cross memo: the engine is
   infrastructure, the catalogue was the product — we rebooted the right one.
+
+## D13 — Rift Dive 3D flagship: the landing becomes the shareable (user: "nobody wants to share this, build what others can't fast")
+- WHY (user verdict, Aarav): the live screenshot proved it — a handsome but
+  static menu nobody photographs. Sharing needs a VISTA: a real-time moment
+  worth capturing. So the dive becomes true 3D: GLSL nebula sky, flowing
+  energy rings, six procedural biome dioramas (one per game portal), chase
+  camera with vista slow-downs, and a 📸 photo mode that exports PNG + rift
+  invite link via native share (clipboard fallback). Raw three.js 0.160.0,
+  pinned CDN, lazy post-paint — NOT threepipe (a viewer framework is the
+  wrong tool for a bespoke scene; custom shaders are the point). Portals
+  remapped so all 5 playable games own a world.
+- WHY-NOT (Rehan): a 3D landing risks first-paint (bounds: 2D paints first,
+  3D upgrades on idle; shell 19.19KB ≤ 60KB holds); CDN three.js can flop
+  (bounds: any failure stays 2D silently — proven by construction, no code
+  path assumes 3D); low-end phones jank (bounds: gate is WebGL + motion OK +
+  >2GB RAM, DPR governor, hidden-tab + offscreen pause, pooled math);
+  screenshot-share is a new viral surface (bounds: file+link carry game+room,
+  same trust as player names; no PII in frame).
+- CONCLUSION: SHIP with bounds above. 2D descent.ts stays forever as the
+  fallback. Measure: 📸 taps, vista shares, dive→PLAY conversion.
+- Status: CONCLUDED. Owner: Aarav (call) + Leo (build) + Mira (art check) +
+  Riya (gates). Signed: Rehan.

@@ -864,3 +864,35 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   crew does not idle: next frontier is a new game call — that decision is the
   owner's (user), everything buildable without them is built.
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — RD-1: RIFT DIVE 3D flagship (user: build what others can't fast)
+**Aarav:** Verdict accepted without defense: the live screenshot shows a menu
+  nobody photographs. The fix is a VISTA — a real-time moment worth capturing.
+  Raw three.js 0.160.0 pinned CDN, NOT threepipe (viewer framework ≠ bespoke
+  scene; shaders are the point). Portals remapped: all 5 games own a world.
+**Leo:** GLSL fbm nebula dome + flowing dash rings (shared ShaderMaterials),
+  6 dioramas (ringed planet + moons, wireframe dunes + sprinkles, ink garden
+  + petals, synthwave sun + grid + jellyfish, ember pillars + embers, nebula
+  heart), star shells, pooled motes, chase camera with banking + vista
+  slow-downs, raycast portals (faced-world fallback), 📸 vista → PNG via
+  native share else download + copied rift link. Lap recycle with real
+  disposal. 2D paints first, 3D upgrades on idle; any failure stays 2D.
+  Dive chunk 15.10KB own code (≤25KB), shell 19.19KB (≤60KB).
+**Mira:** Same six worlds, new dimension — palette and names untouched so the
+  universe stays one. Art check due on-device (glow density, caption leg).
+**Nova:** three.js 0.160.0 module build is the pinned path; threepipe 0.5.1
+  +esm verified resolving (stays the game-scenes loader).
+**Kabir:** Counter held and answered: CDN flop = silent 2D (no code path
+  assumes 3D); low-end = gate (WebGL + motion + >2GB) + DPR governor +
+  offscreen pause; share surface = file+link, same trust as names, no PII.
+**Rehan:** WHY-NOT signed in D13 with bounds. Concluded, shipped.
+**Riya (receipts):** 7/7 layout tests (gate, placement, determinism, depth
+  math) + web tsc + vite green. Headless WebGL impossible here — the 3D
+  proof is device-hands: vista + portal tap + 📸 on a real phone (user).
+  Caught in-loop: canvas 2D-context conflict (fresh-canvas swap), roomview
+  GPU waste (visibility observer), string/number color mixups (typed).
+**Vikram (2 flaws):** 1) fresh-canvas swap orphans 2D listeners (once per
+  pageload) — ACCEPTED (page-lifetime, no loop). 2) photo PNG has no baked
+  branding — ACCEPTED (caption + link carry it; branded frame is RD-2).
+**Devika:** RD-1 → Done. No UX-BLOCKER (2D fallback = the accessible path).
+**Kai:** Committing + pushing.

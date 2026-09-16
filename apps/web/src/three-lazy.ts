@@ -11,11 +11,14 @@
 const THREEPIPE_URLS = [
   'https://cdn.jsdelivr.net/npm/threepipe@0.5.1/+esm',
 ];
-const THREEPIPE_VERSION = '0.5.1';
+export const THREEPIPE_VERSION = '0.5.1';
 const THREE_URLS = [
   'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
 ];
 const THREE_VERSION = '0.160.0';
+
+/** Pinned raw-three ESM for bespoke scenes (dive). Pre-bundled, no deps. */
+export const THREE_PIN = THREE_URLS[0]!;
 
 async function tryImport(urls: string[]): Promise<{ mod: unknown; url: string } | null> {
   for (const url of urls) {
