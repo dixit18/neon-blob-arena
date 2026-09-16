@@ -208,22 +208,22 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- THE DIVE SHIPPED (user: zoomquilt-grade or nothing — no excuses): endless
-  procedural zoom through 6 worlds (`apps/web/src/descent.ts`), scroll/drag/
-  auto-drift, portal taps lock a game + scroll to PLAY. Landing 17.7KB.
-  Ludo sim sits WIP (untested) — LD tickets written, build resumes there.
-  STILL NEEDED from user: 2–3 reference screenshots pasted here (I cannot
-  see images) and/or agent-browser enablement.
+- SPRINT 4 READ THE ROOM (verb PREDICT, first party/social game): vote rounds
+  on curated prompts → reveal crowns → Party Fingerprint share. Files:
+  `games/read-the-room/sim.ts + driver.ts + test/*.test.ts`,
+  `apps/web/src/games/read-the-room.ts`, `apps/server/src/app.ts` (register),
+  `TICKETS.md` (RT-1..RT-6). DoD: ≥20 sim tests + 8 E2E, 15 players,
+  reconnect keeps question, no double-score, p95 ≤2KB.
+- Phase 0 DONE: dirty PF-1/BX-1/TP-1/NR-5 tree verified (240/240 tests,
+  server tsc clean) + dive `dt` build break fixed → web build green (shell
+  18.86KB) → committed 8a2eae4. Tree CLEAN.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. USER in Render dashboard for `playground-server`: Events tab state? Logs show
-   `[server] playground :10000`? Paste last 20 log lines back here.
-2. USER only for: UptimeRobot on /health (BE-001) once server is green.
-1. [RR-1] Reflex Riot sim + tests (Zara).
-2. [RR-2] Riot bots (Zara) — parallel with RR-1.
-3. [RR-3] Replay + Chaos Strip (Leo + Zara).
-4. [RR-4] Riot client (Leo). [RR-5] E2E (Riya, blocks release). [RR-6] Wire-up (Kai).
-5. USER only for: UptimeRobot on /health (BE-001) once Render blueprint syncs.
+1. [RT-1] Read-the-room sim + tests (Zara) — IN PROGRESS.
+2. [RT-2] Room bots (Zara) — next pull.
+3. [RT-3] Party Fingerprint share (Leo + Zara).
+4. [RT-4] Room client (Leo). [RT-5] E2E (Riya, blocks release). [RT-6] Wire-up (Kai).
+5. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

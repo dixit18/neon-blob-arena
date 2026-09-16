@@ -10,6 +10,30 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   post-paint upgrade, 2D fallback intact, shell ≤60KB, own chunk ≤25KB,
   vista share, portals for all 5 games. Status: SHIPPED (D13, build green
   + 7 layout tests).
+- Sprint 4 READ THE ROOM — Owner: Zara (sim/bots) + Leo (share/client) +
+  Riya (e2e) + Kai (wire-up). Status: RT-1 IN PROGRESS (sim engine).
+
+## Open (prioritized) — Sprint 4 READ THE ROOM (pull in order, Rule 14)
+- [RT-1] Sim: vote + reveal + scoring engine — Owner: Zara. Accept: phases
+  lobby→vote→reveal→final, curated prompts (≥12, seeded rotation, no repeat
+  within a game), one-vote-per-round dedup (second vote ignored), scoring
+  (+2 picked-the-crowd-favorite, +1 per vote received, most-picked crowned),
+  vote/reveal timers with auto-resolve, leaving (leaver's votes void, last-one
+  wins), empty-room lobby reset, reconnect-safe stateless snapshots,
+  ≥20 headless tests green.
+- [RT-2] Bots: social vote with tiers — Owner: Zara. Accept: sharps vote the
+  current points leader (social bias), casuals random 30%; instant fill to 4
+  for solo humans; labelled; ≥6 new headless tests.
+- [RT-3] Share: Party Fingerprint — Owner: Leo + Zara. Accept: per-question
+  crowns + winner + re-entry URL validates via `packages/share` asserts.
+- [RT-4] Client: question card + vote buttons + reveal — Owner: Leo. Accept:
+  question renders, one-tap vote same-tick, reveal shows crowns + standings,
+  360px clean, chunk ≤250KB; mounts at `apps/web/src/games/read-the-room.ts`.
+- [RT-5] E2E x8 + snapshot budget — Owner: Riya. Accept: 8 end-to-end checks
+  green incl. reconnect-keeps-question + no-double-score; snapshot p95 ≤2KB;
+  receipts in chat. Blocks release if red.
+- [RT-6] Wire-up: register driver — Owner: Kai. Accept: `read-the-room`
+  plays at `?game=read-the-room&room=`; catalog already lists it.
 
 ## Open (prioritized) — SLICE-2 QUEUE (small parts only, Rule: one slice per turn)
 - [ST-2] Studio hardening — Owner: Zara + Leo. Accept: STUDIO_KEY enforced

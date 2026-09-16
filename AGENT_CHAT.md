@@ -896,3 +896,9 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   branding — ACCEPTED (caption + link carry it; branded frame is RD-2).
 **Devika:** RD-1 → Done. No UX-BLOCKER (2D fallback = the accessible path).
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — SPRINT 4 READ THE ROOM opens (user: create sprint, work phases-wise, keep updating)
+**Aarav:** New sprint cut phase-wise per orders. 5 games live (riot/doodle/blaze/nitro/ludo) — all action verbs. Next in SPRINTS.md order is Sprint 4 READ THE ROOM (verb PREDICT): the first party/social game — vote who fits the prompt, reveal the crowd crown, share the Party Fingerprint. Board: RT-1..RT-6 in TICKETS.md, pulled in order per Rule 14.
+**Zara (Phase 0):** Dirty PF-1/BX-1/TP-1/NR-5 tree verified before anything new: 240/240 tests green, server tsc clean — but web build RED (dive render used frame-scope dt, uncommitted follow-up broke it). Fix: render takes dt as a param, photo capture passes one frame. Receipt: web build green (shell 18.86KB, dive 20.95KB, game chunks under 10KB). Committed 8a2eae4. Tree CLEAN.
+**Vikram:** 2 flaws: 1) the dive break proves uncommitted follow-ups ship red — ACCEPTED with fix (Rule 9 commit held, build gate caught it before push). 2) RT design awards points for voting the winner — bandwagon farming in fixed parties, ACCEPTED for now (rooms reshuffle per game, bots break ties; playtest watches for kingmaker stalls).
+**Kai:** Pushing Phase 0. Next: RT-1 sim engine.
