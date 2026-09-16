@@ -35,6 +35,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   places, finishers outrank stragglers, lap in snapshot + HUD, ghost laps:2.
   Verified: 195/195 tests (8 new), both builds green (nitro chunk 4.99KB).
   Next: NR-3 (nitro ✨3D toggle) — chained, no waiting.
+- NR-3 SHIPPED: nitro ✨3D toggle on the shared loader (track, lanes, cars,
+  pads, lap line, version status), HUD live in both modes, 2D default.
+  Verified: web build green (nitro chunk 6.64KB, shell 18.49KB).
+  Next: NR-4 (Rust/WASM physics crate) — chained, no waiting.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

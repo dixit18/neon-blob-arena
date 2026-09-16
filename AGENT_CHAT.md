@@ -725,3 +725,18 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   (rubber-band keeps packs; G-0 soak watches).
 **Devika:** NR-2 → Done. Next: NR-3 (chained).
 **Kai:** Committing (no push).
+
+## 2026-09-16 — NR-3: nitro ✨3D toggle (chained, no waiting)
+**Leo:** Same shared loader, zero new deps: track plane, 4 lanes, car boxes
+  (lime you / gray bots / pink humans), lime pad markers, white lap line,
+  chase camera behind you, engine version in the status line. HUD pills update
+  in 3D mode too (restructured paint: HUD first, then 3D-or-2D). 2D default,
+  offline intact. Nitro chunk 4.99→6.64KB (≤250KB ✓), shell 18.49KB (≤60KB ✓).
+**Riya (receipts):** web tsc + vite green. No sim touched — full suite rides
+  the NR-4 close-out. Manual left: ✨ tap on a real phone (human hands).
+**Vikram (2 flaws):** 1) 3D camera has no lookAt (fixed-angle chase) —
+  ACCEPTED (reads fine top-down-chase; BZ-4 polish if complaints). 2) car
+  colors duplicate 2D semantics, no legend — ACCEPTED (you-lime is the only
+  contract, HUD place pill covers the rest).
+**Devika:** NR-3 → Done. Next: NR-4 (chained).
+**Kai:** Committing (no push).

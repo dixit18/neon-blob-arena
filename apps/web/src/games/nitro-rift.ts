@@ -1,8 +1,8 @@
-// apps/web/src/games/nitro-rift.ts — Nitro Rift client, SLICE 1 (2D only).
-// Canvas top-down: 4 lanes, you climb, pads are green chevrons, HUD shows
-// place + boost. ◀ ▶ buttons glide lanes, BOOST holds the button down;
-// arrows + Space work on desktop. Every tap paints same-tick.
-// Slice 2 adds the ✨ 3D toggle (threepipe first, three.js fallback).
+// apps/web/src/games/nitro-rift.ts — Nitro Rift client (NR-3: ✨ 3D toggle).
+// Base tier (always works): Canvas top-down, lap-relative. Enhanced tier
+// (explicit tap only): threepipe → three.js CDN scene, 2D default intact.
+import { loadThree } from '../three-lazy.js';
+
 export interface MountCtx { server: string; game: string; room: string; name: string }
 
 type Snap = {
@@ -27,6 +27,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     + '#nr button{cursor:pointer;border:2px solid #2A2A2E;border-radius:12px;padding:14px;font-weight:900;font-size:18px;min-height:56px;background:#121214;color:#F2EDE3;flex:1}'
     + '#nr button:active{border-color:#C6F135}'
     + '#nr #nrBoost{flex:2;background:linear-gradient(135deg,#C6F135,#8FE000);color:#070708;border:none}'
+    + '#nr #nr3d{flex:0.7;background:#121214;color:#C6F135;border:2px solid #C6F135;font-size:15px}'
     + '#nr #nrFeed{font-size:12px;color:#B9B2A4;min-height:18px;margin-top:6px}';
   el.appendChild(css);
   const box = document.createElement('div');
@@ -35,7 +36,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     + '<canvas id="nrCv" width="480" height="640" aria-label="Nitro rift track"></canvas>'
     + '<div class="hud"><span class="pill" id="nrPlace">P–</span><span class="pill" id="nrBoostP">⚡ 60</span>'
     + '<span class="pill" id="nrHeat">🏁 heat 1</span></div>'
-    + '<div class="row"><button id="nrL">◀</button><button id="nrBoost">BOOST</button><button id="nrR">▶</button></div>'
+    + '<div class="row"><button id="nrL">◀</button><button id="nrBoost">BOOST</button><button id="nrR">▶</button><button id="nr3d">✨</button></div>'
     + '<div id="nrFeed"></div>';
   el.appendChild(box);
 
@@ -96,12 +97,25 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   });
 
   function paint(): void {
+    if (!snap) {
+      const W0 = (cv.width = cv.clientWidth * 2 || 480);
+      cv.height = Math.round(W0 * 1.33);
+      return;
+    }
+    // HUD always updates (2D and 3D alike).
+    placeP.textContent = `P${snap.you.place || '–'}/${snap.racers.length}`;
+    boostP.textContent = `⚡ ${snap.you.boost}`;
+    heatP.textContent = `🏁 heat ${snap.heat} · lap ${snap.you.lap ?? 1}/2`;
+    feed.textContent = snap.feed.join(' · ');
+    if (snap.phase === 'lobby') say('heat forms… first across takes it');
+    else if (snap.phase === 'race') say(`P${snap.you.place} — pads refill boost, bumps cost speed`);
+    else say('heat done — fresh grid in a few seconds');
+    if (three) { try { three.render(snap); } catch { three = null; } if (three) return; }
     const W = (cv.width = cv.clientWidth * 2 || 480);
     const H = (cv.height = Math.round(W * 1.33));
     g.clearRect(0, 0, W, H);
     g.fillStyle = '#0E0E12';
     g.fillRect(0, 0, W, H);
-    if (!snap) return;
     const laneW = W / LANES;
     g.strokeStyle = '#2A2A2E';
     g.lineWidth = 2;
@@ -144,14 +158,19 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
       g.textAlign = 'center';
       g.fillText(`${r.fin ? '🏁 ' : ''}${r.n.slice(0, 9)}`, x, y - 18);
     }
-    placeP.textContent = `P${snap.you.place || '–'}/${snap.racers.length}`;
-    boostP.textContent = `⚡ ${snap.you.boost}`;
-    heatP.textContent = `🏁 heat ${snap.heat} · lap ${snap.you.lap ?? 1}/2`;
-    feed.textContent = snap.feed.join(' · ');
-    if (snap.phase === 'lobby') say('heat forms… first across takes it');
-    else if (snap.phase === 'race') say(`P${snap.you.place} — pads refill boost, bumps cost speed`);
-    else say('heat done — fresh grid in a few seconds');
   }
+
+  // --- optional 3D overlay (explicit tap only; 2D is the game) ---
+  let three: { render: (s: Snap) => void } | null = null;
+  (box.querySelector('#nr3d') as HTMLButtonElement).addEventListener('click', async () => {
+    say('loading 3D… (one-time, stays 2D if offline)');
+    const kit = await loadThree();
+    if (closed || !kit) { say(kit ? '3D ready' : 'offline — staying on 2D, fully playable'); return; }
+    try {
+      three = enableNitro3D(kit, cv);
+      say(kit.kind === 'threepipe' ? `✨ threepipe ${kit.version} 3D on` : `✨ three.js ${kit.version} 3D on`);
+    } catch { say('3D failed to start — 2D stays'); }
+  });
 
   function connect(): void {
     if (closed) return;
@@ -186,4 +205,66 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   connect();
   new MutationObserver(() => { if (!document.contains(el)) { closed = true; try { ws?.close(); } catch { /* gone */ } } })
     .observe(document.body, { childList: true, subtree: true });
+}
+
+function enableNitro3D(kit: { kind: string; api: unknown }, cv: HTMLCanvasElement): { render: (s: Snap) => void } {
+  const THREE = kit.api as {
+    Scene: new () => { add(o: unknown): void; background: unknown };
+    PerspectiveCamera: new (f: number, a: number, n: number, fa: number) => { position: { set(x: number, y: number, z: number): void } };
+    WebGLRenderer: new (o: { canvas: HTMLCanvasElement }) => {
+      setSize(w: number, h: number): void; render(a: unknown, b: unknown): void;
+    };
+    PlaneGeometry: new (w: number, h: number) => unknown;
+    BoxGeometry: new (w: number, h: number, d: number) => unknown;
+    MeshBasicMaterial: new (o: { color: number }) => unknown;
+    Mesh: new (geo: unknown, mat: unknown) => { position: { set(x: number, y: number, z: number): void } };
+    Color: new (c: string) => unknown;
+  };
+  const K = 0.1; // world units → scene units (1200u track = 120 long)
+  const laneX = (lane: number): number => (lane - 1.5) * 8;
+  const renderer = new THREE.WebGLRenderer({ canvas: cv });
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#0E0E12');
+  const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 600);
+  const track = new THREE.Mesh(new THREE.PlaneGeometry(40, 130), new THREE.MeshBasicMaterial({ color: 0x14141a }));
+  scene.add(track);
+  const line = new THREE.Mesh(new THREE.BoxGeometry(36, 0.5, 1.2), new THREE.MeshBasicMaterial({ color: 0xf2ede3 }));
+  line.position.set(0, 0.2, 0);
+  scene.add(line);
+  const cars = new Map<string, { position: { set(x: number, y: number, z: number): void } }>();
+  const padDots = new Map<string, { position: { set(x: number, y: number, z: number): void } }>();
+  return {
+    render(s: Snap): void {
+      const W = cv.clientWidth || 480;
+      renderer.setSize(W, Math.round(W * 1.33));
+      const myLap = s.you.prog % TRACK;
+      cam.position.set(laneX(s.you.lane), 26, -myLap * K + 24);
+      for (const p of s.pads) {
+        const key = `${p.at}:${p.lane}`;
+        let m = padDots.get(key);
+        if (!m) {
+          m = new THREE.Mesh(
+            new THREE.BoxGeometry(2.4, 0.6, 2.4),
+            new THREE.MeshBasicMaterial({ color: 0xc6f135 }),
+          ) as unknown as { position: { set(x: number, y: number, z: number): void } };
+          scene.add(m);
+          padDots.set(key, m);
+        }
+        m.position.set(laneX(p.lane), 0.4, -(p.at % TRACK) * K);
+      }
+      for (const r of s.racers) {
+        let m = cars.get(r.n);
+        if (!m) {
+          m = new THREE.Mesh(
+            new THREE.BoxGeometry(3.4, 1.6, 6),
+            new THREE.MeshBasicMaterial({ color: r.you ? 0xc6f135 : r.bot ? 0x8a8a93 : 0xff3d8a }),
+          ) as unknown as { position: { set(x: number, y: number, z: number): void } };
+          scene.add(m);
+          cars.set(r.n, m);
+        }
+        m.position.set(laneX(r.lane), 1, -(r.prog % TRACK) * K);
+      }
+      renderer.render(scene, cam);
+    },
+  };
 }

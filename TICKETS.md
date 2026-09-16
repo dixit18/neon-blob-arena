@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [NR-3] Nitro slice 3: ✨ 3D toggle — Done: same lazy loader (threepipe
+  0.5.1 → three 0.160.0 → 2D), track + lanes + cars + pads + lap line,
+  engine version in status, HUD updates in both modes. Receipt: build green.
 - [NR-2] Nitro slice 2: first-across + chase + laps — Done: 2 laps/heat,
   flag + 10s chase window, finishers outrank stragglers, lap in snapshot/HUD,
   ghost carries laps:2. Receipt: 195/195 green.
