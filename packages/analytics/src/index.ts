@@ -4,7 +4,7 @@ export const EVENTS = [
   'landing_view', 'first_input', 'room_join', 'room_leave',
   'round_start', 'round_end', 'second_round', 'game_switch',
   'share_create', 'share_open', 'challenge_open', 'challenge_join',
-  'perf_sample', 'room_crash',
+  'perf_sample', 'room_crash', 'studio_thought',
 ] as const;
 export type EventName = (typeof EVENTS)[number];
 

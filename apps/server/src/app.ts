@@ -11,8 +11,11 @@ import { GAMES, getGame } from '../../../packages/catalog/src/index.js';
 import { filterName, genGuestId } from '../../../packages/identity/src/index.js';
 import { isEnvelope, isInput, isAnswer, isStrokeBatch, isEmote, type Envelope } from '../../../packages/protocol/src/index.js';
 import { BufferedWriter } from '../../../packages/analytics/src/index.js';
+import { CHANNELS, EMPLOYEES, StudioFeed, seedFeed } from '../../../packages/studio/src/index.js';
 import { createRiotDriver } from '../../../games/reflex-riot/driver.js';
 import { createDoodleDriver } from '../../../games/doodle-duel/driver.js';
+import { createBlazeDriver } from '../../../games/blaze-squad/driver.js';
+import { createNitroDriver } from '../../../games/nitro-rift/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -34,7 +37,12 @@ export function createApp(opts: { region?: string } = {}) {
   const registry = new RoomRegistry();
   registry.register('reflex-riot', () => createRiotDriver()); // RR-6: first playable, refusal dead
   registry.register('doodle-duel', () => createDoodleDriver()); // DD-6: second playable
+  registry.register('blaze-squad', () => createBlazeDriver()); // squad survival, zone shrink
+  registry.register('nitro-rift', () => createNitroDriver()); // lane racing, ghost pace
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
+  const studio = new StudioFeed();
+  seedFeed(studio);
+  const studioHits = new Map<string, number[]>();
   let joinsTotal = 0;
   let tickAvgMs = 0;
   let tickMaxMs = 0;
@@ -55,6 +63,63 @@ export function createApp(opts: { region?: string } = {}) {
     }
     if (url.pathname === '/catalog') {
       res.end(JSON.stringify(GAMES));
+      return;
+    }
+    // Hidden owner studio (OpenMausBot-style threads). NEVER linked from the
+    // player shell, NEVER in /catalog. noindex always; optional STUDIO_KEY
+    // gate: when set, POSTs need ?key= or x-studio-key to match.
+    if (url.pathname === '/studio/employees' && req.method === 'GET') {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      const since = Number(url.searchParams.get('since') || 0);
+      res.end(JSON.stringify({
+        employees: EMPLOYEES.map((e) => ({ ...e, lastSeen: studio.lastSeenBy(e.id) })),
+        channels: CHANNELS,
+        feed: studio.list({ limit: 50 }).filter((t) => t.at >= since || t.id >= since),
+        count: studio.count(),
+      }));
+      return;
+    }
+    if (url.pathname === '/studio/feed' && req.method === 'GET') {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      const ch = url.searchParams.get('channel') || undefined;
+      const by = url.searchParams.get('by') || undefined;
+      const limit = Math.min(Number(url.searchParams.get('limit') || 50), 200);
+      const okCh = !ch || ['build', 'redteam', 'growth', 'studio'].includes(ch);
+      if (!okCh) { res.statusCode = 400; res.end(JSON.stringify({ error: 'bad channel' })); return; }
+      res.end(JSON.stringify(studio.list({ channel: ch as never, by, limit })));
+      return;
+    }
+    if (url.pathname === '/studio/thought' && req.method === 'POST') {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+      const need = process.env.STUDIO_KEY || '';
+      const got = url.searchParams.get('key') || req.headers['x-studio-key'] || '';
+      if (need && got !== need) { res.statusCode = 403; res.end(JSON.stringify({ error: 'forbidden' })); return; }
+      const ip = (req.socket.remoteAddress || '?') + '';
+      const now = Date.now();
+      const hits = (studioHits.get(ip) ?? []).filter((t) => now - t < 60_000);
+      if (hits.length >= 30) { res.statusCode = 429; res.end(JSON.stringify({ error: 'slow down' })); return; }
+      hits.push(now);
+      studioHits.set(ip, hits);
+      let body = '';
+      req.on('data', (c) => { body += String(c); if (body.length > 2048) req.destroy(); });
+      req.on('end', () => {
+        try {
+          const p = JSON.parse(body || '{}') as { by?: string; channel?: string; kind?: string; text?: string };
+          const t = studio.post(
+            String(p.by || 'boss'),
+            (p.channel || 'studio') as never,
+            ((p.kind || 'reply') as never),
+            String(p.text || ''),
+            Date.now(),
+          );
+          events.push('studio_thought', { data: { by: t.by, channel: t.channel } });
+          res.statusCode = 201;
+          res.end(JSON.stringify(t));
+        } catch (e) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: e instanceof Error ? e.message : 'bad thought' }));
+        }
+      });
       return;
     }
     res.statusCode = 404;
@@ -191,7 +256,7 @@ export function createApp(opts: { region?: string } = {}) {
     return m;
   }
 
-  return { server, registry, events, stepAll, snapAll, connsOf,
+  return { server, registry, events, stepAll, snapAll, connsOf, studio,
     stats: () => ({ joinsTotal, tickAvgMs, tickMaxMs }),
     shutdown: () => new Promise<void>((res) => {
       for (const s of allSockets) { try { s.terminate(); } catch { /* dead */ } }

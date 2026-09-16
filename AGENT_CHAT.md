@@ -605,3 +605,46 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Devika:** Board owns the queue now — RR-1–RR-6 open with acceptance; I write
   Sprint 4 tickets before Riot lands (Rule 14).
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — SLICE 1: hidden studio + two big games in small parts (user: "small small part, keep shipping")
+**Aarav:** New law from the user: big games NEVER ship whole — one small slice
+  per turn, queue in TICKETS. Slice 1 = studio + two playable cores. Installed
+  skill: `threejs-3d-generator` (2.4K installs, Safe/Low-risk) — needs a paid
+  Tripo key, so art stays procedural this turn; threepipe loads lazy from CDN.
+**Nova:** OpenMausBot pattern studied (roster-as-contacts, per-bot threads,
+  channels, harness event bus, approval cards). Stealing the SHAPE (threads +
+  channels + live feed), not the stack: ours is 3 HTTP endpoints, no new deps,
+  never linked, always noindex. Approval cards ride ST-2.
+**Kabir:** Counter held: shooter stays browser-safe (energy blobs, no guns —
+  D9 CUT stands, this is a new verb not a shooter); racing ships WITHOUT laps
+  or WASM (seam spec only, NR-4); threepipe is runtime-CDN so budgets can't
+  regress by construction. Slice discipline holds or I block slice 2.
+**Zara:** Shipped `packages/studio` (12-employee roster, 4 channels, capped
+  bus) + `/studio/employees|feed` + POST `/studio/thought` (30/min IP cap,
+  optional STUDIO_KEY, `studio_thought` analytics event) + registered
+  blaze-squad + nitro-rift drivers. Fixed a pre-existing red: ludo snapshot
+  carried `scores` missing from its type (tests never typecheck — noted).
+**Leo:** Shipped hidden `/employees` view (lazy 7.58KB chunk, roster sidebar,
+  per-employee threads, Boss composer, 3s menu-only poll, meta-noindex) +
+  `three-lazy.ts` (threepipe→three→2D fallback) + blaze 2D client (twin-stick
+  + WASD/mouse, ✨3D toggle) + nitro 2D client (lane+boost, slice-2 owns 3D).
+  Shell untouched in size discipline: 18.29KB initial.
+**Rehan:** WHY-NOT signed: hidden routes rot (bounds: ST-2 hardens + re-tests
+  every slice); CDN 3D can flop offline (bounds: 2D is the game, 3D a toggle);
+  two games at once risks half-tested ships (bounds: the 172-test + e2e chain
+  IS slice-1 done). No conclusion, no slice 2.
+**Riya (receipts):** 172/172 tests green (30 new: 15 blaze sim + 6 blaze
+  driver + 11 nitro sim/physics + 6 nitro driver + 4 studio + 2 slice-1 e2e);
+  server tsc clean; web build green (shell 18.29KB/7.87gzip, game chunks
+  ≤7.6KB, employees lazy 7.58KB); slice-1 e2e PASS (blaze bots+zone, nitro
+  grid+pads, all snaps ≤1.5KB). Caught in-loop: solo-sim instant-final (fixed
+  in sim), missing step/snap pump (fixed in test), lobby-vs-race pads (fixed
+  in test). Manual left: /employees read + blaze twin-stick + nitro buttons
+  on a real phone (human hands).
+**Vikram (2 flaws):** 1) POST /studio/thought without STUDIO_KEY is open on
+  LAN/prod — ACCEPTED for slice 1 (ST-2 gates it; body capped 2KB, authors
+  allowlisted, Boss-only trust is social). 2) blaze ✨3D pulls unpinned
+  CDN latest — ACCEPTED (BZ-3 pins; toggle is explicit, 2D default).
+**Devika:** Board queued: ST-2/BZ-2/BZ-3/NR-2/NR-3/NR-4/G-0 in TICKETS.md;
+  Sprint 10 (slice discipline) in SPRINTS.md. No UX-BLOCKER.
+**Kai:** Committing (no push — user ships prod).

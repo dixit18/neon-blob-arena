@@ -73,6 +73,13 @@ Hindi, tiering, disconnects, telemetry, safety, bundle gates. DoD: 2h/300-client
 soak; zero unhandled; no heap growth post-GC; every title passes 360px +
 2GB smoke; every title owns a unique ShareArtifact.
 
+## Sprint 10 — ARENA EXPANSION (slice discipline: one small part per turn)
+Big games ship in slices, never whole. Slice 1 (SHIPPED): hidden /employees
+studio + blaze-squad core (move/fire/zone/loot/bots/2D) + nitro-rift core
+(drive/boost/pads/bots/2D) + WASM seam spec. Next slices ride TICKETS.md
+(ST-2/BZ-2/BZ-3/NR-2/NR-3/NR-4/G-0). DoD per slice: headless suite + e2E +
+snapshot budget + no shell-byte growth.
+
 ## North star
 WAPS (Weekly Activated Party Starts): unique rooms where ≥3 humans arrive
 within 120s and ≥1 round finishes. Never optimise raw time-on-site.

@@ -158,6 +158,28 @@ void catalog.then(games => {
   if (picked) status(`${picked.id}: ${picked.hook}`);
 });
 
+// Owner studio: hidden observability (OpenMausBot-style threads). This route is
+// NEVER linked from the shell, NEVER in the catalog, and the module it loads
+// is meta-noindexed. Players must not find it; the owner opens /employees
+// (or ?view=employees) to watch every employee think + reply as Boss.
+const studioPath = location.pathname.replace(/\/+$/, '').endsWith('/employees');
+const studioView = qs.get('view') === 'employees';
+if (studioPath || studioView) {
+  el('landing').style.display = 'none';
+  const shell = document.getElementById('shell')!;
+  const sv = document.createElement('div');
+  sv.id = 'studioview';
+  shell.appendChild(sv);
+  void (async () => {
+    try {
+      const mod = await import('./employees.js');
+      await mod.mount(sv, { server: SERVER });
+    } catch {
+      sv.textContent = 'studio failed to load.';
+    }
+  })();
+}
+
 // Room view: direct links bypass everything. Game clients mount into #mount
 // in their own sprints via dynamic import of /src/games/<id>.ts.
 const gameParam = qs.get('game');

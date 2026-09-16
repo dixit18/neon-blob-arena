@@ -4,6 +4,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- SLICE 1 SHIPPED (user: small parts only, keep shipping): hidden /employees
+  studio live (`packages/studio` + 3 endpoints + lazy 7.58KB view — roster,
+  threads, channels, Boss composer; never linked/indexed) + blaze-squad core
+  (move/fire/zone/loot/bots/2D + ✨3D toggle) + nitro-rift core (lanes/boost/
+  pads/bots/2D; 3D is NR-3) + WASM seam spec (physics.ts; crate is NR-4).
+  Verified: 172/172 tests (48 new), server tsc + web build green (shell
+  18.29KB, chunks ≤7.6KB), slice-1 e2e PASS (bots, zone, pads, ≤1.5KB).
+  Fixed pre-existing red: ludo `scores` type. Next: slice-2 queue
+  (ST-2/BZ-2/BZ-3/NR-2/NR-3/NR-4/G-0) — Devika owns the board. Skill installed:
+  threejs-3d-generator (needs Tripo key; unused this turn).
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

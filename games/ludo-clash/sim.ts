@@ -19,6 +19,7 @@ export interface LudoSnapshot {
     seats: { n: string; you: boolean; bot: boolean; color: number; tokens: number[]; finished: number }[];
     turn: { name: string; you: boolean; endsInMs: number; dice: number; options: number[]; canRoll: boolean } | null;
   } | null;
+  scores: { n: string; s: number; you: boolean; bot: boolean }[];
   feed: string[];
   you: { score: number; finished: number };
 }

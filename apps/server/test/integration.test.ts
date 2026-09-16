@@ -59,7 +59,9 @@ describe('server integration', () => {
     assert.equal(h.ok, true);
     assert.ok(h.node.startsWith('v'));
     const cat = (await (await fetch(`${base}/catalog`)).json()) as { id: string }[];
-    assert.equal(cat.length, 8);
+    assert.equal(cat.length, 10);
+    assert.ok(cat.some((g) => g.id === 'blaze-squad'));
+    assert.ok(cat.some((g) => g.id === 'nitro-rift'));
   });
   it('refuses unimplemented games with a code', async () => {
     await new Promise<void>((resolve, reject) => {

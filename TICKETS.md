@@ -8,6 +8,22 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 ## Doing (this cycle)
 - (clear — everything below re-tested green)
 
+## Open (prioritized) — SLICE-2 QUEUE (small parts only, Rule: one slice per turn)
+- [ST-2] Studio hardening — Owner: Zara + Leo. Accept: STUDIO_KEY enforced
+  outside localhost, 400/403/429 receipts in chat, poll stays menu-only.
+- [BZ-2] Blaze slice 2: squads (3-3-3) + loot tiers — Owner: Zara. Accept:
+  friendly-fire off, squad feed, ≥10 new headless tests, snapshot ≤1.5KB.
+- [BZ-3] Blaze slice 3: threepipe art pass — Owner: Leo + Mira. Accept: pinned
+  CDN versions, offline 2D intact, chunk ≤250KB, 360px clean.
+- [NR-2] Nitro slice 2: first-across + chase window, then laps — Owner: Zara.
+  Accept: winner stops the clock, stragglers ranked by distance, ≥8 tests.
+- [NR-3] Nitro slice 3: ✨ 3D toggle — Owner: Leo. Accept: same lazy loader
+  as blaze, 2D default, no shell-byte growth.
+- [NR-4] Nitro slice 4: Rust/WASM physics behind the seam — Owner: Zara.
+  Accept: crates/race-phys lands, vectors match physics.ts, swap is import-only.
+- [G-0] Mixed-game soak: 30 clients across riot/doodle/blaze/nitro — Owner:
+  Riya. Accept: tickAvg <5, 0 unhandled, receipts in chat. Blocks slice-2 release.
+
 ## Open (prioritized) — Sprint 5 LUDO CLASH (pull in order, Rule 14)
 - [LD-1] Sim: turn board engine — Owner: Zara. Accept: 2–4 players, dice +
   exact-finish, captures on unsafe cells, 6s extra turns, 15s turn timer,
