@@ -3,6 +3,7 @@
 // the lazy Three.js playground is a later deliverable and must never gate play.
 import { genGuestId, genName } from '../../../packages/identity/src/index.js';
 import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
+import { startDescent } from './descent.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -20,6 +21,25 @@ try {
   }
 } catch { /* art never blocks play */ }
 window.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
+// The dive: endless zoom through the worlds. Tapping a world locks it in.
+try {
+  const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
+  if (dive) {
+    startDescent(dive, {
+      onPortal: (game) => {
+        sfx.pop();
+        void catalog.then((games) => {
+          const g = games.find((x) => x.id === game) ?? games[0];
+          if (!g) { status('that world is still being excavated.'); return; }
+          picked = g;
+          try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
+          status(`${g.id}: ${g.hook} — hit PLAY!`);
+          document.getElementById('games')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      },
+    });
+  }
+} catch { /* art never blocks play */ }
 const SERVER =
   qs.get('server') ||
   (import.meta as unknown as { env: Record<string, string> }).env?.VITE_SERVER ||

@@ -24,7 +24,7 @@ export const easeOutBack = (t: number): number => {
 };
 export const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 
-function mulberry(seed: number): () => number {
+export function rng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a |= 0; a = (a + 0x6d2b79f5) | 0;
@@ -33,6 +33,8 @@ function mulberry(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+function mulberry(seed: number): () => number { return rng(seed); }
 
 export interface RiftOpts { tint?: string; density?: number }
 
