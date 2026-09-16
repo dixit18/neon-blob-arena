@@ -810,3 +810,13 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   tiers show in long-run stats later).
 **Devika:** LD-2 → Done. Next: LD-3.
 **Kai:** Committing + pushing (deploy watch: Render rebuilds, /health next).
+
+## 2026-09-16 — LD-3: ResultGrid share (chained, deploy watch on)
+**Zara:** `grid(room, origin)` on the sim: standings sorted finished→score,
+  crown title on 4-home or final, re-entry URL via buildGameUrl, honest
+  mid-game grid with no fake crown. Validates via share asserts.
+**Riya (receipts):** 3/3 new (crown / honest-mid / last-one-racing) + server
+  tsc clean. Ludo file now 35 green.
+**Vikram:** No flaws — pure exporter, zero sim touch, budget untouched.
+**Devika:** LD-3 → Done. Next: LD-4 (canvas client).
+**Kai:** Committing + pushing.

@@ -62,6 +62,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   capture > leave > finish > progress as pure scoreLudoPick), instant table
   of 4 with 🤖 labels, human roll/pick flow intact. Verified: 227/227 tests
   (8 new), server tsc clean. Pushing with LD-1 batch. Next: LD-3 (share).
+- LD-3 SHIPPED: ResultGrid share (standings sorted by finished→score,
+  crown title, re-entry URL, honest mid-game). Verified: 3/3 + tsc clean.
+  Pushing. Next: LD-4 (canvas board client). Deploy: Render rebuilding from
+  LD-2 push — /health watch stays open.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

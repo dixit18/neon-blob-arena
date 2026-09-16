@@ -1,3 +1,5 @@
+import { buildGameUrl, type ShareArtifact } from '../../packages/share/src/index.js';
+
 // games/ludo-clash/sim — Ludo Clash turn engine (LD-1).
 // Classic-flavoured race: 6 leaves base, exact roll finishes, captures on
 // unsafe cells, extra turns on 6/capture/finish, three 6s forfeits.
@@ -270,6 +272,31 @@ export class LudoSim {
         .map((p) => ({ n: p.name, s: p.score, you: p.id === pid, bot: p.isBot })),
       feed: [...this.feed],
       you: { score: me?.score ?? 0, finished: me ? finished(me.id) : 0 },
+    };
+  }
+
+  /** LD-3: crowning ResultGrid — final board + winner + re-entry URL. */
+  grid(room: string, origin: string): ShareArtifact {
+    const rows = this.order.map((id) => {
+      const p = this.players.get(id)!;
+      return {
+        n: p.name,
+        finished: p.tokens.filter((t) => t === FINISH).length,
+        score: this.scoreOf(p),
+        bot: p.isBot,
+      };
+    }).sort((a, b) => b.finished - a.finished || b.score - a.score);
+    const champ = rows[0] ?? null;
+    const crowned = champ !== null && (champ.finished === 4 || this.phase === 'final');
+    return {
+      kind: 'ResultGrid',
+      game: 'ludo-clash',
+      room,
+      title: crowned && champ
+        ? `🏆 ${champ.n} brings all four home (${champ.score})!`
+        : '🎲 the race is still on — four tokens, one crown',
+      url: buildGameUrl(origin, 'ludo-clash', room),
+      data: { gameNo: this.gameNo, rows },
     };
   }
 }

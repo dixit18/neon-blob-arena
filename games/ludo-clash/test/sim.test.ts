@@ -292,4 +292,39 @@ describe('ludo sim', () => {
     assert.equal(s.playerCount(), 3);
     assert.equal(s.order.length, 3);
   });
+
+  it('LD-3: ResultGrid validates, crowns the winner, re-enters play', async () => {
+    const { assertArtifact } = await import('../../../packages/share/src/index.js');
+    const s = withPlay(2, 0.0);
+    s.players.get('h0')!.tokens = [57, 57, 57, 56];
+    s.roll('h0');
+    assert.equal(s.phase, 'final');
+    const g = s.grid('ABCD', 'https://x.test');
+    assert.deepEqual(assertArtifact(g), []);
+    assert.equal(g.kind, 'ResultGrid');
+    assert.ok(g.title.includes('🏆') && g.title.includes('P0'));
+    assert.ok((g.url as string).includes('ludo-clash') && (g.url as string).includes('ABCD'));
+    const rows = (g.data as { rows: { n: string; finished: number }[] }).rows;
+    assert.equal(rows[0]!.n, 'P0');
+    assert.equal(rows[0]!.finished, 4);
+  });
+
+  it('LD-3: mid-game grid is honest — no fake crown, still re-enters', async () => {
+    const { assertArtifact } = await import('../../../packages/share/src/index.js');
+    const s = withPlay(2, 0.0);
+    s.roll('h0');
+    const g = s.grid('WXYZ', 'https://x.test');
+    assert.deepEqual(assertArtifact(g), []);
+    assert.ok(!g.title.includes('🏆'));
+    assert.ok((g.url as string).includes('game=ludo-clash'));
+  });
+
+  it('LD-3: last-one-racing crown carries the grid too', async () => {
+    const { assertArtifact } = await import('../../../packages/share/src/index.js');
+    const s = withPlay(2);
+    s.leave('h1');
+    const g = s.grid('QRST', 'https://x.test');
+    assert.deepEqual(assertArtifact(g), []);
+    assert.ok(g.title.includes('🏆') && g.title.includes('P0'));
+  });
 });
