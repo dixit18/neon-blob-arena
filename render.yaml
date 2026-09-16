@@ -14,6 +14,7 @@ services:
         - package.json
         - tsconfig.*.json
         - packages/**
+        - games/**
         - apps/server/**
     envVars:
       - key: REGION

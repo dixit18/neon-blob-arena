@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY tsconfig.base.json tsconfig.server.json ./
 COPY packages ./packages
+COPY games ./games
 COPY apps/server ./apps/server
 RUN npm install && npx tsc -p tsconfig.server.json && npm prune --omit=dev
 ENV PORT=10000 REGION=iad

@@ -4,6 +4,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
+  `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
+  rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
+  7 instant opponents) registered in server (ghostline etc. still honestly
+  refused) + `apps/web/src/games/reflex-riot.ts` client (task card, pads,
+  scoreboard, feed, 1.5s reconnect). Verified: 78/78 tests (25 new),
+  server tsc + web build green (riot lazy-chunk 4.88KB), live WS smoke PASS
+  (hello+token, 161 snaps, 7 bots, human scored, refusal intact).
+  Prod: Render rebuilds from push; server 503 was pre-existing (dashboard
+  eyes still needed if it persists post-deploy). Next: RR-3 replay + RR-5 E2E.
 - D12 PIVOT SHIPPED (user order + R&D report): legacy arena FE/BE DELETED
   (`neon-blob-arena/` gone; 24846af + 4861f62 in history). New monorepo live:
   apps/web (4.84KB shell) + apps/server (Node24-pinned CI/Docker, local v22
@@ -102,12 +112,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Prod-wiring fix SHIPPED (`39af9cf`): web fallback was `wss://playground.example.com`
-  (dead placeholder) → now `wss://playground-server.onrender.com`; `render.yaml`
-  pins `VITE_SERVER` to the same. Verified: 53/53 tests, web build 4.85KB green,
-  local boot `/health` ok. BUT prod `playground-server/health` still 503 after
-  8-probe wake loop (~2min) + code proven boot-clean locally — needs dashboard
-  eyes (Events/Logs) to see why Render holds it at 503.
+- PLAYABLE PUSH (user: ship autonomously, no more prompts): Reflex Riot end-to-end.
+  Files: `games/reflex-riot/sim.ts` + `driver.ts` + `test/` (new), `apps/web/src/games/reflex-riot.ts`
+  (new), `apps/server/src/app.ts` (register), `package.json` + `tsconfig.server.json` +
+  `Dockerfile` + `render.yaml` (include games/). Goal: `?game=reflex-riot&room=` plays
+  over a real socket with bots; all suites green; push to origin.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. USER in Render dashboard for `playground-server`: Events tab state? Logs show

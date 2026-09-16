@@ -11,6 +11,7 @@ import { GAMES, getGame } from '../../../packages/catalog/src/index.js';
 import { filterName, genGuestId } from '../../../packages/identity/src/index.js';
 import { isEnvelope, isInput, isAnswer, isStrokeBatch, isEmote, type Envelope } from '../../../packages/protocol/src/index.js';
 import { BufferedWriter } from '../../../packages/analytics/src/index.js';
+import { createRiotDriver } from '../../../games/reflex-riot/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -30,6 +31,7 @@ export interface Conn { ws: WebSocket; playerId: string; token: string; msgTimes
 export function createApp(opts: { region?: string } = {}) {
   const region = opts.region ?? process.env.REGION ?? 'local';
   const registry = new RoomRegistry();
+  registry.register('reflex-riot', () => createRiotDriver()); // RR-6: first playable, refusal dead
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   let joinsTotal = 0;
   let tickAvgMs = 0;
