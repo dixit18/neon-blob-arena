@@ -850,3 +850,17 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   wait for play phase, never assume post-lobby timing.
 **Devika:** LD-5, LD-6 → Done. Sprint 5 closed. Board: ludo complete.
 **Kai:** Committing + pushing.
+
+## 2026-09-16 — G-1: 5-game soak + prod watch (chained, no waiting)
+**Riya (receipts):** soak extended to ludo (roll/pick chatter): 30/30, 11820
+  snaps (394/s), tickAvg 0.11ms/max 1.4ms, 0 errors, 0 unhandled. SOAK GREEN.
+**Kai (prod):** pushed the deploy fix; Render /health still 503 right after
+  push — expected window (rebuild queues behind rapid pushes) or free-tier
+  sleep (BE-001 pinger = user's action). scripts/-only push triggers NO
+  rebuild (outside build filters), so this commit is watch-safe. Recheck
+  /health after the dust settles; dashboard eyes still the user's if 503
+  persists post-build.
+**Aarav:** Board state: slice-2 done, ludo done, soak green on 5 games. The
+  crew does not idle: next frontier is a new game call — that decision is the
+  owner's (user), everything buildable without them is built.
+**Kai:** Committing + pushing.

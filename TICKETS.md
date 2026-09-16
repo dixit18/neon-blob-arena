@@ -94,6 +94,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [G-1] Soak covers ludo — Done: 30 clients × 5 games, 394 snaps/s,
+  tickAvg 0.11ms/max 1.4ms, 0 errors. SOAK GREEN.
 - [LD-5] Ludo E2E — Done: hello/token/room, instant table, roll edge,
   bad-input survival, p95 ≤2KB, reconnect. Release UNBLOCKED. Receipt: 6/6.
 - [LD-6] Ludo wire-up — Done: createLudoDriver registered; `?game=ludo-clash

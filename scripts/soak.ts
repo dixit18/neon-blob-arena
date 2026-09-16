@@ -8,7 +8,7 @@ import { createApp } from '../apps/server/src/app.js';
 
 const CLIENTS = 30;
 const SECONDS = 30;
-const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift'];
+const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift', 'ludo-clash'];
 
 const app = createApp({ region: 'soak' });
 let unhandled = 0;
@@ -44,8 +44,12 @@ for (let i = 0; i < CLIENTS; i++) {
             ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: 0, dy: 0, fire: r > 0.5 } }));
           } else if (game === 'blaze-squad') {
             ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: r * 2 - 1, dy: r * 2 - 1, fire: r > 0.4, aim: r * 6.28 } }));
-          } else {
+          } else if (game === 'nitro-rift') {
             ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: r > 0.66 ? 1 : r > 0.33 ? -1 : 0, dy: 0, fire: r > 0.5 } }));
+          } else {
+            // ludo-clash: roll on roll stage, pick slot 0-3 in pick stage
+            if (r > 0.5) ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: 0, dy: 0, fire: true } }));
+            else ws.send(JSON.stringify({ v: 1, type: 'answer', room: 'SOAK', seq: ++seq, payload: { i: Math.floor(r * 8) % 4 } }));
           }
         }, 200);
       }

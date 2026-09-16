@@ -74,8 +74,13 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - LD-5 SHIPPED (release unblocked): 6 e2e over real sockets (hello/token,
   instant table, roll edge, bad-input survival, p95 ≤2KB, reconnect).
   Flake caught + killed: stale-window roll race → fresh-window + repeat-send
-  proof (green twice in a row). Sprint 5 LUDO COMPLETE (LD-1..LD-6).
+  proof (green twice in a row).   Sprint 5 LUDO COMPLETE (LD-1..LD-6).
   Pushing. Next: prod /health watch.
+- PROD WATCH: pushed fix, Render /health still 503 (rebuild queues behind 3
+  rapid pushes, or free-tier sleep — BE-001 pinger still the user's action).
+  Meanwhile G-1 SHIPPED: soak covers all 5 games (ludo roll/pick chatter) —
+  30/30, 394 snaps/s, tickAvg 0.11ms/max 1.4ms, SOAK GREEN. Pushing (no
+  rebuild triggered: scripts/ outside build filters).
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
