@@ -4,12 +4,18 @@
 // the player's explicit "3D" tap, from CDN, at runtime — zero bytes in the
 // shell bundle, zero bytes in the base game chunk, zero build dependency.
 // If the CDN is unreachable (offline / blocked), the caller keeps Canvas2D.
+// BZ-3 pins exact versions (verified against the registry 2026-09-16):
+// threepipe 0.5.1 ESM is dist/index.mjs, but it carries bare `three` imports,
+// so browsers load it via jsdelivr +esm (deps pre-bundled). three 0.160.0's
+// build/three.module.js is self-contained and imports directly.
 const THREEPIPE_URLS = [
-  'https://cdn.jsdelivr.net/npm/threepipe/dist/index.js',
+  'https://cdn.jsdelivr.net/npm/threepipe@0.5.1/+esm',
 ];
+const THREEPIPE_VERSION = '0.5.1';
 const THREE_URLS = [
   'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
 ];
+const THREE_VERSION = '0.160.0';
 
 async function tryImport(urls: string[]): Promise<{ mod: unknown; url: string } | null> {
   for (const url of urls) {
@@ -22,14 +28,14 @@ async function tryImport(urls: string[]): Promise<{ mod: unknown; url: string } 
 }
 
 export type ThreeKit =
-  | { kind: 'threepipe'; api: unknown; url: string }
-  | { kind: 'three'; api: unknown; url: string };
+  | { kind: 'threepipe'; api: unknown; url: string; version: string }
+  | { kind: 'three'; api: unknown; url: string; version: string };
 
 /** Threepipe first (toolkit: renderer + tone mapping + plugins), three.js fallback. Null = stay 2D. */
 export async function loadThree(): Promise<ThreeKit | null> {
   const pipe = await tryImport(THREEPIPE_URLS);
-  if (pipe) return { kind: 'threepipe', api: pipe.mod, url: pipe.url };
+  if (pipe) return { kind: 'threepipe', api: pipe.mod, url: pipe.url, version: THREEPIPE_VERSION };
   const three = await tryImport(THREE_URLS);
-  if (three) return { kind: 'three', api: three.mod, url: three.url };
+  if (three) return { kind: 'three', api: three.mod, url: three.url, version: THREE_VERSION };
   return null;
 }

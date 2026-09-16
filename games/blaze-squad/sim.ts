@@ -38,7 +38,7 @@ export interface BlazeSnapshot {
   phase: BlazePhase;
   zone: { x: number; y: number; r: number; nextInMs: number };
   endsInMs: number;
-  you: { hp: number; alive: boolean; kills: number };
+  you: { hp: number; alive: boolean; kills: number; rapidMs: number };
   players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number; q: number }[];
   /** Untaken crates only (taken ones are noise on the wire). */
   crates: { x: number; y: number; t: number }[];
@@ -319,7 +319,7 @@ export class BlazeSim {
       phase: this.phase,
       zone: { x: Math.round(this.zone.x), y: Math.round(this.zone.y), r: this.zone.r, nextInMs: Math.max(0, nextStageAt - foughtFor) },
       endsInMs: this.phase === 'fight' ? Math.max(0, ROUND_MS - foughtFor) : 0,
-      you: { hp: Math.ceil(me?.hp ?? 0), alive: me?.alive ?? false, kills: me?.kills ?? 0 },
+      you: { hp: Math.ceil(me?.hp ?? 0), alive: me?.alive ?? false, kills: me?.kills ?? 0, rapidMs: Math.max(0, Math.round((me?.rapidUntil ?? 0) - this.time)) },
       players: [...this.players.values()].slice(0, 12).map((p) => ({
         n: p.name, hp: Math.ceil(p.hp), alive: p.alive, you: p.id === pid, bot: p.isBot,
         x: Math.round(p.x), y: Math.round(p.y), q: p.sq,

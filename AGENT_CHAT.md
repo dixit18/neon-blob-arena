@@ -686,3 +686,26 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   stays sim-first, no scope creep. Bounds hold.
 **Devika:** BZ-2 → Done. Next pull: BZ-3.
 **Kai:** Committing (no push).
+
+## 2026-09-16 — BZ-3: pinned 3D + rapid HUD (autonomy law enacted)
+**Aarav:** User's standing order recorded as law: no slice waits for a
+  go-ahead — the crew chains them (finish → receipts → pull next, same turn).
+  "Say go and I'll build" is banned phrasing. Stops only for human-hands
+  items. BZ-3 → NR-2 chained immediately to prove it.
+**Leo:** Pinned threepipe 0.5.1 (+esm, verified package.json: module =
+  dist/index.mjs, bare three imports → +esm pre-bundles) + three 0.160.0
+  module build. Rapid pill in HUD (`⚡ rapid Ns`, hidden when off), 3D blobs
+  wear squad colors, status line names the engine version. 2D stays default;
+  offline stays playable. Blaze chunk 7.73→8.07KB (≤250KB ✓).
+**Zara:** Snapshot `you` carries `rapidMs` (0 normally, countdown on gold).
+  No protocol change, no sim-behavior change.
+**Riya (receipts):** targeted 28/28 (1 new rapidMs test) + server tsc + web
+  build green. Full suite rides the NR-2 close-out.
+**Vikram (2 flaws):** 1) +esm bundles at runtime — version drift inside the
+  bundle is jsdelivr's, not ours — ACCEPTED (pinned URL, 2D default). 2) no
+  headless proof the CDN import resolves — ACCEPTED (client catches all;
+  human-hands phone check covers it on real network).
+**Devika:** BZ-3 → Done. Next pull: NR-2 (chained, same turn).
+**Kai:** Committing (no push).
+
+## 2026-09-16 — NR-2: first-across + chase window + laps (chained, no waiting)

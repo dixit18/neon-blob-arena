@@ -24,6 +24,13 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   12s rapid) + crates in snapshot/client. Verified: 186/186 tests (12 new),
   server tsc + web build green (shell 18.29KB, blaze chunk 7.73KB).
   Next: BZ-3 (threepipe art pass) — one slice per turn.
+- BZ-3 SHIPPED: pinned 3D CDN (threepipe 0.5.1 +esm verified, three 0.160.0),
+  rapid HUD pill (rapidMs in snapshot), squad-colored 3D blobs, 2D default
+  intact. Verified: targeted 28/28 + both builds green (shell 18.29KB).
+  AUTONOMY LAW (user order): crew chains slices without waiting — finish →
+  receipts → pull next, same turn. Only human-hands items stop the line
+  (phone checks, Render dashboard, secrets, prod push).
+  Next: NR-2 (nitro first-across + chase window + laps) — in progress.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

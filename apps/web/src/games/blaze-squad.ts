@@ -12,7 +12,7 @@ type Snap = {
   t: string; phase: string;
   zone: { x: number; y: number; r: number; nextInMs: number };
   endsInMs: number;
-  you: { hp: number; alive: boolean; kills: number };
+  you: { hp: number; alive: boolean; kills: number; rapidMs: number };
   players: { n: string; hp: number; alive: boolean; you: boolean; bot: boolean; x: number; y: number; q: number }[];
   crates: { x: number; y: number; t: number }[];
   feed: string[];
@@ -34,7 +34,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   box.id = 'bz';
   box.innerHTML = '<div id="bzStat">connecting…</div>'
     + '<canvas id="bzCv" width="600" height="600" aria-label="Blaze squad arena"></canvas>'
-    + '<div class="hud"><span class="pill" id="bzHp">❤ 100</span><span class="pill" id="bzK">💥 0</span>'
+    + '<div class="hud"><span class="pill" id="bzHp">❤ 100</span><span class="pill" id="bzK">💥 0</span><span class="pill" id="bzRapid" style="display:none">⚡ rapid</span>'
     + '<span class="pill" id="bzZone">🔥 zone —</span><span class="pill" id="bzT">⏱ —</span></div>'
     + '<div class="row"><button id="bzFire">HOLD TO FIRE</button><button id="bz3d">✨ 3D</button></div>'
     + '<div id="bzFeed"></div>';
@@ -47,6 +47,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   const kP = box.querySelector('#bzK') as HTMLElement;
   const zP = box.querySelector('#bzZone') as HTMLElement;
   const tP = box.querySelector('#bzT') as HTMLElement;
+  const rapidP = box.querySelector('#bzRapid') as HTMLElement;
   const feed = box.querySelector('#bzFeed') as HTMLElement;
   const say = (m: string): void => { stat.textContent = m; };
 
@@ -159,7 +160,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     if (closed || !kit) { say(kit ? '3D ready' : 'offline — staying on 2D, fully playable'); return; }
     try {
       three = enableBlaze3D(kit, cv);
-      say(kit.kind === 'threepipe' ? '✨ threepipe 3D on' : '✨ three.js 3D on');
+      say(kit.kind === 'threepipe' ? `✨ threepipe ${kit.version} 3D on` : `✨ three.js ${kit.version} 3D on`);
     } catch { say('3D failed to start — 2D stays'); }
   });
 
@@ -214,6 +215,9 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     }
     hpP.textContent = `❤ ${snap.you.hp}`;
     kP.textContent = `💥 ${snap.you.kills}`;
+    const rapid = (snap.you.rapidMs ?? 0) > 0;
+    rapidP.style.display = rapid ? '' : 'none';
+    if (rapid) rapidP.textContent = `⚡ rapid ${Math.ceil((snap.you.rapidMs ?? 0) / 1000)}s`;
     zP.textContent = `🔥 zone r${snap.zone.r} · ${Math.ceil(snap.zone.nextInMs / 1000)}s`;
     tP.textContent = snap.phase === 'fight' ? `⏱ ${Math.ceil(snap.endsInMs / 1000)}s` : snap.phase;
     feed.textContent = snap.feed.join(' · ');
@@ -282,6 +286,7 @@ function enableBlaze3D(kit: { kind: string; api: unknown }, cv: HTMLCanvasElemen
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({ color: 0x14141a }));
   scene.add(ground);
   const dots = new Map<string, { position: { set(x: number, y: number, z: number): void } }>();
+  const SQUAD_COLORS = [0xff6b5b, 0x5bb8ff, 0xffd93d]; // Ember / Tide / Volt
   return {
     render(s: Snap): void {
       renderer.setSize(cv.clientWidth || 600, cv.clientWidth || 600);
@@ -289,9 +294,10 @@ function enableBlaze3D(kit: { kind: string; api: unknown }, cv: HTMLCanvasElemen
         if (!p.alive) { dots.delete(p.n); continue; }
         let m = dots.get(p.n);
         if (!m) {
+          const color = p.you ? 0xc6f135 : (SQUAD_COLORS[p.q ?? 0] ?? 0xff3d8a);
           m = new THREE.Mesh(
             new THREE.SphereGeometry(1.7, 12, 12),
-            new THREE.MeshBasicMaterial({ color: p.you ? 0xc6f135 : 0xff3d8a }),
+            new THREE.MeshBasicMaterial({ color }),
           ) as unknown as { position: { set(x: number, y: number, z: number): void } };
           scene.add(m);
           dots.set(p.n, m);

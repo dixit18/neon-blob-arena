@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [BZ-3] Blaze slice 3: threepipe art pass — Done: pinned CDN (threepipe
+  0.5.1 +esm, three 0.160.0 module), rapid HUD pill, squad-colored 3D blobs,
+  version in status line, 2D default intact. Receipt: builds green.
 - [BZ-2] Blaze slice 2: squads + loot tiers — Done: squads of 3 round-robin,
   friendly-fire off, last-squad-standing + MVP feed, green/gold crates
   (gold = full-heal + 12s rapid), crates in snapshot. Receipt: 186/186 green.

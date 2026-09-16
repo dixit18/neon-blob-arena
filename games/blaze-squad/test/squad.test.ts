@@ -169,4 +169,17 @@ describe('blaze squads', () => {
     assert.ok(snap.players.every((p) => p.q >= 0 && p.q <= 2));
     assert.ok(snap.crates.length > 0);
   });
+
+  it('BZ-3: snapshot carries rapidMs — 0 normally, counting down on gold', () => {
+    const s = withFight(1);
+    assert.equal(s.snapshot('h0').you.rapidMs, 0);
+    const p = s.players.get('h0')!;
+    const gold = s.crates.find((c) => c.tier === 1 && !c.taken)!;
+    p.hp = 40;
+    p.x = gold.x; p.y = gold.y;
+    s.step(TICK);
+    const snap = s.snapshot('h0');
+    assert.ok(snap.you.rapidMs > 11_000 && snap.you.rapidMs <= 12_000);
+    assert.ok(Buffer.byteLength(JSON.stringify(snap)) <= 1536);
+  });
 });
