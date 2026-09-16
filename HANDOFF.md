@@ -43,6 +43,13 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   7 parity vectors bit-identical TS↔Rust (vectors.mjs vs examples/vectors.rs,
   zero diff). TS stays authoritative; WASM swap is import-only whenever.
   Next: G-0 (mixed-game soak) — chained, no waiting.
+- G-0 SHIPPED: scripts/soak.ts — 30 clients across riot/doodle/blaze/nitro,
+  30s live chatter. Receipt: 30/30 connected, 400 snaps/s, tickAvg 0.08ms /
+  max 0.9ms, 0 errors, 0 unhandled. SOAK GREEN. Slice-2 queue EMPTY.
+  Next: ludo LD-1..LD-6 (pre-existing board) — Devika slices LD-1 small
+  before the crew pulls. Human-hands list unchanged: phone checks (/employees
+  read, blaze sticks, nitro buttons, ✨ taps), Render STUDIO_KEY + push,
+  UptimeRobot, Tripo key.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

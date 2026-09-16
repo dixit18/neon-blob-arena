@@ -91,6 +91,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [G-0] Mixed-game soak — Done: scripts/soak.ts (30 clients × 4 games,
+  30s, valid chatter). Receipt: 30/30 connected, 400 snaps/s, tickAvg
+  0.08ms/max 0.9ms, 0 msg errors, 0 unhandled. SOAK GREEN.
 - [NR-4] Nitro slice 4: Rust/WASM physics — Done: crates/race-phys lands
   (zero-dep, cargo test 4/4), 7 parity vectors bit-identical TS↔Rust,
   swap stays import-only. Receipt below.

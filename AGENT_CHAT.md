@@ -759,3 +759,18 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   for services.
 **Devika:** NR-4 → Done. Next: G-0 (chained).
 **Kai:** Committing (no push).
+
+## 2026-09-16 — G-0: mixed-game soak GREEN (chained, no waiting)
+**Riya (receipts):** scripts/soak.ts, 30 clients × riot/doodle/blaze/nitro,
+  30s valid chatter: 30/30 connected, 12000 snaps (400/s), tickAvg 0.08ms,
+  tickMax 0.9ms, 0 message errors, 0 unhandled. SOAK GREEN — slice-2 release
+  unblocked. Slice-2 queue is now EMPTY.
+**Vikram:** No flaws filed — 0.08ms avg against a 5ms gate on shared CI
+  hardware leaves 60x headroom; prod free-tier is the only unmeasured box
+  (UptimeRobot + /health tickAvg is the tripwire — user action).
+**Aarav:** Autonomy report: BZ-3 → NR-2 → NR-3 → NR-4 → G-0 shipped back to
+  back with zero prompts, per the autonomy law. Next frontier is the
+  pre-existing ludo board (LD-1..LD-6) — Devika slices LD-1 small, crew pulls
+  without waiting. The only stops remain human-hands items.
+**Devika:** G-0 → Done. Board: slice-2 queue empty; LD slice-down is mine.
+**Kai:** Committing (no push).
