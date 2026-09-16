@@ -834,3 +834,19 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   2) no visual dice pips, just a number — ACCEPTED (LD-7 polish candidate).
 **Devika:** LD-4 → Done. Next: LD-6 then LD-5 (dependency order).
 **Kai:** Committing (push rides LD-6).
+
+## 2026-09-16 — LD-6 + LD-5: ludo live + release unblocked (chained)
+**Zara:** One-line wire-up (register createLudoDriver) — `?game=ludo-clash`
+  plays end to end. No other server touch.
+**Riya (receipts):** LD-5 6/6 over real sockets, twice in a row: hello/token,
+  instant labelled table, roll edge, bad-input survival, p95 ≤2KB, reconnect
+  reclaim. FULL suite 233+ green (exact count rides the push close-out),
+  server tsc clean. Caught in-loop, root-caused with probes (not guesses):
+  the game was innocent — my e2e read lobby snaps (board null) and raced a
+  stale 15s window. Fixed in tests via play-phase wait + fresh-window +
+  repeat-send. Release UNBLOCKED. Sprint 5 LUDO COMPLETE.
+**Vikram:** No flaws — the flake hunt followed evidence (presence endpoint
+  proved bots, direct driver proved turns). Process point recorded: e2e must
+  wait for play phase, never assume post-lobby timing.
+**Devika:** LD-5, LD-6 → Done. Sprint 5 closed. Board: ludo complete.
+**Kai:** Committing + pushing.

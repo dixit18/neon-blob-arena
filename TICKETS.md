@@ -29,6 +29,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [LD-2] Bots — DONE (see Done section; 8/8 green).
 - [LD-3] Share — DONE (see Done section; 3/3 green).
 - [LD-4] Client — DONE (see Done section; build green, 5.53KB).
+- [LD-5] E2E — DONE (see Done section; 6/6 green, release unblocked).
+- [LD-6] Wire-up — DONE (see Done section; driver registered).
 - [LD-2] Bots: roll + pick with tiers — Owner: Zara. Accept: bots prefer
   capture > leave-base > finish, 20% casual picks; instant fill to 4;
   labelled.
@@ -92,6 +94,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [LD-5] Ludo E2E — Done: hello/token/room, instant table, roll edge,
+  bad-input survival, p95 ≤2KB, reconnect. Release UNBLOCKED. Receipt: 6/6.
+- [LD-6] Ludo wire-up — Done: createLudoDriver registered; `?game=ludo-clash
+  &room=` plays; catalog already listed it.
 - [LD-4] Ludo client — Done: parametric canvas board (52-loop + home lanes
   + bases + crown), same-tick ROLL, tappable options + 1-4 keys, 360px-first.
   Receipt: web build green, ludo chunk 5.53KB (≤250KB).

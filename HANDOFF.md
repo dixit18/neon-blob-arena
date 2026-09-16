@@ -69,7 +69,13 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - LD-4 SHIPPED: canvas client (superellipse 52-loop, home lanes, corner
   bases, glowing tappable options, ROLL lock + Space/1-4 keys). Verified: web
   build green (ludo chunk 5.53KB, shell 18.58KB). NOTE: ludo still unregistered
-  server-side (refuses) — LD-6 wires it. Next: LD-6 + LD-5 e2e.
+   server-side (refuses) — LD-6 wires it. Next: LD-6 + LD-5 e2e.
+- LD-6 SHIPPED: driver registered — ludo plays at `?game=ludo-clash&room=`.
+- LD-5 SHIPPED (release unblocked): 6 e2e over real sockets (hello/token,
+  instant table, roll edge, bad-input survival, p95 ≤2KB, reconnect).
+  Flake caught + killed: stale-window roll race → fresh-window + repeat-send
+  proof (green twice in a row). Sprint 5 LUDO COMPLETE (LD-1..LD-6).
+  Pushing. Next: prod /health watch.
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets

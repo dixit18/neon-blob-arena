@@ -16,6 +16,7 @@ import { createRiotDriver } from '../../../games/reflex-riot/driver.js';
 import { createDoodleDriver } from '../../../games/doodle-duel/driver.js';
 import { createBlazeDriver } from '../../../games/blaze-squad/driver.js';
 import { createNitroDriver } from '../../../games/nitro-rift/driver.js';
+import { createLudoDriver } from '../../../games/ludo-clash/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -39,6 +40,7 @@ export function createApp(opts: { region?: string } = {}) {
   registry.register('doodle-duel', () => createDoodleDriver()); // DD-6: second playable
   registry.register('blaze-squad', () => createBlazeDriver()); // squad survival, zone shrink
   registry.register('nitro-rift', () => createNitroDriver()); // lane racing, ghost pace
+  registry.register('ludo-clash', () => createLudoDriver()); // LD-6: turn board, dice + picks
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   const studio = new StudioFeed();
   seedFeed(studio);
