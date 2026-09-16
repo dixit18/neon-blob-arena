@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { GAMES, getGame, validateManifest } from '../src/index.js';
 
 describe('catalog', () => {
-  it('ships seven manifests, one verb each', () => {
-    assert.equal(GAMES.length, 7);
-    assert.equal(new Set(GAMES.map(g => g.verb)).size, 7);
-    assert.equal(new Set(GAMES.map(g => g.id)).size, 7);
+  it('ships eight manifests, one verb each', () => {
+    assert.equal(GAMES.length, 8);
+    assert.equal(new Set(GAMES.map(g => g.verb)).size, 8);
+    assert.equal(new Set(GAMES.map(g => g.id)).size, 8);
   });
   it('every manifest validates clean', () => {
     for (const g of GAMES) assert.deepEqual(validateManifest(g), [], g.id);

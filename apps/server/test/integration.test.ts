@@ -59,7 +59,7 @@ describe('server integration', () => {
     assert.equal(h.ok, true);
     assert.ok(h.node.startsWith('v'));
     const cat = (await (await fetch(`${base}/catalog`)).json()) as { id: string }[];
-    assert.equal(cat.length, 7);
+    assert.equal(cat.length, 8);
   });
   it('refuses unimplemented games with a code', async () => {
     await new Promise<void>((resolve, reject) => {

@@ -8,25 +8,22 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 ## Doing (this cycle)
 - (clear — everything below re-tested green)
 
-## Open (prioritized) — Sprint 4 DOODLE DUEL (pull in order, Rule 14)
-- [DD-1] Sim: draw/guess phases — Owner: Zara. Accept: drawer rotation,
-  40s draw timer, stroke caps (16/drawing), 1-of-4 title options via `answer`
-  (no open chat, Rule 4), speed scoring + drawer cut, curated prompt pack
-  (no UGC); ≥20 headless tests green in `games/doodle-duel/`.
-- [DD-2] Bots: guess tiers + mistakes, never draw — Owner: Zara. Accept: bots
-  guess with delay tiers + 15% wrong; drawer slot skips bots; solo human
-  draws with instant guessers; bots labelled.
-- [DD-3] Share: winning-drawing ReplayMoment — Owner: Leo + Zara. Accept:
-  artefact carries strokes + winner + re-entry URL, validates via
-  `packages/share` asserts, payload ≤20KB.
-- [DD-4] Client: canvas draw + guess pads — Owner: Leo. Accept: pointer draw
-  sends strokeBatch same-tick; pads answer; late joiners see strokes;
-  chunk ≤250KB; mounts at `apps/web/src/games/doodle-duel.ts`.
-- [DD-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
-  green; snapshot p95 ≤4KB measured; receipts in chat. Blocks release if red.
-- [DD-6] Wire-up: manifest + register — Owner: Kai. Accept:
-  `doodle-duel` in `/catalog`; `?game=doodle-duel&room=` plays; no
-  `not-implemented` for shipped games.
+## Open (prioritized) — Sprint 5 LUDO CLASH (pull in order, Rule 14)
+- [LD-1] Sim: turn board engine — Owner: Zara. Accept: 2–4 players, dice +
+  exact-finish, captures on unsafe cells, 6s extra turns, 15s turn timer,
+  token pick via `answer`; ≥20 headless tests green in `games/ludo-clash/`.
+- [LD-2] Bots: roll + pick with tiers — Owner: Zara. Accept: bots prefer
+  capture > leave-base > finish, 20% casual picks; instant fill to 4;
+  labelled.
+- [LD-3] Share: crowning ResultGrid — Owner: Leo + Zara. Accept: final board
+  + winner + re-entry URL validates via `packages/share` asserts.
+- [LD-4] Client: canvas board + dice — Owner: Leo. Accept: track + tokens
+  render, ROLL same-tick, token options tappable, 360px clean, chunk
+  ≤250KB; mounts at `apps/web/src/games/ludo-clash.ts`.
+- [LD-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green; snapshot p95 ≤2KB; receipts in chat. Blocks release if red.
+- [LD-6] Wire-up: manifest + register — Owner: Kai. Accept: `ludo-clash`
+  in `/catalog`; `?game=ludo-clash&room=` plays.
 
 ## Superseded by D12 pivot (history, not backlog)
 - [UX-005] roundPill/feed overlap on 360px wide — Owner: Leo. Accept: screenshot-proof
@@ -78,6 +75,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [DD-1..DD-6] DOODLE DUEL live drawing rooms — Done: draw/guess sim (packed
+  snapshots ≤4KB, curated prompts, bail path) + guessing bots + canvas
+  client + 6 E2E. Receipt: 124/124 tests green.
 - [RR-1..RR-6] REFLEX RIOT playable end-to-end — Done: sim (5 rules, rounds,
   streaks) + tiered 🤖 bots + replay log + ReplayMoment + client + 8 E2E
   incl. 15-player room. Receipt: 91/91 tests green, WS smoke PASS.

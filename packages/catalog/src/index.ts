@@ -33,6 +33,7 @@ export const GAMES: GameManifest[] = [
   { id: 'totem-panic', verb: 'DROP', hook: 'Build a tower together that survives three seconds.', moods: ['CHAOS', 'SURPRISE'], minPlayers: 2, maxPlayers: 10, joinMode: 'party', deviceTier: 'base', locales: ['en'], clientChunk: 'totem-panic', shareKind: 'ReplayMoment', botPolicy: 'place' },
   { id: 'ricochet-siege', verb: 'AIM', hook: 'All shots fire at once — the map becomes pinball.', moods: ['BEAT', 'CHAOS'], minPlayers: 2, maxPlayers: 8, joinMode: 'party', deviceTier: 'enhanced', locales: ['en'], clientChunk: 'ricochet-siege', shareKind: 'ReplayMoment', botPolicy: 'aim' },
   { id: 'doodle-duel', verb: 'DRAW', hook: 'Draw it live, friends pick the title. No chat, just guts.', moods: ['CHAOS', 'SURPRISE'], minPlayers: 2, maxPlayers: 10, joinMode: 'party', deviceTier: 'base', locales: ['en'], clientChunk: 'doodle-duel', shareKind: 'ReplayMoment', botPolicy: 'vote' },
+  { id: 'ludo-clash', verb: 'RACE', hook: 'Four tokens, one crown. Roll, race, send them home.', moods: ['BEAT', 'THINK'], minPlayers: 2, maxPlayers: 4, joinMode: 'party', deviceTier: 'base', locales: ['en'], clientChunk: 'ludo-clash', shareKind: 'ResultGrid', botPolicy: 'place' },
 ];
 
 export function getGame(id: string): GameManifest | null {
