@@ -8,24 +8,25 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 ## Doing (this cycle)
 - (clear — everything below re-tested green)
 
-## Open (prioritized) — Sprint 3 REFLEX RIOT (pull in order, Rule 14)
-- [RR-1] Sim: task engine — Owner: Zara. Accept: 3–6s task rotation, timing
-  windows, scoring, round flow in `games/reflex-riot/sim/`; ≥24 headless tests
-  green; first task begins ≤3s after first human arrives (simulated clock).
-- [RR-2] Bots: imperfect reactions — Owner: Zara. Accept: reaction-delay tiers
-  + occasional mistakes via `packages/bots`; solo join gets an instant round,
-  never a waiting screen; bots labelled.
-- [RR-3] Tiny replay + Chaos Strip — Owner: Leo + Zara. Accept: vector/event
-  log regenerates the end state; ReplayMoment artefact (nine frames ending in
-  winner/fail) validates via `packages/share` asserts.
-- [RR-4] Client: task renderer + inputs — Owner: Leo. Accept: tap/hold/avoid/
-  copy/freeze/swipe all paint same-tick; 360px clean; chunk ≤250KB Brotli;
-  mounts at `apps/web/src/games/reflex-riot.ts`.
-- [RR-5] E2E x8 + 15-player room — Owner: Riya. Accept: 8 end-to-end checks
-  green; snapshot p95 ≤700B measured; receipts in chat. Blocks release if red.
-- [RR-6] Wire-up: register driver, kill the refusal — Owner: Kai. Accept:
-  `?game=reflex-riot&room=` plays over a real socket; `/rooms` presence shows;
-  no `not-implemented` for catalog games with drivers.
+## Open (prioritized) — Sprint 4 DOODLE DUEL (pull in order, Rule 14)
+- [DD-1] Sim: draw/guess phases — Owner: Zara. Accept: drawer rotation,
+  40s draw timer, stroke caps (16/drawing), 1-of-4 title options via `answer`
+  (no open chat, Rule 4), speed scoring + drawer cut, curated prompt pack
+  (no UGC); ≥20 headless tests green in `games/doodle-duel/`.
+- [DD-2] Bots: guess tiers + mistakes, never draw — Owner: Zara. Accept: bots
+  guess with delay tiers + 15% wrong; drawer slot skips bots; solo human
+  draws with instant guessers; bots labelled.
+- [DD-3] Share: winning-drawing ReplayMoment — Owner: Leo + Zara. Accept:
+  artefact carries strokes + winner + re-entry URL, validates via
+  `packages/share` asserts, payload ≤20KB.
+- [DD-4] Client: canvas draw + guess pads — Owner: Leo. Accept: pointer draw
+  sends strokeBatch same-tick; pads answer; late joiners see strokes;
+  chunk ≤250KB; mounts at `apps/web/src/games/doodle-duel.ts`.
+- [DD-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green; snapshot p95 ≤4KB measured; receipts in chat. Blocks release if red.
+- [DD-6] Wire-up: manifest + register — Owner: Kai. Accept:
+  `doodle-duel` in `/catalog`; `?game=doodle-duel&room=` plays; no
+  `not-implemented` for shipped games.
 
 ## Superseded by D12 pivot (history, not backlog)
 - [UX-005] roundPill/feed overlap on 360px wide — Owner: Leo. Accept: screenshot-proof
@@ -77,6 +78,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [RR-1..RR-6] REFLEX RIOT playable end-to-end — Done: sim (5 rules, rounds,
+  streaks) + tiered 🤖 bots + replay log + ReplayMoment + client + 8 E2E
+  incl. 15-player room. Receipt: 91/91 tests green, WS smoke PASS.
 - [UX-009] How-to-play modal per game — Done: 📖 buttons (HUD + menu), rules table
   (goal/controls/win) for all 6 games, click-outside close. Receipt: build green.
 - [UX-010] Objective pill — Done: live goal line under round timer (tag IT warning

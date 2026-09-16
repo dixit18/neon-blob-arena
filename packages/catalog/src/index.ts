@@ -32,6 +32,7 @@ export const GAMES: GameManifest[] = [
   { id: 'signal-seven', verb: 'DEDUCE', hook: 'Seven clues, one hidden symbol — today\u2019s mystery.', moods: ['THINK', 'SURPRISE'], minPlayers: 1, maxPlayers: 8, joinMode: 'instant', deviceTier: 'base', locales: ['en'], clientChunk: 'signal-seven', shareKind: 'DailyGrid', botPolicy: 'solo' },
   { id: 'totem-panic', verb: 'DROP', hook: 'Build a tower together that survives three seconds.', moods: ['CHAOS', 'SURPRISE'], minPlayers: 2, maxPlayers: 10, joinMode: 'party', deviceTier: 'base', locales: ['en'], clientChunk: 'totem-panic', shareKind: 'ReplayMoment', botPolicy: 'place' },
   { id: 'ricochet-siege', verb: 'AIM', hook: 'All shots fire at once — the map becomes pinball.', moods: ['BEAT', 'CHAOS'], minPlayers: 2, maxPlayers: 8, joinMode: 'party', deviceTier: 'enhanced', locales: ['en'], clientChunk: 'ricochet-siege', shareKind: 'ReplayMoment', botPolicy: 'aim' },
+  { id: 'doodle-duel', verb: 'DRAW', hook: 'Draw it live, friends pick the title. No chat, just guts.', moods: ['CHAOS', 'SURPRISE'], minPlayers: 2, maxPlayers: 10, joinMode: 'party', deviceTier: 'base', locales: ['en'], clientChunk: 'doodle-duel', shareKind: 'ReplayMoment', botPolicy: 'vote' },
 ];
 
 export function getGame(id: string): GameManifest | null {

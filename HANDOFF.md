@@ -113,11 +113,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- PLAYABLE PUSH (user: ship autonomously, no more prompts): Reflex Riot end-to-end.
-  Files: `games/reflex-riot/sim.ts` + `driver.ts` + `test/` (new), `apps/web/src/games/reflex-riot.ts`
-  (new), `apps/server/src/app.ts` (register), `package.json` + `tsconfig.server.json` +
-  `Dockerfile` + `render.yaml` (include games/). Goal: `?game=reflex-riot&room=` plays
-  over a real socket with bots; all suites green; push to origin.
+- DOODLE DUEL Sprint 4 (crew running autonomously, no prompts): tickets DD-1..DD-6
+  written; building. Files: `TICKETS.md`, `packages/catalog` (+doodle-duel),
+  `games/doodle-duel/sim.ts` + `test/` (new). Design: drawer draws live via
+  strokeBatch, guessers pick 1-of-4 titles via answer (no open chat, Rule 4);
+  bots guess, never draw. Goal: sim + ≥20 tests green, then driver+client.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. USER in Render dashboard for `playground-server`: Events tab state? Logs show
