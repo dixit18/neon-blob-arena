@@ -9,46 +9,63 @@
 <style>
   :root {
     --void:#070708; --bone:#F2EDE3; --ink:#070708; --lime:#C6F135; --mag:#FF3D8A;
-    --cyan:#46E0D4; --danger:#FF7A1A;
+    --cyan:#46E0D4; --gold:#FFE9A8; --card:rgba(18,18,22,.78);
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { width:100%; min-height:100%; background:var(--void); color:var(--bone);
-    font-family:system-ui,"Avenir Next","Segoe UI",Roboto,sans-serif; }
-  #shell { max-width:720px; margin:0 auto; padding:28px 18px 60px; }
-  .kicker { font-size:12px; font-weight:800; letter-spacing:.18em; color:var(--cyan); margin-bottom:10px; }
-  h1 { font-size:clamp(38px, 9vw, 64px); line-height:1.02; letter-spacing:-.01em; margin-bottom:10px; }
-  h1 .poke { color:var(--lime); }
-  .sub { color:#B9B2A4; font-weight:600; margin-bottom:22px; font-size:15px; }
+    font-family:system-ui,"Avenir Next","Segoe UI",Roboto,sans-serif; overflow-x:hidden; }
+  #riftCv { position:fixed; inset:0; width:100%; height:100%; z-index:0; }
+  #veil { position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 10%, transparent 40%, rgba(7,7,8,.72) 100%); }
+  #shell { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:34px 18px 70px; }
+  .kicker { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.18em; color:var(--ink);
+    background:var(--lime); border-radius:999px; padding:6px 14px; margin-bottom:14px;
+    box-shadow:0 0 24px rgba(198,241,53,.45); }
+  h1 { font-size:clamp(44px, 10vw, 76px); line-height:.98; letter-spacing:-.02em; margin-bottom:12px;
+    text-shadow:0 4px 40px rgba(0,0,0,.8); }
+  h1 .poke { color:var(--lime); text-shadow:0 0 34px rgba(198,241,53,.55); }
+  .sub { color:#CFC8B8; font-weight:600; margin-bottom:22px; font-size:15px; text-shadow:0 2px 12px #000; }
   .moods { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
-  .moods button { cursor:pointer; border:2px solid var(--bone); border-radius:16px; padding:16px 12px;
-    background:transparent; color:var(--bone); font-weight:800; font-size:16px; min-height:60px; }
-  .moods button:active { transform:scale(.97); background:var(--lime); color:var(--ink); border-color:var(--lime); }
-  .moods button.on { background:var(--lime); color:var(--ink); border-color:var(--lime); }
+  .moods button { cursor:pointer; border:2px solid rgba(242,237,227,.35); border-radius:16px; padding:16px 12px;
+    background:var(--card); backdrop-filter:blur(8px); color:var(--bone); font-weight:800; font-size:16px;
+    min-height:60px; transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease; }
+  .moods button:hover { transform:translateY(-2px); border-color:var(--lime); }
+  .moods button:active { transform:scale(.97); }
+  .moods button.on { background:var(--lime); color:var(--ink); border-color:var(--lime);
+    box-shadow:0 0 28px rgba(198,241,53,.5); }
   #games { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
-  .excavate { cursor:pointer; text-align:left; background:#121214; border:2px solid #2A2A2E; border-radius:16px;
-    padding:14px 16px; color:var(--bone); }
+  .excavate { cursor:pointer; text-align:left; background:var(--card); backdrop-filter:blur(8px);
+    border:2px solid #2A2A2E; border-radius:16px; padding:14px 16px; color:var(--bone);
+    transition:transform .12s ease, border-color .12s ease; animation:rise .35s ease backwards; }
+  .excavate:hover { transform:translateY(-2px); border-color:var(--cyan); }
   .excavate:active { border-color:var(--lime); }
   .excavate b { font-size:18px; display:block; }
   .excavate span { font-size:13px; color:#B9B2A4; font-weight:600; }
   .excavate .tag { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.08em; color:var(--ink);
     background:var(--lime); border-radius:999px; padding:2px 10px; margin-top:8px; }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
   .row { display:flex; gap:8px; margin-bottom:12px; }
-  #name { flex:1; padding:14px; border-radius:14px; border:2px solid #2A2A2E; background:#121214;
-    color:var(--bone); font-size:16px; font-weight:700; min-width:0; }
-  #play { cursor:pointer; border:2px solid var(--lime); border-radius:14px; padding:14px 22px;
-    background:var(--lime); color:var(--ink); font-weight:800; font-size:16px; min-height:52px; }
-  #play:active { transform:translate(2px,2px); }
-  #status { font-size:13px; font-weight:700; color:var(--cyan); min-height:20px; margin-bottom:8px; }
+  #name { flex:1; padding:14px; border-radius:14px; border:2px solid #2A2A2E; background:var(--card);
+    backdrop-filter:blur(8px); color:var(--bone); font-size:16px; font-weight:700; min-width:0; }
+  #name:focus { outline:none; border-color:var(--lime); }
+  #play { cursor:pointer; border:none; border-radius:14px; padding:14px 26px;
+    background:linear-gradient(135deg, var(--lime), #8FE000); color:var(--ink); font-weight:900; font-size:17px;
+    min-height:52px; box-shadow:0 6px 30px rgba(198,241,53,.4); transition:transform .1s ease; }
+  #play:hover { transform:translateY(-2px) scale(1.02); }
+  #play:active { transform:scale(.96); }
+  #status { font-size:13px; font-weight:700; color:var(--cyan); min-height:20px; margin-bottom:8px;
+    text-shadow:0 2px 8px #000; }
   #rift { font-size:13px; color:#B9B2A4; font-weight:700; }
   #rift button { cursor:pointer; background:none; border:none; color:var(--lime); font-weight:800; font-size:13px; }
   #roomview { display:none; }
   #roomview.on { display:block; }
-  #mount { margin-top:14px; border:2px dashed #2A2A2E; border-radius:16px; padding:26px; text-align:center;
-    color:#B9B2A4; font-weight:700; }
+  #mount { margin-top:14px; }
   @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
 </style>
 </head>
 <body>
+<canvas id="riftCv" aria-hidden="true"></canvas>
+<div id="veil" aria-hidden="true"></div>
 <div id="shell">
   <div id="landing">
     <div class="kicker">NO SIGNUP · LINK = ROOM · BOTS NEVER SLEEP</div>

@@ -2,6 +2,7 @@
 // Direct room links (?game=&room=) render room view WITHOUT any world bundle:
 // the lazy Three.js playground is a later deliverable and must never gate play.
 import { genGuestId, genName } from '../../../packages/identity/src/index.js';
+import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -10,6 +11,15 @@ type Manifest = {
 
 const el = (id: string) => document.getElementById(id)!;
 const qs = new URLSearchParams(location.search);
+// The living backdrop. Cheap, procedural, ours.
+try {
+  const cv = document.getElementById('riftCv') as HTMLCanvasElement | null;
+  if (cv) {
+    const rift = startRiftBackdrop(cv);
+    (window as unknown as { __rift: unknown }).__rift = rift;
+  }
+} catch { /* art never blocks play */ }
+window.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
 const SERVER =
   qs.get('server') ||
   (import.meta as unknown as { env: Record<string, string> }).env?.VITE_SERVER ||
@@ -74,12 +84,14 @@ function renderGames(games: Manifest[], mood: string | null): void {
     const b = document.createElement('button');
     b.className = 'excavate';
     b.dataset.game = g.id;
+    b.style.animationDelay = `${Math.min(8, box.childElementCount) * 45}ms`;
     b.innerHTML = `<b></b><span></span><br /><span class="tag"></span>`;
     (b.querySelector('b') as HTMLElement).textContent = `${g.verb} — ${g.id}`;
     (b.querySelectorAll('span')[0] as HTMLElement).textContent = g.hook;
     (b.querySelector('.tag') as HTMLElement).textContent = `${g.minPlayers}–${g.maxPlayers} PLAYERS · ${g.shareKind}`;
     b.addEventListener('click', () => {
       picked = g;
+      sfx.tap();
       try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
       document.querySelectorAll('.excavate').forEach(x => (x as HTMLElement).style.borderColor = '');
       b.style.borderColor = '#C6F135';
@@ -94,11 +106,18 @@ document.querySelectorAll<HTMLButtonElement>('#moods button').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('#moods button').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
+    sfx.tap();
+    try {
+      const rift = (window as unknown as { __rift?: { setTint: (c: string) => void } }).__rift;
+      const tint = MOOD_TINT[b.dataset.mood ?? ''] ?? '#1E1033';
+      rift?.setTint(tint);
+    } catch { /* art never blocks play */ }
     void catalog.then(games => renderGames(games, b.dataset.mood ?? null));
   });
 });
 
 el('play').addEventListener('click', () => {
+  sfx.pop();
   const n = ((el('name') as HTMLInputElement).value || myName).slice(0, 14);
   try { localStorage.setItem('pg-name', n); } catch { /* private */ }
   myName = n || myName;

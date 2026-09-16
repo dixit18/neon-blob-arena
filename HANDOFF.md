@@ -113,12 +113,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DOODLE DUEL SHIPPED (crew autonomous): DD-1..DD-6 done. draw/guess sim
-  (40s drawings, 16-stroke packed snapshots, curated 24-prompt pack, drawer
-  rotation, drawer bail merges to next drawing via reveal) + guessing bots
-  (never draw) + canvas client (same-tick paint, packed-stroke render) +
-  DD-5 e2e x6 + catalog manifest. Verified: 124/124 tests, both tsc clean,
-  web build green (doodle chunk 4.81KB). Pushing now.
+- CRAFT PASS (user verdict: R&D promised wow, we shipped grey boxes — owned).
+  Shipped: `apps/web/src/art.ts` (procedural RIFT descent backdrop, pooled
+  bursts, synthesized sfx — zero assets), living landing (glass cards, mood
+  tints the rift, staggered entrances), riot juice (countdown ring, score
+  pops, streak fire, win/tick sounds), doodle ink/paper (per-stroke inks,
+  grid paper, phase + guess sounds). Verified: 124/124 tests, both tsc,
+  web build green (landing 10.3KB, riot 6.45KB, doodle 5.29KB — budgets
+  hold). Pushing now. Next: prod health re-probe; Ludo Sprint 5 tickets.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. USER in Render dashboard for `playground-server`: Events tab state? Logs show

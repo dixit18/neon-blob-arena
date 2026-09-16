@@ -2,6 +2,9 @@
 // Drawer draws on canvas (strokeBatch, same-tick paint); guessers watch the
 // live drawing + pick 1-of-4 titles. No deps; lazy chunk like riot.
 import { unpackStrokes } from '../../../../games/doodle-duel/sim.js';
+import { sfx } from '../art.js';
+
+const INKS = ['#070708', '#5B2D8E', '#0E6E6E', '#B0235A', '#8A5A00'];
 
 export interface MountCtx { server: string; game: string; room: string; name: string }
 
@@ -67,8 +70,8 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     return [(p.x / 100) * 300, (p.y / 100) * 300];
   }
 
-  function paintLocal(a: { x: number; y: number }, b: { x: number; y: number }): void {
-    gx.strokeStyle = '#070708';
+  function paintLocal(a: { x: number; y: number }, b: { x: number; y: number }, color = '#070708'): void {
+    gx.strokeStyle = color;
     gx.lineWidth = 5;
     gx.lineCap = 'round';
     gx.beginPath();
@@ -115,15 +118,33 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
 
   function renderStrokes(packed: Packed[]): void {
     gx.clearRect(0, 0, 300, 300);
+    // faint paper grid, printed once per render
+    gx.strokeStyle = 'rgba(7,7,8,.07)';
+    gx.lineWidth = 1;
+    for (let gLine = 30; gLine < 300; gLine += 30) {
+      gx.beginPath(); gx.moveTo(gLine, 0); gx.lineTo(gLine, 300); gx.stroke();
+      gx.beginPath(); gx.moveTo(0, gLine); gx.lineTo(300, gLine); gx.stroke();
+    }
     for (const s of unpackStrokes(packed)) {
-      for (let k = 1; k < s.pts.length; k++) paintLocal(s.pts[k - 1]!, s.pts[k]!);
-      if (s.pts.length === 1) paintLocal(s.pts[0]!, s.pts[0]!);
+      const ink = INKS[s.id % INKS.length]!;
+      for (let k = 1; k < s.pts.length; k++) paintLocal(s.pts[k - 1]!, s.pts[k]!, ink);
+      if (s.pts.length === 1) paintLocal(s.pts[0]!, s.pts[0]!, ink);
     }
   }
+
+  let lastPhase = '';
+  let lastGain = 0;
 
   function paint(s: DoodleSnap): void {
     const d = s.drawing;
     amDrawer = !!d?.drawerYou;
+    if (s.phase !== lastPhase) {
+      if (s.phase === 'reveal') sfx.reveal();
+      if (s.phase === 'draw') sfx.pop();
+      lastPhase = s.phase;
+    }
+    if (s.you.gain > lastGain) { sfx.guess(); lastGain = s.you.gain; }
+    if (s.phase === 'draw') lastGain = 0;
     if (!d) {
       promptEl.textContent = s.phase === 'final' ? '🏆 duel over — fresh canvas soon!' : '🎨 gathering the table…';
       pads.innerHTML = '';
@@ -144,6 +165,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
       pads.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
         pads.querySelectorAll('button').forEach((x) => x.classList.remove('picked'));
         b.classList.add('picked');
+        sfx.tap();
         send('answer', { i: Number((b as HTMLElement).dataset.i) });
       }));
     }
