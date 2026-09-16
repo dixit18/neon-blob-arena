@@ -794,3 +794,19 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
   rotting behind origin).
 **Devika:** LD-1 → Done. Next: LD-2 (ludo bots).
 **Kai:** Pushing (user's deploy log IS the ship order).
+
+## 2026-09-16 — LD-2: ludo bots play to win (chained, deploy watch on)
+**Zara:** Driver wraps the sim: tables fill to 4 on first human, clock out on
+  empty. Bots roll instantly on their turn; picks rank capture(3) >
+  leave-base(2) > finish(1.5) > progress via exported pure scoreLudoPick —
+  tiers differ only in mistake rate (sharp 10%, casual 30%, ~20% blended per
+  the ticket). Transport reuses input-fire/answer-i, no protocol change.
+**Riya (receipts):** 227/227 green (8 new driver suite, incl. the rank-order
+  proof + 2KB budget); server tsc clean. No sim-behavior change — LD-1 suite
+  untouched and green.
+**Vikram (2 flaws):** 1) bots act the same tick (no human delay) — ACCEPTED
+  (turn game, 15s timers; delay is feel, LD-4 client can stage it). 2) casual
+  rate is unobservable behaviorally — ACCEPTED (rank function is unit-pinned;
+  tiers show in long-run stats later).
+**Devika:** LD-2 → Done. Next: LD-3.
+**Kai:** Committing + pushing (deploy watch: Render rebuilds, /health next).

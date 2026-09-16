@@ -26,6 +26,7 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
 ## Open (prioritized) — Sprint 5 LUDO CLASH (pull in order, Rule 14)
 - [LD-1] Sim — DONE (see Done section; 24/24 green).
+- [LD-2] Bots — DONE (see Done section; 8/8 green).
 - [LD-2] Bots: roll + pick with tiers — Owner: Zara. Accept: bots prefer
   capture > leave-base > finish, 20% casual picks; instant fill to 4;
   labelled.
@@ -89,6 +90,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [LD-2] Ludo bots — Done: tiered driver (sharp/casual, capture >
+  leave-base > finish > progress via pure scoreLudoPick), instant table of 4,
+  labelled, human flow intact. Receipt: 227/227 green.
 - [LD-1] Ludo sim engine — Done: 24 headless tests (seats/dice/exact-finish/
   captures/safe/home-run/extra-turns/three-6s/timers/leaving/snapshots),
   empty-room lobby reset fix. Receipt: 24/24 + tsc clean.

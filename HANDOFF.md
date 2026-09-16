@@ -57,7 +57,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - DEPLOY RED → FIX (user pasted Render log): origin/main still predates the
   ludo `scores` type fix, and Dockerfile floated `npm install` (unpinned
   compiler class). Fix: Dockerfile now `npm ci` (lock pins TS 5.9.3, the same
-  compiler green locally) + pushing fixed main. Next: LD-2 (ludo bots).
+  compiler green locally) +   pushing fixed main. Next: LD-2 (ludo bots).
+- LD-2 SHIPPED: tiered bot driver (sharp 10% / casual 30% mistake, preference
+  capture > leave > finish > progress as pure scoreLudoPick), instant table
+  of 4 with 🤖 labels, human roll/pick flow intact. Verified: 227/227 tests
+  (8 new), server tsc clean. Pushing with LD-1 batch. Next: LD-3 (share).
 - RIOT PLAYABLE (user: ship autonomously): Reflex Riot end-to-end live.
   `games/reflex-riot/sim.ts` (5 tasks, 8-task rounds, streak scoring, seeded
   rotation) + `driver.ts` (🤖-labelled tiered bots, 15% mistakes, solo gets
