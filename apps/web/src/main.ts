@@ -13,7 +13,7 @@ const qs = new URLSearchParams(location.search);
 const SERVER =
   qs.get('server') ||
   (import.meta as unknown as { env: Record<string, string> }).env?.VITE_SERVER ||
-  (['localhost', '127.0.0.1'].includes(location.hostname) ? `ws://${location.hostname}:7749` : 'wss://playground.example.com');
+  (['localhost', '127.0.0.1'].includes(location.hostname) ? `ws://${location.hostname}:7749` : 'wss://playground-server.onrender.com');
 const httpBase = SERVER.replace('ws', 'http');
 
 // Guest boot: opaque ID persists locally, name defaults generated, one-tap edit.

@@ -29,4 +29,4 @@ services:
         - apps/web/**
     envVars:
       - key: VITE_SERVER
-        sync: false # backend WS URL, e.g. wss://playground-server.onrender.com
+        value: wss://playground-server.onrender.com
