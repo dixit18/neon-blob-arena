@@ -42,3 +42,56 @@ export async function loadThree(): Promise<ThreeKit | null> {
   if (three) return { kind: 'three', api: three.mod, url: three.url, version: THREE_VERSION };
   return null;
 }
+
+/** Raw three.js namespace only (geometry/material/renderer classes). Null = offline. */
+export async function loadRawThree(): Promise<{ api: unknown; url: string; version: string } | null> {
+  const three = await tryImport(THREE_URLS);
+  if (!three) return null;
+  return { api: three.mod, url: three.url, version: THREE_VERSION };
+}
+
+export interface ViewerKit {
+  /** Live ThreeViewer instance (own render loop, tonemap on). */
+  viewer: {
+    scene: { add(o: unknown): void };
+    mainCamera: { position: { set(x: number, y: number, z: number): void } };
+    dispose(): void;
+    renderEnabled: boolean;
+  };
+  /** Raw three.js namespace (geometry/material classes) from the pinned CDN. */
+  three: any;
+  kind: 'threepipe';
+  version: string;
+}
+
+/**
+ * Proper Threepipe usage (free Apache-2.0, CDN-only, nothing runs locally):
+ * `new ThreeViewer({ canvas, msaa, renderScale:'auto', tonemap:true })` —
+ * the exact shape from threepipe.org docs/examples that most people use.
+ * The viewer owns renderer + loop + tonemapping; we only add scene objects
+ * via viewer.scene and move the mainCamera. Geometry classes come from the
+ * pinned raw-three CDN module (same version family), so no npm dep, no
+ * bundle bytes, no local process. Any failure → null → caller stays 2D.
+ */
+export async function loadViewer(canvas: HTMLCanvasElement): Promise<ViewerKit | null> {
+  try {
+    const pipe = await tryImport(THREEPIPE_URLS);
+    if (!pipe) return null;
+    const mod = pipe.mod as Record<string, any>;
+    const ThreeViewer = mod.ThreeViewer;
+    if (typeof ThreeViewer !== 'function') return null;
+    const threeMod = await tryImport(THREE_URLS);
+    if (!threeMod) return null;
+    const viewer = new ThreeViewer({
+      canvas,
+      msaa: true,
+      renderScale: 'auto',
+      tonemap: true,
+    });
+    if (!viewer?.scene?.add || !viewer?.mainCamera?.position) {
+      try { viewer?.dispose?.(); } catch { /* gone */ }
+      return null;
+    }
+    return { viewer, three: threeMod.mod, kind: 'threepipe', version: THREEPIPE_VERSION };
+  } catch { return null; }
+}

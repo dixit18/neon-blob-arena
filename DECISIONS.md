@@ -303,3 +303,35 @@ evidence (telemetry at `/perf`, playtests, market shifts) arrives.
   fallback. Measure: 📸 taps, vista shares, dive→PLAY conversion.
 - Status: CONCLUDED. Owner: Aarav (call) + Leo (build) + Mira (art check) +
   Riya (gates). Signed: Rehan.
+
+## D14 — unorthodox-first: the rift IS the site, everything rethought (user: "full website should be 3D", "think outside the AI box", standing order = Rule 15)
+- WHY (user verdict, Aarav): the screenshots settled it — the Star Nursery
+  spiral is what people feel; the menu column is what they skip. Orthodox
+  we refuse: hero + card grid + PLAY (every game portal + every AI mockup
+  ships it). So there is NO menu: the fullscreen steerable rift is the whole
+  site, steering is choosing, flying into a ring is entering. Name field dies
+  too (auto-guest already exists — you are Golden Falcon until you care).
+  Rethink-everything verdicts, same lens: lobbies-that-wait → drop-in-live
+  (humans join rounds in progress, bots hold the shape) — QUEUED RD-2;
+  how-to modal → in-world coach marks — QUEUED; share-button-after-win →
+  invite-as-place (rift link drops friends INTO your live room) — QUEUED;
+  global leaderboard page → in-world king beacon at the portal — QUEUED;
+  lobby browser → NEVER (links + Quick Play already cover it, ban recorded);
+  HUD numbers/buttons → diegetic signals + gestures — TICKETED after
+  playtest, not before (confusion vetoes novelty: controls change only with
+  device-hands proof). Game skins (user: "as real as possible") ride the same
+  doctrine: procedural skins inside existing scenes, zero new deps.
+- WHY-NOT (Rehan): the old "don't get the concept" wound — a world with no
+  menu can mystify worse than a boring menu bores. Bounds SHIPPED this turn:
+  passive users still arrive (auto-drift never stops), faced-world PLAY bar
+  always shows the zero-ambiguity exit ("01 · ORBIT RINGS — PLAY"), tap =
+  the old click-entry (flight is additive, never the only door), coach hint
+  chip on first flight, deep links bypass everything as before, 2D fallback
+  keeps the identical concept flat. If dive→PLAY conversion drops vs the
+  menu era (measured, not felt), the bar becomes a louder door — novelty
+  never overrules comprehension. Signed: Rehan.
+- CONCLUSION: SHIP full-viewport steerable rift + fly-in entry + face-follow
+  PLAY + shard spiral + menu/name-field deletion. Measure: dive→PLAY,
+  fly-in share, faced PLAY taps.
+- Status: CONCLUDED. Owner: Aarav (call) + Leo (build) + Mira (art check) +
+  Riya (gates). Signed: Rehan.

@@ -112,6 +112,16 @@ Graph: Vision ↔ RedTeam → Nova ⇄ Cross (every finding gets a counter-memo)
     three). No agent ends a turn idle while an open ticket exists. Devika never lets
     the board run dry: when tickets run low she writes the next sprint's tickets
     before the current sprint lands. The user is escalation, not scheduling.
+15. Unorthodox-first (standing owner order — in context from now on): think
+    outside every box INCLUDING the AI box. Every proposal names the orthodox
+    version it refuses (one line — if you can't name it, you haven't thought).
+    Deletion beats addition: any screen, button, or step must justify existing;
+    default answer is "the game IS the UI". AI-slop tells that auto-fail review:
+    gradient hero + feature cards, thumbnail grids, settings pages, onboarding
+    carousels, generic share buttons, lobbies that wait, HUD numbers where a
+    diegetic signal would do. Applies to games, not just the site. Rule 12
+    still stands: Rehan counters every conclusion — unorthodox never means
+    unusable, and confusion vetoes novelty.
 
 Live chat: see `AGENT_CHAT.md` (append-only, every agent writes).
 Resume state: see `HANDOFF.md` (read first after any session death).

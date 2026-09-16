@@ -4,7 +4,8 @@
 // fresh heat with a re-seeded pad layout. Pure deterministic sim: step(dtMs)
 // only, seeded PRNG, headless-testable. Server-authoritative.
 import { buildGameUrl, type ShareArtifact } from '../../packages/share/src/index.js';
-import { TRACK_LEN, LANES, stepRacer, type Pad, type RacerState } from './physics.js';
+import { TRACK_LEN, LANES, stepRacer, PAD_GAIN, BUMP_WINDOW, BUMP_SLOW_UNTIL_MS, type Pad, type RacerState } from './physics.js';
+import { batchStep, WASM_MAX_RACERS } from './phys-wasm.js';
 
 export type NitroPhase = 'lobby' | 'race' | 'final';
 
@@ -62,6 +63,12 @@ export class NitroSim {
   private raceStart = 0;
   /** First-across flag time (0 = nobody home yet). */
   private winAt = 0;
+  /**
+   * Batch scratch: reused every tick, zero per-tick allocation.
+   * [prog,lane,boost,slowUntil] + [steer,boostHeld01] for ≤16 racers.
+   */
+  private batchStates = new Float64Array(WASM_MAX_RACERS * 4);
+  private batchInputs = new Float64Array(WASM_MAX_RACERS * 2);
 
   humanCount(): number { let n = 0; for (const r of this.racers.values()) if (!r.isBot) n++; return n; }
   playerCount(): number { return this.racers.size; }
@@ -107,15 +114,64 @@ export class NitroSim {
     }
     if (this.phase === 'race') {
       const all = [...this.racers.values()];
-      for (const r of all) {
-        if (r.finishedAt !== 0) continue;
-        const others = all.filter((o) => o.id !== r.id).map((o) => ({ prog: o.st.prog, lane: o.st.lane }));
-        stepRacer(r.st, { steer: r.steer, boost: r.boostHeld }, this.pads, others, this.time, dtMs);
-        if (r.st.prog >= RACE_DIST && r.finishedAt === 0) {
-          r.finishedAt = this.time;
-          if (this.winAt === 0) {
-            this.winAt = this.time;
-            this.pushFeed(`🏁 ${r.name} takes the flag — 10s chase for places!`);
+      const active = all.filter((r) => r.finishedAt === 0);
+      if (active.length > 0 && active.length <= WASM_MAX_RACERS) {
+        // ONE call steps the whole grid: compiled Rust when the server
+        // loaded race-phys.wasm at boot, bit-identical TS mirror otherwise
+        // (phys-wasm.ts; proven by test/wasm.test.ts). The integrate reads
+        // no cross-racer state, so batching changes no inputs — only the
+        // call count. Pads/bumps below are stepRacer's tail verbatim.
+        for (let i = 0; i < active.length; i++) {
+          const r = active[i]!;
+          this.batchStates[i * 4] = r.st.prog;
+          this.batchStates[i * 4 + 1] = r.st.lane;
+          this.batchStates[i * 4 + 2] = r.st.boost;
+          this.batchStates[i * 4 + 3] = r.st.slowUntil;
+          this.batchInputs[i * 2] = r.steer;
+          this.batchInputs[i * 2 + 1] = r.boostHeld ? 1 : 0;
+        }
+        batchStep(this.batchStates, this.batchInputs, active.length, this.time, dtMs);
+        for (let i = 0; i < active.length; i++) {
+          const r = active[i]!;
+          r.st.prog = this.batchStates[i * 4]!;
+          r.st.lane = this.batchStates[i * 4 + 1]!;
+          r.st.boost = this.batchStates[i * 4 + 2]!;
+        }
+        for (const r of active) {
+          for (let i = 0; i < this.pads.length; i++) {
+            const p = this.pads[i]!;
+            if (Math.abs(r.st.prog - p.at) < 5 && Math.round(r.st.lane) === p.lane) {
+              r.st.boost = Math.min(100, r.st.boost + PAD_GAIN);
+            }
+          }
+          for (const o of all) {
+            if (o.id === r.id) continue;
+            if (Math.abs(o.st.prog - r.st.prog) < BUMP_WINDOW && Math.round(o.st.lane) === Math.round(r.st.lane)) {
+              r.st.slowUntil = this.time + BUMP_SLOW_UNTIL_MS;
+              break;
+            }
+          }
+          if (r.st.prog >= RACE_DIST && r.finishedAt === 0) {
+            r.finishedAt = this.time;
+            if (this.winAt === 0) {
+              this.winAt = this.time;
+              this.pushFeed(`🏁 ${r.name} takes the flag — 10s chase for places!`);
+            }
+          }
+        }
+      } else {
+        // Oversized grid (never in practice — snapshots cap at 8): the
+        // original per-racer path, untouched.
+        for (const r of all) {
+          if (r.finishedAt !== 0) continue;
+          const others = all.filter((o) => o.id !== r.id).map((o) => ({ prog: o.st.prog, lane: o.st.lane }));
+          stepRacer(r.st, { steer: r.steer, boost: r.boostHeld }, this.pads, others, this.time, dtMs);
+          if (r.st.prog >= RACE_DIST && r.finishedAt === 0) {
+            r.finishedAt = this.time;
+            if (this.winAt === 0) {
+              this.winAt = this.time;
+              this.pushFeed(`🏁 ${r.name} takes the flag — 10s chase for places!`);
+            }
           }
         }
       }

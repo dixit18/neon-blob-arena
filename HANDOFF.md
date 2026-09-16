@@ -4,6 +4,19 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- PF-1 + BX-1 SHIPPED (user: track fps, no lag, browser-agent check every
+  browser): fps/p95 pills in blaze + nitro (+3D mode), dive fps chip, 15s
+  /perf beacon with browser caps, GET /perf aggregates; zero-dep Edge +
+  Firefox headless gate. Verified: 240/240 tests (4 meter + 2 perf new),
+  web build green (shell 19.19KB), BROWSER GREEN (edge 6/6 + 3/3, firefox
+  paint both pages). Pushing.
+- TP-1 + NR-5 SHIPPED (user: use free Threepipe properly for 3D, Rust+WASM to
+  better it, nothing runs locally): Threepipe ThreeViewer via pinned CDN
+  (Apache-2.0 free, 0 bundle bytes, 2D default) on blaze/nitro 3D toggles +
+  race-phys.wasm (1KB, no bindgen) batch-stepping the authoritative nitro sim
+  with bit-identical TS fallback. Verified: 238/238 tests (2 new parity),
+  server tsc + web build green (shell 19.19KB), live boot ACTIVE, soak 30/30
+  @390/s tickAvg 0.08/max 0.9ms SOAK GREEN. Pushing.
 - RD-1 SHIPPED (user: share-worthy 3D, take the time): RIFT DIVE 3D — GLSL
   nebula sky, flowing energy rings, 6 biome dioramas, chase camera with vista
   slow-downs, 📸 photo share (PNG + rift link), portals for all 5 games. Lazy

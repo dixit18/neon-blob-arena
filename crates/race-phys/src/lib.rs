@@ -145,7 +145,7 @@ mod tests {
         assert!(s.lane > 0.0 && s.lane < 1.0);
     }
 
-    #[test]
+        #[test]
     fn constants_match_the_typescript_authority() {
         assert_eq!(TRACK_LEN, 1200.0);
         assert_eq!(LANES, 4.0);
@@ -155,5 +155,93 @@ mod tests {
         assert_eq!(BOOST_REGEN, 8.0);
         assert_eq!(PAD_GAIN, 35.0);
         assert_eq!(BUMP_WINDOW, 6.0);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// WASM boundary (NR-5: the import-only swap NR-4 promised).
+//
+// Zero dependencies preserved (no wasm-bindgen): flat f64 buffers, C ABI,
+// static slots (rooms cap well under MAX_RACERS). The host writes states +
+// inputs into wasm linear memory at the exported pointers, calls
+// race_batch_step, reads states back — one call steps the whole grid.
+//
+// Split (documented in games/nitro-rift/phys-wasm.ts): the hot per-racer
+// integrate (boost drain/regen, lane glide + clamp, prog advance, slow limp)
+// lives here; branchy pads/bumps stay in TS. Op order mirrors step_racer
+// exactly so outputs are bit-identical (proven by games/nitro-rift/test/
+// wasm.test.ts, exact f64 equality per vector).
+// ---------------------------------------------------------------------------
+
+/// Max racers per batch call. Snapshots cap at 8; 16 is headroom.
+pub const MAX_RACERS: usize = 16;
+
+#[cfg(target_arch = "wasm32")]
+static mut WASM_STATES: [f64; MAX_RACERS * 4] = [0.0; MAX_RACERS * 4];
+
+#[cfg(target_arch = "wasm32")]
+static mut WASM_INPUTS: [f64; MAX_RACERS * 2] = [0.0; MAX_RACERS * 2];
+
+/// Byte-agnostic pointer to the states buffer: [prog, lane, boost,
+/// slow_until] x MAX_RACERS, f64 each. The host wraps it as Float64Array.
+#[cfg(target_arch = "wasm32")]
+#[no_mangle]
+pub extern "C" fn race_states_ptr() -> *mut f64 {
+    #[allow(static_mut_refs)]
+    unsafe {
+        WASM_STATES.as_mut_ptr()
+    }
+}
+
+/// Pointer to the inputs buffer: [steer, boost_held(0.0/1.0)] x MAX_RACERS.
+#[cfg(target_arch = "wasm32")]
+#[no_mangle]
+pub extern "C" fn race_inputs_ptr() -> *mut f64 {
+    #[allow(static_mut_refs)]
+    unsafe {
+        WASM_INPUTS.as_mut_ptr()
+    }
+}
+
+/// Step the first `count` slots by dt_ms at sim-time `now`. Clamps count to
+/// MAX_RACERS; count 0 is a no-op. Mirrors step_racer's hot section op-for-op.
+#[cfg(target_arch = "wasm32")]
+#[no_mangle]
+pub extern "C" fn race_batch_step(count: usize, now: f64, dt_ms: f64) {
+    let n = count.min(MAX_RACERS);
+    if n == 0 {
+        return;
+    }
+    let dt = dt_ms / 1000.0;
+    #[allow(static_mut_refs)]
+    unsafe {
+        for i in 0..n {
+            let s = i * 4;
+            let k = i * 2;
+            let steer = WASM_INPUTS[k];
+            let boost_held = WASM_INPUTS[k + 1] != 0.0;
+            let mut prog = WASM_STATES[s];
+            let mut lane = WASM_STATES[s + 1];
+            let mut boost = WASM_STATES[s + 2];
+            let slow_until = WASM_STATES[s + 3];
+            let want_boost = boost_held && boost > 0.0;
+            let mut v = BASE_SPEED + if want_boost { BOOST_SPEED } else { 0.0 };
+            if now < slow_until {
+                v *= 0.6;
+            }
+            if want_boost {
+                boost = (boost - BOOST_DRAIN * dt).max(0.0);
+            } else {
+                boost = (boost + BOOST_REGEN * dt).min(100.0);
+            }
+            if steer != 0.0 {
+                lane += steer.signum() * (1.0f64).min(dt * 6.0);
+                lane = lane.clamp(0.0, LANES - 1.0);
+            }
+            prog += v * dt;
+            WASM_STATES[s] = prog;
+            WASM_STATES[s + 1] = lane;
+            WASM_STATES[s + 2] = boost;
+        }
     }
 }

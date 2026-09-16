@@ -22,9 +22,21 @@ Slow-tick server log (`[tick] slow XXms`) is an automatic investigate.
 
 ## Device matrix (per release)
 
-- Desktop Chrome (target: 60fps, 25/room stress via `npm run loadtest -- --clients=50`)
-- Android Chrome mid-tier (target: ≥50fps, DPR capped, minimap throttled)
-- Small phone 360px wide (HUD readable, 46px+ targets, no overlap)
+- Desktop Edge/Chrome (target: 60fps): `npx tsx scripts/browser-check.ts`
+  must print BROWSER GREEN — 6/6 landing DOM markers, 3/3 room markers,
+  non-blank paint at 1280×900 + 360×640. Headless runs isolated profiles,
+  never the owner's live browser.
+- Firefox (target: boot + non-blank paint both pages): same script, paint
+  checks (FF headless has no dump-dom; DOM proof rides on Edge + shared code).
+- Safari (no local binary): covered by runtime gates, not runs — every
+  session beacons caps+fps to /perf, so Safari numbers arrive from real
+  devices. Code rules that keep Safari safe: dynamic-import CDN with 2D
+  fallback, `typeof WebAssembly` guard, no Chrome-only APIs (longtask etc.
+  behind feature checks), guarded deviceMemory/requestIdleCallback.
+- Small phone 360px wide (HUD readable, 46px+ targets, no overlap).
+- Live evidence: `GET /perf` aggregates per-game avgFps/avgP95 + mode and
+  browser splits. Red lines: avgFps < 45 or avgP95 > 25ms on any game with
+  ≥20 samples → investigate before next ship.
 
 ## Regression checklist (every version)
 

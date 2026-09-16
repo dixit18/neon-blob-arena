@@ -2,9 +2,11 @@
 // Base tier (always works): Canvas2D top-down — zone ring, crates, blobs,
 // bolts, HP/kill HUD. Left-half drag = move stick, right-half drag = aim +
 // autofire, WASD + mouse + Space on desktop. Every tap paints same-tick.
-// Enhanced tier (explicit "✨ 3D" tap only): threepipe → three.js CDN scene
-// (arena plane, blob spheres, zone ring); falls back to 2D silently.
-import { loadThree } from '../three-lazy.js';
+// Enhanced tier (explicit "✨ 3D" tap only): Threepipe ThreeViewer from CDN
+// (free Apache-2.0, nothing runs locally) with raw-three CDN fallback;
+// 2D default intact, any failure stays 2D.
+import { loadRawThree, loadViewer, type ViewerKit } from '../three-lazy.js';
+import { attachMeter } from '../fps-meter.js';
 
 export interface MountCtx { server: string; game: string; room: string; name: string }
 
@@ -35,13 +37,14 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   box.innerHTML = '<div id="bzStat">connecting…</div>'
     + '<canvas id="bzCv" width="600" height="600" aria-label="Blaze squad arena"></canvas>'
     + '<div class="hud"><span class="pill" id="bzHp">❤ 100</span><span class="pill" id="bzK">💥 0</span><span class="pill" id="bzRapid" style="display:none">⚡ rapid</span>'
-    + '<span class="pill" id="bzZone">🔥 zone —</span><span class="pill" id="bzT">⏱ —</span></div>'
+    + '<span class="pill" id="bzZone">🔥 zone —</span><span class="pill" id="bzT">⏱ —</span><span class="pill" id="bzFps">–fps</span></div>'
     + '<div class="row"><button id="bzFire">HOLD TO FIRE</button><button id="bz3d">✨ 3D</button></div>'
     + '<div id="bzFeed"></div>';
   el.appendChild(box);
 
-  const cv = box.querySelector('#bzCv') as HTMLCanvasElement;
-  const g = cv.getContext('2d')!;
+  const cv0 = box.querySelector('#bzCv') as HTMLCanvasElement;
+  let cv = cv0;
+  let g = cv.getContext('2d')!;
   const stat = box.querySelector('#bzStat') as HTMLElement;
   const hpP = box.querySelector('#bzHp') as HTMLElement;
   const kP = box.querySelector('#bzK') as HTMLElement;
@@ -50,6 +53,11 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   const rapidP = box.querySelector('#bzRapid') as HTMLElement;
   const feed = box.querySelector('#bzFeed') as HTMLElement;
   const say = (m: string): void => { stat.textContent = m; };
+  // Perf truth (QA budgets): fps + p95 pill, 15s beacon to /perf with mode.
+  let threeMode = '2d';
+  const meter = attachMeter(box.querySelector('#bzFps') as HTMLElement, {
+    game: 'blaze-squad', server: ctx.server, mode: () => threeMode,
+  });
 
   let closed = false;
   let snap: Snap | null = null;
@@ -153,19 +161,67 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   }
 
   // --- 2D render (always works) + optional 3D overlay ---
-  let three: { render: (s: Snap) => void } | null = null;
+  // A canvas that held a 2D context can never mint WebGL (same law as the
+  // dive): 3D swaps in a fresh canvas with the same identity first.
+  let three: { render: (s: Snap) => void; dispose?: () => void } | null = null;
+  function swapCanvas(old: HTMLCanvasElement): HTMLCanvasElement {
+    const fresh = document.createElement('canvas');
+    fresh.id = old.id;
+    fresh.className = old.className;
+    fresh.setAttribute('style', old.getAttribute('style') ?? '');
+    const label = old.getAttribute('aria-label');
+    if (label) fresh.setAttribute('aria-label', label);
+    fresh.width = 600; fresh.height = 600;
+    old.replaceWith(fresh);
+    return fresh;
+  }
   (box.querySelector('#bz3d') as HTMLButtonElement).addEventListener('click', async () => {
+    if (three) { say('3D is already on'); return; }
     say('loading 3D… (one-time, stays 2D if offline)');
-    const kit = await loadThree();
-    if (closed || !kit) { say(kit ? '3D ready' : 'offline — staying on 2D, fully playable'); return; }
+    // Probe first WITHOUT touching the live 2D canvas: offline users never
+    // lose a frame. Only after the CDN answers do we swap (a 2D-context
+    // canvas can never mint WebGL) and build the scene on the fresh canvas.
+    const raw = await loadRawThree();
+    if (closed) return;
+    if (!raw) { say('offline — staying on 2D, fully playable'); return; }
+    cv = swapCanvas(cv);
     try {
-      three = enableBlaze3D(kit, cv);
-      say(kit.kind === 'threepipe' ? `✨ threepipe ${kit.version} 3D on` : `✨ three.js ${kit.version} 3D on`);
-    } catch { say('3D failed to start — 2D stays'); }
+      const vk = await loadViewer(cv);
+      if (closed) return;
+      if (vk) {
+        three = enableBlazeViewer(vk, cv);
+        threeMode = '3d-threepipe';
+        say(`✨ threepipe ${vk.version} 3D on`);
+        return;
+      }
+      // Threepipe failed but raw three.js is already in hand: same scene,
+      // own renderer, still zero bundle bytes.
+      three = enableBlaze3D({ kind: 'three', api: raw.api }, cv);
+      threeMode = '3d-three';
+      say(`✨ three.js ${raw.version} 3D on`);
+    } catch {
+      cv = swapCanvas(cv);
+      g = cv.getContext('2d')!;
+      three = null;
+      threeMode = '2d';
+      say('3D failed to start — 2D stays');
+    }
   });
 
   function paint(): void {
-    if (three && snap) { try { three.render(snap); } catch { three = null; } if (three) return; }
+    if (three && snap) {
+      try { three.render(snap); return; }
+      catch {
+        try { three.dispose?.(); } catch { /* gone */ }
+        three = null;
+        threeMode = '2d';
+        // The WebGL canvas can never do 2D again: swap back to a fresh 2D
+        // canvas and re-grab its context so play continues uninterrupted.
+        cv = swapCanvas(cv);
+        g = cv.getContext('2d')!;
+        say('3D dropped — back on 2D, still playable');
+      }
+    }
     const W = (cv.width = cv.clientWidth * 2 || 600);
     cv.height = W;
     const k = W / 100;
@@ -258,8 +314,84 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   }
 
   connect();
-  new MutationObserver(() => { if (!document.contains(el)) { closed = true; try { ws?.close(); } catch { /* gone */ } } })
-    .observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(() => {
+    if (!document.contains(el)) {
+      closed = true;
+      try { ws?.close(); } catch { /* gone */ }
+      try { three?.dispose?.(); } catch { /* gone */ }
+      three = null;
+      threeMode = '2d';
+      try { meter.stop(); } catch { /* gone */ }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * Proper Threepipe scene: the viewer already owns renderer + render loop +
+ * tonemapping (constructed per threepipe.org samples). We add plain three.js
+ * meshes to viewer.scene and pose viewer.mainCamera; render() only moves
+ * objects — no manual renderer calls, no per-frame allocation.
+ */
+function enableBlazeViewer(
+  vk: ViewerKit, cv: HTMLCanvasElement,
+): { render: (s: Snap) => void; dispose: () => void } {
+  const T = vk.three as any;
+  const viewer = vk.viewer as any;
+  const sceneAdd = (o: unknown): void => {
+    if (typeof viewer.addSceneObject === 'function') viewer.addSceneObject(o);
+    else viewer.scene.add(o);
+  };
+  const ground = new T.Mesh(
+    new T.PlaneGeometry(100, 100),
+    new T.MeshBasicMaterial({ color: 0x14141a }),
+  );
+  ground.rotation.x = -Math.PI / 2;
+  sceneAdd(ground);
+  const ring = new T.Mesh(
+    new T.RingGeometry(0.94, 1.0, 64),
+    new T.MeshBasicMaterial({ color: 0xc6f135, transparent: true, opacity: 0.9, side: T.DoubleSide }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.1;
+  sceneAdd(ring);
+  const dots = new Map<string, any>();
+  const SQUAD_COLORS = [0xff6b5b, 0x5bb8ff, 0xffd93d]; // Ember / Tide / Volt
+  const cam = viewer.mainCamera;
+  const lookAt = (x: number, y: number, z: number): void => {
+    try { cam.lookAt?.(x, y, z); } catch { /* fixed cams forgive */ }
+  };
+  cam.position.set(0, 95, 55);
+  lookAt(0, 0, 0);
+  return {
+    render(s: Snap): void {
+      const W = cv.clientWidth || 600;
+      void W;
+      ring.position.x = s.zone.x - 50;
+      ring.position.z = s.zone.y - 50;
+      ring.scale.set(s.zone.r, s.zone.r, 1);
+      const me = s.players.find((p) => p.you && p.alive) ?? s.players.find((p) => p.alive);
+      if (me) {
+        cam.position.set(me.x - 50, 70, (me.y - 50) + 42);
+        lookAt(me.x - 50, 0, me.y - 50);
+      }
+      for (const p of s.players) {
+        if (!p.alive) { dots.delete(p.n); continue; }
+        let m = dots.get(p.n);
+        if (!m) {
+          m = new T.Mesh(
+            new T.SphereGeometry(1.7, 12, 12),
+            new T.MeshBasicMaterial({ color: p.you ? 0xc6f135 : (SQUAD_COLORS[p.q ?? 0] ?? 0xff3d8a) }),
+          );
+          sceneAdd(m);
+          dots.set(p.n, m);
+        }
+        m.position.set(p.x - 50, 1.5, p.y - 50);
+      }
+    },
+    dispose(): void {
+      try { viewer.dispose?.(); } catch { /* gone */ }
+    },
+  };
 }
 
 function enableBlaze3D(kit: { kind: string; api: unknown }, cv: HTMLCanvasElement): { render: (s: Snap) => void } {

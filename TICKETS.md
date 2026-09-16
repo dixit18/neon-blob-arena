@@ -97,6 +97,27 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   NO code until Signal Hunt sprint.
 
 ## Done
+- [PF-1] Perf truth: fps + p95 pills live — Done: shared fps-meter (rolling
+  fps/p95, 0 per-frame alloc, headless-tested core 4/4) in blaze + nitro HUD
+  (+3D mode tracking) and dive fps chip; lossy 15s beacon to POST /perf with
+  browser caps; GET /perf aggregates per-game avg + mode/browser splits
+  (2/2 endpoint tests). Receipt: 240/240 suite green, web build green
+  (meter own 1.81KB lazy chunk, shell still 19.19KB).
+- [BX-1] Real-browser agent gate — Done: scripts/browser-check.ts (zero new
+  deps, isolated profiles, IPv4-bound stack) on local Edge + Firefox.
+  Receipt: BROWSER GREEN — edge landing 6/6 + 724KB paint, nitro room 3/3 +
+  454KB, 360px paint, firefox both pages non-blank. Bonus find: dive auto-
+  upgraded to three.js r160 + vista caption even under headless SwiftShader.
+- [TP-1] Threepipe proper use — Done: ThreeViewer via pinned CDN (free
+  Apache-2.0, zero bundle/local deps) for blaze + nitro 3D toggles, raw-three
+  fallback, 2D-canvas swap fix (WebGL can never start on a 2D canvas).
+  Receipt: web build green (shell 19.19KB, blaze 9.41KB, nitro 8.34KB).
+- [NR-5] Rust/WASM live on the authoritative path — Done: race_batch_step
+  (1KB binary, static slots, C ABI, no wasm-bindgen) + phys-wasm.ts loader
+  (WASM-if-ready, bit-identical TS mirror otherwise) + sim batch stepping +
+  server boot init with TS fallback. Receipt: 238/238 tests (2 new parity:
+  7 vectors exact f64 + 8-racer grid), live boot ACTIVE, soak 30/30 @390/s
+  tickAvg 0.08/max 0.9ms SOAK GREEN.
 - [G-1] Soak covers ludo — Done: 30 clients × 5 games, 394 snaps/s,
   tickAvg 0.11ms/max 1.4ms, 0 errors. SOAK GREEN.
 - [LD-5] Ludo E2E — Done: hello/token/room, instant table, roll edge,

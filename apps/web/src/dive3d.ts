@@ -11,6 +11,8 @@
 import { WORLDS, type World } from './descent.js';
 import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
+  layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
+  SHARD_COUNT, SHARD_COLORS, tunnelLength,
 } from './dive3d-layout.js';
 import { THREE_PIN } from './three-lazy.js';
 
@@ -20,6 +22,8 @@ const BONE = '#F2EDE3';
 
 export interface Dive3DOpts {
   onPortal?: (game: string) => void;
+  /** Fires when the faced world changes (face-follow PLAY bar). */
+  onFace?: (game: string) => void;
   rift?: string;
 }
 
@@ -91,6 +95,108 @@ function glowTexture(T: any): any {
   return tex;
 }
 
+// ---------- world spirits (original chibi souls, anime grammar: big head,
+// huge highlighted eyes, tiny mouth — painted procedurally, zero borrowed
+// art; one 128px texture each, shared by every lap forever) ----------
+// 0 Rin (orbit rings · sleepy planet, ring headband) · 1 Momo (candy dunes ·
+// mochi, sparkle eyes) · 2 Usagi (ink garden · moon rabbit, long ears) ·
+// 3 Jelli (neon reef · jellyfish idol, antennae) · 4 Ember (ember deep ·
+// flame imp, horns + toothy grin) · 5 Hoshi (star nursery · star baby).
+const SPIRIT_SKIN = ['#BFF3D8', '#FFC6E0', '#F2EDE3', '#9BF2EA', '#FFB37A', '#FFF3B0'];
+function paintSpirit(g: CanvasRenderingContext2D, i: number): void {
+  const skin = SPIRIT_SKIN[i]!;
+  const cx = 64;
+  const cy = 70;
+  g.clearRect(0, 0, 128, 128);
+  g.fillStyle = skin;
+  // extras behind the head
+  if (i === 2) { // Usagi ears
+    g.fillStyle = skin;
+    g.beginPath(); g.ellipse(42, 22, 10, 26, -0.25, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(86, 22, 10, 26, 0.25, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#FF3D8A';
+    g.beginPath(); g.ellipse(42, 24, 4, 14, -0.25, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(86, 24, 4, 14, 0.25, 0, Math.PI * 2); g.fill();
+    g.fillStyle = skin;
+  } else if (i === 4) { // Ember horns
+    g.fillStyle = '#7A2E12';
+    g.beginPath(); g.moveTo(28, 44); g.lineTo(20, 12); g.lineTo(44, 34); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(100, 44); g.lineTo(108, 12); g.lineTo(84, 34); g.closePath(); g.fill();
+    g.fillStyle = skin;
+  } else if (i === 3) { // Jelli antennae + dots
+    g.strokeStyle = '#46E0D4'; g.lineWidth = 4; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(50, 30); g.quadraticCurveTo(44, 12, 36, 10); g.stroke();
+    g.beginPath(); g.moveTo(78, 30); g.quadraticCurveTo(84, 12, 92, 10); g.stroke();
+    g.fillStyle = '#46E0D4';
+    g.beginPath(); g.arc(36, 10, 5, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(92, 10, 5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = skin;
+  }
+  // head (Hoshi is a star)
+  if (i === 5) {
+    g.beginPath();
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 === 0 ? 46 : 22;
+      const a = -Math.PI / 2 + (k * Math.PI) / 5;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      if (k === 0) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    g.closePath(); g.fill();
+  } else {
+    g.beginPath(); g.arc(cx, cy, 44, 0, Math.PI * 2); g.fill();
+  }
+  if (i === 0) { // Rin ring headband
+    g.strokeStyle = '#C6F135'; g.lineWidth = 6;
+    g.beginPath(); g.ellipse(cx, cy - 8, 52, 14, -0.2, 0, Math.PI * 2); g.stroke();
+  }
+  // eyes: white + pupil + highlight (sleepy Rin gets ^ ^ arcs instead)
+  if (i === 0) {
+    g.strokeStyle = '#2B2144'; g.lineWidth = 5; g.lineCap = 'round';
+    g.beginPath(); g.arc(48, 72, 9, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+    g.beginPath(); g.arc(80, 72, 9, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+  } else {
+    for (const ex of [48, 80]) {
+      g.fillStyle = '#fff';
+      g.beginPath(); g.ellipse(ex, 70, 10, 13, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#2B2144';
+      g.beginPath(); g.arc(ex, 72, 5.5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#fff';
+      g.beginPath(); g.arc(ex - 2, 70, 2, 0, Math.PI * 2); g.fill();
+      if (i === 1 || i === 5) { // sparkle eyes: second glint
+        g.fillStyle = '#C6F135';
+        g.beginPath(); g.arc(ex + 3, 76, 1.4, 0, Math.PI * 2); g.fill();
+      }
+    }
+  }
+  // mouths
+  g.strokeStyle = '#2B2144'; g.lineWidth = 3.5; g.lineCap = 'round';
+  g.fillStyle = '#2B2144';
+  if (i === 4) { // toothy grin
+    g.beginPath(); g.arc(cx, 84, 12, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+    g.fillStyle = '#fff';
+    g.fillRect(60, 88, 8, 7);
+  } else if (i === 3) {
+    g.beginPath(); g.arc(cx, 88, 6, 0, Math.PI * 2); g.fill(); // idol 'o'
+  } else {
+    g.beginPath(); g.arc(cx, 86, 6, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke(); // smile
+  }
+  // blush
+  g.fillStyle = 'rgba(255,61,138,.4)';
+  g.beginPath(); g.ellipse(36, 84, 7, 4.5, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(92, 84, 7, 4.5, 0, 0, Math.PI * 2); g.fill();
+}
+function spiritTextures(T: any): any[] {
+  const out: any[] = [];
+  for (let i = 0; i < 6; i++) {
+    const c = document.createElement('canvas');
+    c.width = 128; c.height = 128;
+    paintSpirit(c.getContext('2d')!, i);
+    out.push(new T.CanvasTexture(c));
+  }
+  return out;
+}
+
 export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {}): Promise<{ stop: () => void }> {
   // A canvas that held a 2D context can never mint a WebGL one — swap in a
   // fresh canvas carrying the same identity (id/class/style/aria).
@@ -125,6 +231,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   scene.add(sky);
 
   const glowTex = glowTexture(T);
+  const spirits = spiritTextures(T);
 
   // shared geometry / materials
   const GEO = {
@@ -202,6 +309,29 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   moteGeo.setAttribute('position', new T.BufferAttribute(motePos, 3));
   const motes = new T.Points(moteGeo, new T.PointsMaterial({ color: 0xc6f135, size: 1.1, transparent: true, opacity: 0.55, depthWrite: false }));
   scene.add(motes);
+
+  // ---------- shard spiral (the STAR NURSERY look): hundreds of colored
+  // dashes wound in a helix — ONE InstancedMesh = 1 draw call. Pooled:
+  // states mutate in place, one reused dummy poses them, colors set once.
+  const SHARD_SPAN = tunnelLength();
+  const shardSeed = (opts.rift ?? 'RIFT').split('').reduce((a, c) => a + c.charCodeAt(0) * 31, 7);
+  const shards = layoutShards(SHARD_COUNT, shardSeed);
+  const shardMesh = new T.InstancedMesh(
+    new T.PlaneGeometry(2.4, 0.75),
+    new T.MeshBasicMaterial({ side: T.DoubleSide }),
+    shards.length,
+  );
+  {
+    const col = new T.Color('#ffffff');
+    for (let i = 0; i < shards.length; i++) {
+      col.set(SHARD_COLORS[shards[i]!.color]!);
+      shardMesh.setColorAt(i, col);
+    }
+    if (shardMesh.instanceColor) shardMesh.instanceColor.needsUpdate = true;
+  }
+  shardMesh.frustumCulled = false;
+  scene.add(shardMesh);
+  const shardDummy = new T.Object3D();
 
   // ---------- biome builders (one group per world heart) ----------
   function buildBiome(group: any, index: number, seed: number, world: World): void {
@@ -309,7 +439,12 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   }
 
   // ---------- lap groups (2 live laps, recycled endlessly) ----------
-  interface LapGroup { group: any; lap: number; animated: { obj: any; kind: string; data?: any }[] }
+  interface LapGroup {
+    group: any;
+    lap: number;
+    animated: { obj: any; kind: string; data?: any }[];
+    hearts: { x: number; z: number; game: string }[];
+  }
   const SHARED_GEO = new Set(Object.values(GEO));
   function sharedMats(): Set<any> {
     return new Set([...matCache.values(), ...ringMatCache.values()]);
@@ -334,14 +469,23 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       else if (o.userData.heart) animated.push({ obj: o, kind: 'heart' });
       else if (o.userData.embers) animated.push({ obj: o, kind: 'embers' });
       else if (o.userData.petals) animated.push({ obj: o, kind: 'petals' });
+      else if (o.userData.spirit) animated.push({ obj: o, kind: 'spirit', data: o.userData.spirit });
     });
   }
-  function fillLap(group: any, lap: number, animated: LapGroup['animated']): void {
+  function fillLap(group: any, lap: number, animated: LapGroup['animated'], hearts: LapGroup['hearts']): void {
+    hearts.length = 0;
     const placed = layoutLap(WORLDS, lap);
     for (const p of placed) {
+      hearts.push({ x: p.x, z: p.z, game: p.world.game });
       const holder = new T.Group();
       holder.position.set(p.x, 0, p.z);
       buildBiome(holder, p.index, p.seed, p.world);
+      // resident spirit: the world's soul, bobbing above its heart.
+      const spirit = new T.Sprite(new T.SpriteMaterial({ map: spirits[p.index], transparent: true, depthWrite: false }));
+      spirit.scale.set(7, 7, 1);
+      spirit.position.set(0, 11, 0);
+      (spirit as any).userData.spirit = { base: 11, ph: (p.seed % 628) / 100 };
+      holder.add(spirit);
       // portal core: invisible-feel hit sphere (raycast target)
       const core = new T.Mesh(GEO.sphere, new T.MeshBasicMaterial({ color: ACCENT[p.index]!, transparent: true, opacity: 0.0, depthWrite: false }));
       core.scale.setScalar(8.5);
@@ -355,9 +499,10 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   function buildLap(lap: number): LapGroup {
     const group = new T.Group();
     const animated: LapGroup['animated'] = [];
-    fillLap(group, lap, animated);
+    const hearts: LapGroup['hearts'] = [];
+    fillLap(group, lap, animated, hearts);
     scene.add(group);
-    return { group, lap, animated };
+    return { group, lap, animated, hearts };
   }
   const laps: LapGroup[] = [];
   laps.push(buildLap(0), buildLap(1));
@@ -379,7 +524,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   cv.after(photo);
 
   async function capture(): Promise<void> {
-    render(performance.now() / 1000); // fresh frame, then grab synchronously
+    render(performance.now() / 1000, 0.016); // fresh frame, then grab synchronously
     const blob = await new Promise<Blob | null>((res) => cv.toBlob((b) => res(b), 'image/png'));
     const world = WORLDS[faced]!;
     const link = `${location.origin}${location.pathname}?rift=${encodeURIComponent(opts.rift ?? '')}&game=${world.game}`;
@@ -409,11 +554,32 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     }
   }
   photo.addEventListener('click', () => { void capture(); });
+  // Perf truth (QA budgets): tiny fps chip, same thresholds as game pills.
+  const fpsChip = document.createElement('div');
+  fpsChip.setAttribute('aria-label', '3D scene frame rate');
+  fpsChip.style.cssText = 'position:absolute;right:12px;bottom:10px;z-index:3;pointer-events:none;font:700 11px system-ui;color:#C6F135;background:rgba(7,7,8,.55);border:1px solid rgba(198,241,53,.4);border-radius:999px;padding:4px 10px';
+  fpsChip.textContent = '–fps';
+  cv.after(fpsChip);
+  // First-flight coach mark (the only tutorial the site has): fades in 7s.
+  const steerHint = document.createElement('div');
+  steerHint.textContent = '✈ steer to fly — dive INTO a glowing ring to play · tap works too';
+  steerHint.style.cssText = 'position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:3;pointer-events:none;font:800 12px system-ui;color:#F2EDE3;background:rgba(7,7,8,.6);border:1px solid rgba(70,224,212,.5);border-radius:999px;padding:8px 16px;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis';
+  cv.after(steerHint);
+  window.setTimeout(() => { try { steerHint.remove(); } catch { /* gone */ } }, 7000);
 
-  // ---------- controls ----------
+  // ---------- controls: the site IS the ride ----------
+  // Hover/drag steers the camera (choosing = steering); diving INTO a portal
+  // ring enters its game (tap still works — flight is additive, never the
+  // only door). Passive users still arrive: auto-dive never stops.
   let depth = 0;
   let target = 0;
   let faced = 0;
+  let lastFaced = -1;
+  let lastFlyAt = 0;
+  let steerTX = 0;
+  let steerTY = 2;
+  let camX = 0;
+  let camY = 4;
   let dragging = false;
   let lastY = 0;
   let downX = 0;
@@ -436,6 +602,17 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     moved += Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY);
     target += dy * 0.006;
     bankX += (e.clientX - downX) * 0.0004;
+  });
+  // Hover steers (mouse); touch steers via the drag above. Cheap: no alloc.
+  cv.addEventListener('pointermove', (e) => {
+    const r = cv.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    const t = steerTarget(
+      ((e.clientX - r.left) / r.width) * 2 - 1,
+      -(((e.clientY - r.top) / r.height) * 2 - 1),
+    );
+    steerTX = t.x;
+    steerTY = t.y;
   });
   const endDrag = (): void => { dragging = false; };
   cv.addEventListener('pointerup', endDrag);
@@ -469,8 +646,11 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   let dead = false;
   let raf = 0;
   let last = performance.now();
+  let fpsN = 0;
+  let fpsT = 0;
   let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
   let slowFrames = 0;
+  let lastShardT = 0;
   const t0 = performance.now();
 
   function resize(): void {
@@ -484,21 +664,23 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   window.addEventListener('resize', resize);
   resize();
 
-  function render(t: number): void {
+  function render(t: number, dt: number): void {
     // recycle laps that fell behind / jump ahead of the camera
     const camLap = Math.floor(depth / 6);
     for (const l of laps) {
       if (l.lap < camLap - 1 || l.lap > camLap + 2) {
         l.lap = camLap + 2;
         clearGroup(l.group);
-        fillLap(l.group, l.lap, l.animated);
+        fillLap(l.group, l.lap, l.animated, l.hearts);
       }
     }
     const camZ = -depth * WORLD_GAP;
-    // face sway + drag bank
+    // steering: pointer target approached smoothly; sway + bank ride along.
+    camX = smoothApproach(camX, steerTX, dt, 3);
+    camY = smoothApproach(camY, steerTY, dt, 3);
     const sway = Math.sin(depth * 0.9) * 6 + bankX * 220;
-    camera.position.set(sway, 4 + Math.sin(t * 0.4) * 1.2, camZ + 34);
-    camTarget.set(sway * 0.4, 0, camZ - 60);
+    camera.position.set(camX + sway, camY + Math.sin(t * 0.4) * 1.2, camZ + 34);
+    camTarget.set(camX * 0.4, 0, camZ - 60);
     camera.lookAt(camTarget);
     sky.position.set(camera.position.x, camera.position.y, camZ);
     skyUni.uTime.value = t;
@@ -528,6 +710,25 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       }
     }
     mp.needsUpdate = true;
+    // shard spiral: flow past the camera, wrap down-lap, pose the dummies.
+    // The tunnel leans halfway with steering (center = camX*0.5): full
+    // deflection still reaches the walls, but you never lose the spiral.
+    {
+      const dtS = Math.min(0.1, Math.max(0, t - lastShardT));
+      lastShardT = t;
+      const cx = camera.position.x * 0.5;
+      for (let i = 0; i < shards.length; i++) {
+        const s = shards[i]!;
+        stepShard(s, dtS, camZ, SHARD_SPAN);
+        const a = s.angle;
+        shardDummy.position.set(cx + Math.cos(a) * s.radius, Math.sin(a) * s.radius * 0.72, s.z);
+        shardDummy.rotation.set(0, 0, a * 2 + i);
+        shardDummy.scale.setScalar(s.size);
+        shardDummy.updateMatrix();
+        shardMesh.setMatrixAt(i, shardDummy.matrix);
+      }
+      shardMesh.instanceMatrix.needsUpdate = true;
+    }
     // biome life
     for (const l of laps) {
       for (const a of l.animated) {
@@ -562,6 +763,14 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     // governor: sustained slow frames drop pixel ratio once
     if (dt > 0.024) { if (++slowFrames > 90 && pixelRatio > 1) { pixelRatio = 1; resize(); slowFrames = 0; } }
     else slowFrames = Math.max(0, slowFrames - 2);
+    // fps chip ~2Hz (same QA thresholds as the game pills).
+    fpsN++; fpsT += dt;
+    if (fpsN >= 30) {
+      const f = fpsT > 0 ? Math.round(fpsN / fpsT) : 0;
+      fpsChip.textContent = `${f}fps`;
+      fpsChip.style.color = f >= 55 ? '#C6F135' : f >= 45 ? '#FFD93D' : '#FF5D5D';
+      fpsN = 0; fpsT = 0;
+    }
     target = Math.max(0, target);
     if (!dragging) target += dt * 0.14; // auto-dive
     const frac = ((depth % 1) + 1) % 1;
@@ -569,8 +778,23 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     depth += (target - depth) * Math.min(1, dt * (vista ? 2.2 : 4.5));
     bankX *= 1 - Math.min(1, dt * 2);
     faced = facedWorld(depth);
+    if (faced !== lastFaced) { lastFaced = faced; opts.onFace?.(WORLDS[faced]!.game); }
+    // fly-through entry: pierce a heart ring while passing it → that game.
+    // 3s cooldown so one pass = one entry; tap stays as the other door.
+    if (now - lastFlyAt > 3000) {
+      const flyCamZ = -depth * WORLD_GAP;
+      for (const l of laps) {
+        for (const h of l.hearts) {
+          if (Math.abs(flyCamZ - h.z) < 7 && portalHit(camX, 0, h.x, 0, 9)) {
+            lastFlyAt = now;
+            opts.onPortal?.(h.game);
+            break;
+          }
+        }
+      }
+    }
     paintCap();
-    render((now - t0) / 1000);
+    render((now - t0) / 1000, dt);
     void tmpV;
   }
 
@@ -587,7 +811,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
       cancelAnimationFrame(raf);
       try { visObs.disconnect(); } catch { /* gone */ }
       window.removeEventListener('resize', resize);
-      try { cap.remove(); photo.remove(); } catch { /* gone */ }
+      try { cap.remove(); photo.remove(); fpsChip.remove(); steerHint.remove(); } catch { /* gone */ }
       try { renderer.dispose(); } catch { /* gone */ }
     },
   };

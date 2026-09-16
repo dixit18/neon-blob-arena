@@ -1,7 +1,9 @@
 // apps/web/src/games/nitro-rift.ts — Nitro Rift client (NR-3: ✨ 3D toggle).
-// Base tier (always works): Canvas top-down, lap-relative. Enhanced tier
-// (explicit tap only): threepipe → three.js CDN scene, 2D default intact.
-import { loadThree } from '../three-lazy.js';
+// Enhanced tier (explicit tap only): Threepipe ThreeViewer from CDN
+// (free Apache-2.0, nothing runs locally) with raw-three CDN fallback;
+// 2D default intact, any failure stays 2D.
+import { loadRawThree, loadViewer, type ViewerKit } from '../three-lazy.js';
+import { attachMeter } from '../fps-meter.js';
 
 export interface MountCtx { server: string; game: string; room: string; name: string }
 
@@ -35,19 +37,25 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   box.innerHTML = '<div id="nrStat">connecting…</div>'
     + '<canvas id="nrCv" width="480" height="640" aria-label="Nitro rift track"></canvas>'
     + '<div class="hud"><span class="pill" id="nrPlace">P–</span><span class="pill" id="nrBoostP">⚡ 60</span>'
-    + '<span class="pill" id="nrHeat">🏁 heat 1</span></div>'
+    + '<span class="pill" id="nrHeat">🏁 heat 1</span><span class="pill" id="nrFps">–fps</span></div>'
     + '<div class="row"><button id="nrL">◀</button><button id="nrBoost">BOOST</button><button id="nrR">▶</button><button id="nr3d">✨</button></div>'
     + '<div id="nrFeed"></div>';
   el.appendChild(box);
 
-  const cv = box.querySelector('#nrCv') as HTMLCanvasElement;
-  const g = cv.getContext('2d')!;
+  const cv0 = box.querySelector('#nrCv') as HTMLCanvasElement;
+  let cv = cv0;
+  let g = cv.getContext('2d')!;
   const stat = box.querySelector('#nrStat') as HTMLElement;
   const placeP = box.querySelector('#nrPlace') as HTMLElement;
   const boostP = box.querySelector('#nrBoostP') as HTMLElement;
   const heatP = box.querySelector('#nrHeat') as HTMLElement;
   const feed = box.querySelector('#nrFeed') as HTMLElement;
   const say = (m: string): void => { stat.textContent = m; };
+  // Perf truth (QA budgets): fps + p95 pill, 15s beacon to /perf with mode.
+  let threeMode = '2d';
+  const meter = attachMeter(box.querySelector('#nrFps') as HTMLElement, {
+    game: 'nitro-rift', server: ctx.server, mode: () => threeMode,
+  });
 
   let closed = false;
   let snap: Snap | null = null;
@@ -110,7 +118,17 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     if (snap.phase === 'lobby') say('heat forms… first across takes it');
     else if (snap.phase === 'race') say(`P${snap.you.place} — pads refill boost, bumps cost speed`);
     else say('heat done — fresh grid in a few seconds');
-    if (three) { try { three.render(snap); } catch { three = null; } if (three) return; }
+    if (three && snap) {
+      try { three.render(snap); return; }
+      catch {
+        try { three.dispose?.(); } catch { /* gone */ }
+        three = null;
+        threeMode = '2d';
+        cv = swapCanvas(cv);
+        g = cv.getContext('2d')!;
+        say('3D dropped — back on 2D, still playable');
+      }
+    }
     const W = (cv.width = cv.clientWidth * 2 || 480);
     const H = (cv.height = Math.round(W * 1.33));
     g.clearRect(0, 0, W, H);
@@ -161,15 +179,46 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   }
 
   // --- optional 3D overlay (explicit tap only; 2D is the game) ---
-  let three: { render: (s: Snap) => void } | null = null;
+  // Same canvas law as blaze/dive: a 2D-context canvas can never mint
+  // WebGL, so 3D swaps in a fresh canvas with the same identity first.
+  let three: { render: (s: Snap) => void; dispose?: () => void } | null = null;
+  function swapCanvas(old: HTMLCanvasElement): HTMLCanvasElement {
+    const fresh = document.createElement('canvas');
+    fresh.id = old.id;
+    fresh.className = old.className;
+    fresh.setAttribute('style', old.getAttribute('style') ?? '');
+    const label = old.getAttribute('aria-label');
+    if (label) fresh.setAttribute('aria-label', label);
+    fresh.width = 480; fresh.height = 640;
+    old.replaceWith(fresh);
+    return fresh;
+  }
   (box.querySelector('#nr3d') as HTMLButtonElement).addEventListener('click', async () => {
+    if (three) { say('3D is already on'); return; }
     say('loading 3D… (one-time, stays 2D if offline)');
-    const kit = await loadThree();
-    if (closed || !kit) { say(kit ? '3D ready' : 'offline — staying on 2D, fully playable'); return; }
+    const raw = await loadRawThree();
+    if (closed) return;
+    if (!raw) { say('offline — staying on 2D, fully playable'); return; }
+    cv = swapCanvas(cv);
     try {
-      three = enableNitro3D(kit, cv);
-      say(kit.kind === 'threepipe' ? `✨ threepipe ${kit.version} 3D on` : `✨ three.js ${kit.version} 3D on`);
-    } catch { say('3D failed to start — 2D stays'); }
+      const vk = await loadViewer(cv);
+      if (closed) return;
+      if (vk) {
+        three = enableNitroViewer(vk, cv);
+        threeMode = '3d-threepipe';
+        say(`✨ threepipe ${vk.version} 3D on`);
+        return;
+      }
+      three = enableNitro3D({ kind: 'three', api: raw.api }, cv);
+      threeMode = '3d-three';
+      say(`✨ three.js ${raw.version} 3D on`);
+    } catch {
+      cv = swapCanvas(cv);
+      g = cv.getContext('2d')!;
+      three = null;
+      threeMode = '2d';
+      say('3D failed to start — 2D stays');
+    }
   });
 
   function connect(): void {
@@ -203,8 +252,90 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   }
 
   connect();
-  new MutationObserver(() => { if (!document.contains(el)) { closed = true; try { ws?.close(); } catch { /* gone */ } } })
-    .observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(() => {
+    if (!document.contains(el)) {
+      closed = true;
+      try { ws?.close(); } catch { /* gone */ }
+      try { three?.dispose?.(); } catch { /* gone */ }
+      three = null;
+      threeMode = '2d';
+      try { meter.stop(); } catch { /* gone */ }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+/**
+ * Proper Threepipe scene for the rift: viewer owns renderer + loop +
+ * tonemapping; we add the track/cars/pads to viewer.scene and chase with
+ * viewer.mainCamera. render() only moves objects.
+ */
+function enableNitroViewer(
+  vk: ViewerKit, cv: HTMLCanvasElement,
+): { render: (s: Snap) => void; dispose: () => void } {
+  const T = vk.three as any;
+  const viewer = vk.viewer as any;
+  void cv;
+  const sceneAdd = (o: unknown): void => {
+    if (typeof viewer.addSceneObject === 'function') viewer.addSceneObject(o);
+    else viewer.scene.add(o);
+  };
+  const K = 0.1; // world units → scene units (1200u track = 120 long)
+  const laneX = (lane: number): number => (lane - 1.5) * 8;
+  const track = new T.Mesh(
+    new T.PlaneGeometry(40, 130),
+    new T.MeshBasicMaterial({ color: 0x14141a }),
+  );
+  track.rotation.x = -Math.PI / 2;
+  track.position.set(0, 0, -60);
+  sceneAdd(track);
+  const line = new T.Mesh(
+    new T.BoxGeometry(36, 0.5, 1.2),
+    new T.MeshBasicMaterial({ color: 0xf2ede3 }),
+  );
+  line.position.set(0, 0.2, 0);
+  sceneAdd(line);
+  const cars = new Map<string, any>();
+  const padDots = new Map<string, any>();
+  const cam = viewer.mainCamera;
+  const lookAt = (x: number, y: number, z: number): void => {
+    try { cam.lookAt?.(x, y, z); } catch { /* fixed cams forgive */ }
+  };
+  return {
+    render(s: Snap): void {
+      const myLap = s.you.prog % TRACK;
+      const camZ = -myLap * K + 24;
+      cam.position.set(laneX(s.you.lane), 26, camZ);
+      lookAt(laneX(s.you.lane), 0, camZ - 30);
+      for (const p of s.pads) {
+        const key = `${p.at}:${p.lane}`;
+        let m = padDots.get(key);
+        if (!m) {
+          m = new T.Mesh(
+            new T.BoxGeometry(2.4, 0.6, 2.4),
+            new T.MeshBasicMaterial({ color: 0xc6f135 }),
+          );
+          sceneAdd(m);
+          padDots.set(key, m);
+        }
+        m.position.set(laneX(p.lane), 0.4, -(p.at % TRACK) * K);
+      }
+      for (const r of s.racers) {
+        let m = cars.get(r.n);
+        if (!m) {
+          m = new T.Mesh(
+            new T.BoxGeometry(3.4, 1.6, 6),
+            new T.MeshBasicMaterial({ color: r.you ? 0xc6f135 : r.bot ? 0x8a8a93 : 0xff3d8a }),
+          );
+          sceneAdd(m);
+          cars.set(r.n, m);
+        }
+        m.position.set(laneX(r.lane), 1, -(r.prog % TRACK) * K);
+      }
+    },
+    dispose(): void {
+      try { viewer.dispose?.(); } catch { /* gone */ }
+    },
+  };
 }
 
 function enableNitro3D(kit: { kind: string; api: unknown }, cv: HTMLCanvasElement): { render: (s: Snap) => void } {

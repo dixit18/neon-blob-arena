@@ -24,16 +24,28 @@ window.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
 // The dive: endless zoom through the worlds. 2D paints instantly (first
 // paint never waits); the 3D dive upgrades lazily on idle when the device
 // can stun (WebGL + motion OK + >2GB RAM). Any failure stays 2D, silently.
-function divePortal(game: string): void {
+// D14: no menu — portals ARE the catalog. Facing a world shows it in the
+// PLAY bar; tapping or flying into a ring enters it. One resolver serves both.
+function resolveGame(game: string, enter: boolean): void {
   sfx.pop();
   void catalog.then((games) => {
-    const g = games.find((x) => x.id === game) ?? games[0];
-    if (!g) { status('that world is still being excavated.'); return; }
+    const g = games.find((x) => x.id === game) ?? null;
+    if (!g) {
+      el('faceName').textContent = 'that world is still being excavated.';
+      status('that world is still being excavated.');
+      return;
+    }
     picked = g;
     try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
-    status(`${g.id}: ${g.hook} — hit PLAY!`);
-    document.getElementById('games')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el('faceName').textContent = `${g.verb} — ${g.id}: ${g.hook}`;
+    if (!enter) return;
+    status('diving in — see you inside!');
+    location.href = `./?game=${g.id}&room=${rift}`;
   });
+}
+/** Portal tap / ring fly-through: enter immediately. */
+function divePortal(game: string): void {
+  resolveGame(game, true);
 }
 try {
   const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
@@ -49,7 +61,11 @@ try {
           const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (!mod.shouldUse3D({ webgl, ramGB: ram, reducedMotion: reduced })) return;
           flat.stop();
-          await mod.startDive3D(dive, { onPortal: divePortal, rift });
+          await mod.startDive3D(dive, {
+            onPortal: divePortal,
+            onFace: (game: string) => resolveGame(game, false),
+            rift,
+          });
         } catch { /* 2D stays — art never blocks play */ }
       })();
     };
@@ -66,7 +82,9 @@ const SERVER =
   (['localhost', '127.0.0.1'].includes(location.hostname) ? `ws://${location.hostname}:7749` : 'wss://playground-server.onrender.com');
 const httpBase = SERVER.replace('ws', 'http');
 
-// Guest boot: opaque ID persists locally, name defaults generated, one-tap edit.
+// Guest boot: opaque ID persists locally; name is auto-guest (D14 killed
+// the name field — you are Golden Falcon until you care; rename rides a
+// later ticket). PLAY always has a name.
 let gid = '';
 try {
   gid = localStorage.getItem('pg-gid') || '';
@@ -77,8 +95,10 @@ try {
 } catch { gid = genGuestId(); }
 let myName = '';
 try { myName = localStorage.getItem('pg-name') || ''; } catch { /* private mode */ }
-if (!myName) myName = genName();
-(el('name') as HTMLInputElement).value = myName;
+if (!myName) {
+  myName = genName();
+  try { localStorage.setItem('pg-name', myName); } catch { /* private */ }
+}
 
 // Rift seed: deterministic per visitor, shareable as ?rift=. Even non-players
 // get a unique "I found this weird world" artefact (report §A).
@@ -105,77 +125,71 @@ async function loadCatalog(): Promise<Manifest[]> {
     if (!r.ok) throw new Error(`http ${r.status}`);
     return (await r.json()) as Manifest[];
   } catch {
-    status('catalog unreachable — tap PLAY to retry once the server wakes.');
+    status('server is waking up — PLAY retries automatically.');
     return [];
   }
 }
 
-function renderGames(games: Manifest[], mood: string | null): void {
-  const box = el('games');
-  box.innerHTML = '';
-  const list = mood && mood !== 'SURPRISE'
-    ? games.filter(g => g.moods.includes(mood))
-    : [...games].sort(() => Math.random() - 0.5);
-  if (list.length === 0) {
-    box.innerHTML = '<div class="excavate"><span>nothing excavated for this mood yet.</span></div>';
-    return;
-  }
-  for (const g of list) {
-    const b = document.createElement('button');
-    b.className = 'excavate';
-    b.dataset.game = g.id;
-    b.style.animationDelay = `${Math.min(8, box.childElementCount) * 45}ms`;
-    b.innerHTML = `<b></b><span></span><br /><span class="tag"></span>`;
-    (b.querySelector('b') as HTMLElement).textContent = `${g.verb} — ${g.id}`;
-    (b.querySelectorAll('span')[0] as HTMLElement).textContent = g.hook;
-    (b.querySelector('.tag') as HTMLElement).textContent = `${g.minPlayers}–${g.maxPlayers} PLAYERS · ${g.shareKind}`;
-    b.addEventListener('click', () => {
-      picked = g;
-      sfx.tap();
-      try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
-      document.querySelectorAll('.excavate').forEach(x => (x as HTMLElement).style.borderColor = '');
-      b.style.borderColor = '#C6F135';
-      status(`${g.id}: ${g.hook}`);
-    });
-    box.appendChild(b);
-  }
-  if (!picked || !list.includes(picked)) picked = list[0] ?? null;
-}
+// D14: moods are tunnel weather, not filters — no grid left to filter.
+// Tapping one tints the rift and names the feeling; Surprise picks a world.
+const MOOD_LINE: Record<string, string> = {
+  BEAT: 'beat weather — fast rings, faster friends.',
+  CHAOS: 'chaos weather — everything sparkles at once.',
+  THINK: 'think weather — slow water, deep dive.',
+  SURPRISE: 'surprise weather — the rift chooses for you.',
+};
 
 document.querySelectorAll<HTMLButtonElement>('#moods button').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('#moods button').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
     sfx.tap();
     try {
-      const rift = (window as unknown as { __rift?: { setTint: (c: string) => void } }).__rift;
+      const riftBg = (window as unknown as { __rift?: { setTint: (c: string) => void } }).__rift;
       const tint = MOOD_TINT[b.dataset.mood ?? ''] ?? '#1E1033';
-      rift?.setTint(tint);
+      riftBg?.setTint(tint);
     } catch { /* art never blocks play */ }
-    void catalog.then(games => renderGames(games, b.dataset.mood ?? null));
+    const mood = b.dataset.mood ?? '';
+    if (mood === 'SURPRISE') {
+      void catalog.then((games) => {
+        const g = games[Math.floor(Math.random() * games.length)] ?? null;
+        if (g) resolveGame(g.id, false);
+      });
+    } else {
+      status(MOOD_LINE[mood] ?? '');
+    }
   });
 });
 
 el('play').addEventListener('click', () => {
   sfx.pop();
-  const n = ((el('name') as HTMLInputElement).value || myName).slice(0, 14);
-  try { localStorage.setItem('pg-name', n); } catch { /* private */ }
-  myName = n || myName;
-  if (!picked) {
-    status('pick a game first — poke a mood above.');
-    return;
-  }
-  status(`entering ${picked.id}…`);
-  location.href = `./?game=${picked.id}&room=${rift}`;
+  void (async () => {
+    if (!picked) {
+      // Server was asleep at load: one live retry shared by every path.
+      catalog = loadCatalog();
+      const games = await catalog;
+      const stored = (() => { try { return localStorage.getItem('pg-game'); } catch { return null; } })();
+      picked = games.find(g => g.id === (qs.get('game') ?? stored ?? '')) ?? games[0] ?? null;
+      if (picked) el('faceName').textContent = `${picked.verb} — ${picked.id}: ${picked.hook}`;
+    }
+    if (!picked) {
+      status('server is still waking — wait a few seconds, hit PLAY again.');
+      return;
+    }
+    status(`entering ${picked.id}…`);
+    location.href = `./?game=${picked.id}&room=${rift}`;
+  })();
 });
 
-const catalog = loadCatalog();
+let catalog = loadCatalog();
 void catalog.then(games => {
   const stored = (() => { try { return localStorage.getItem('pg-game'); } catch { return null; } })();
   const initial = qs.get('game') ?? stored;
-  if (initial) picked = games.find(g => g.id === initial) ?? null;
-  renderGames(games, null);
-  if (picked) status(`${picked.id}: ${picked.hook}`);
+  picked = games.find(g => g.id === initial) ?? null;
+  if (picked) {
+    el('faceName').textContent = `${picked.verb} — ${picked.id}: ${picked.hook}`;
+    status(`${picked.id}: ${picked.hook}`);
+  } else {
+    el('faceName').textContent = 'steer toward a glowing ring…';
+  }
 });
 
 // Owner studio: hidden observability (OpenMausBot-style threads). This route is

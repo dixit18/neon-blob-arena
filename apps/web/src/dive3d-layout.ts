@@ -79,3 +79,77 @@ export function heartFrac(depth: number): number {
 export function tunnelLength(): number {
   return LAP_LEN * WORLD_GAP;
 }
+
+// ---------------------------------------------------------------------------
+// Shard spiral (the STAR NURSERY look): hundreds of small colored dashes
+// wound in a helix down the tunnel. Pure placement math; dive3d.ts renders
+// them as ONE InstancedMesh (1 draw call) and flows them past the camera.
+// ---------------------------------------------------------------------------
+
+export const SHARD_COUNT = 220;
+/** Shard color weights: greens/teal lead, coral + gold + cream sparkle. */
+export const SHARD_COLORS = [
+  '#C6F135', '#46E0D4', '#C6F135', '#FFE9A8',
+  '#FF5D5D', '#F2EDE3', '#46E0D4', '#FF3D8A',
+];
+
+export interface Shard {
+  angle: number; // radians around the tunnel axis
+  radius: number; // 14..30 from the axis
+  z: number; // spread over one full lap, negative down-lap
+  spin: number; // angular drift rad/s
+  flow: number; // +z drift units/s (toward camera)
+  color: number; // index into SHARD_COLORS
+  size: number; // 0.7..1.6 scale
+}
+
+/** Deterministic helix: golden-angle steps, full-lap z spread. */
+export function layoutShards(count: number, seed: number): Shard[] {
+  const rand = mulberry32(seed >>> 0);
+  const span = tunnelLength();
+  const out: Shard[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      angle: (i * 2.39996 + rand() * 0.6) % (Math.PI * 2),
+      radius: 14 + rand() * 16,
+      z: -rand() * span,
+      spin: 0.05 + rand() * 0.25,
+      flow: 18 + rand() * 22,
+      color: Math.floor(rand() * SHARD_COLORS.length),
+      size: 0.7 + rand() * 0.9,
+    });
+  }
+  return out;
+}
+
+/** Advance one shard by dt, wrapping past the camera back down-lap. */
+export function stepShard(s: Shard, dt: number, camZ: number, span: number): void {
+  s.angle += s.spin * dt;
+  s.z += s.flow * dt;
+  if (s.z > camZ + 40) s.z -= span;
+}
+
+// ---------------------------------------------------------------------------
+// Steering (the site IS the ride): pointer position becomes a camera target,
+// approached smoothly; flying through a portal ring enters its game.
+// ---------------------------------------------------------------------------
+
+/** Frame-rate independent approach: rate ~3 feels like flying, ~6 like glue. */
+export function smoothApproach(cur: number, target: number, dt: number, rate: number): number {
+  const t = Math.min(1, Math.max(0, dt * rate));
+  return cur + (target - cur) * t;
+}
+
+/** True when the camera pierces a portal ring (squared-distance test). */
+export function portalHit(camX: number, camY: number, px: number, py: number, r: number): boolean {
+  const dx = camX - px;
+  const dy = camY - py;
+  return dx * dx + dy * dy < r * r;
+}
+
+/** Pointer NDC (-1..1) → tunnel-space steer target. Clamped, no alloc. */
+export function steerTarget(nx: number, ny: number): { x: number; y: number } {
+  const x = Math.max(-1, Math.min(1, nx)) * 24;
+  const y = 2 - Math.max(-1, Math.min(1, ny)) * 12;
+  return { x, y };
+}

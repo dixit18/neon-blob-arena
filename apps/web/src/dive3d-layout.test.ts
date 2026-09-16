@@ -4,7 +4,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   shouldUse3D, layoutLap, splitDepth, facedWorld, heartFrac, tunnelLength,
-  LAP_LEN, WORLD_GAP,
+  LAP_LEN, WORLD_GAP, layoutShards, stepShard, SHARD_COUNT, SHARD_COLORS,
+  smoothApproach, portalHit, steerTarget,
 } from './dive3d-layout.js';
 import { WORLDS } from './descent.js';
 
@@ -48,5 +49,38 @@ describe('dive3d layout', () => {
   });
   it('tunnel covers a full lap', () => {
     assert.equal(tunnelLength(), LAP_LEN * WORLD_GAP);
+  });
+  it('shard spiral: dense, bounded, deterministic, wraps past camera', () => {
+    const a = layoutShards(SHARD_COUNT, 7);
+    assert.equal(a.length, SHARD_COUNT);
+    assert.deepEqual(a, layoutShards(SHARD_COUNT, 7));
+    assert.notDeepEqual(a, layoutShards(SHARD_COUNT, 8));
+    const span = tunnelLength();
+    for (const s of a) {
+      assert.ok(s.radius >= 14 && s.radius <= 30, `r=${s.radius}`);
+      assert.ok(s.z <= 0 && s.z >= -span, `z=${s.z}`);
+      assert.ok(s.color >= 0 && s.color < SHARD_COLORS.length);
+      assert.ok(s.flow > 0 && s.spin > 0);
+    }
+    const s = { angle: 0, radius: 20, z: 0, spin: 0.2, flow: 20, color: 0, size: 1 };
+    stepShard(s, 1, 100, span);
+    assert.equal(s.z, 20); // flow toward camera, no wrap yet
+    assert.ok(Math.abs(s.angle - 0.2) < 1e-9);
+    s.z = 150; // past camera + margin → wraps a full span down-lap
+    stepShard(s, 0, 100, span);
+    assert.equal(s.z, 150 - span);
+  });
+  it('steering: smooth approach converges, portal hit is a disc test', () => {
+    let c = 0;
+    for (let i = 0; i < 120; i++) c = smoothApproach(c, 24, 1 / 60, 3);
+    assert.ok(Math.abs(c - 24) < 1, `c=${c}`);
+    assert.equal(smoothApproach(5, 5, 1 / 60, 3), 5);
+    assert.equal(portalHit(0, 0, 0, 0, 9), true);
+    assert.equal(portalHit(9.1, 0, 0, 0, 9), false);
+    assert.equal(portalHit(6, 6, 0, 0, 9), true); // 8.49 < 9
+    const t = steerTarget(1, -1);
+    assert.deepEqual(t, { x: 24, y: 14 });
+    const mid = steerTarget(0, 0);
+    assert.deepEqual(mid, { x: 0, y: 2 });
   });
 });

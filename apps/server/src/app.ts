@@ -49,6 +49,10 @@ export function createApp(opts: { region?: string } = {}) {
   let tickAvgMs = 0;
   let tickMaxMs = 0;
   let snapSeq = 0;
+  const perfByGame = new Map<string, {
+    n: number; fpsSum: number; p95Sum: number;
+    modes: Map<string, number>; fams: Map<string, number>;
+  }>();
 
   const server = http.createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://x');
@@ -65,6 +69,62 @@ export function createApp(opts: { region?: string } = {}) {
     }
     if (url.pathname === '/catalog') {
       res.end(JSON.stringify(GAMES));
+      return;
+    }
+    // D3 evidence feed: lossy client perf beacons (fps/p95/mode/caps).
+    // In-memory rolling aggregates only — no UA strings, no IPs, no PII.
+    // POST validates + caps at 1KB; GET serves per-game averages for Riya's gates.
+    if (url.pathname === '/perf' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => { body += String(c); if (body.length > 1024) req.destroy(); });
+      req.on('end', () => {
+        try {
+          const p = JSON.parse(body || '{}') as {
+            game?: unknown; fps?: unknown; p95?: unknown; mode?: unknown;
+            caps?: { fam?: unknown };
+          };
+          const game = typeof p.game === 'string' && /^[a-z0-9-]{1,32}$/.test(p.game) ? p.game : null;
+          const fps = typeof p.fps === 'number' && Number.isFinite(p.fps) && p.fps >= 0 && p.fps <= 1000 ? Math.round(p.fps) : null;
+          const p95 = typeof p.p95 === 'number' && Number.isFinite(p.p95) && p.p95 >= 0 && p.p95 <= 10_000 ? p.p95 : null;
+          const mode = typeof p.mode === 'string' && /^[a-z0-9-]{1,16}$/.test(p.mode) ? p.mode : 'unknown';
+          const fam = typeof p.caps?.fam === 'string' && /^(edge|chrome|firefox|safari|other)$/.test(p.caps.fam) ? p.caps.fam : 'other';
+          if (game === null || fps === null || p95 === null) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'bad sample' }));
+            return;
+          }
+          let agg = perfByGame.get(game);
+          if (!agg) {
+            agg = { n: 0, fpsSum: 0, p95Sum: 0, modes: new Map<string, number>(), fams: new Map<string, number>() };
+            perfByGame.set(game, agg);
+          }
+          agg.n++;
+          agg.fpsSum += fps;
+          agg.p95Sum += p95;
+          agg.modes.set(mode, (agg.modes.get(mode) ?? 0) + 1);
+          agg.fams.set(fam, (agg.fams.get(fam) ?? 0) + 1);
+          events.push('perf_sample', { game, data: { fps, p95, mode, fam } });
+          res.statusCode = 201;
+          res.end(JSON.stringify({ ok: true }));
+        } catch {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: 'bad sample' }));
+        }
+      });
+      return;
+    }
+    if (url.pathname === '/perf' && req.method === 'GET') {
+      const out: Record<string, { samples: number; avgFps: number; avgP95: number; modes: Record<string, number>; browsers: Record<string, number> }> = {};
+      for (const [game, a] of perfByGame) {
+        out[game] = {
+          samples: a.n,
+          avgFps: a.n ? Math.round((a.fpsSum / a.n) * 10) / 10 : 0,
+          avgP95: a.n ? Math.round((a.p95Sum / a.n) * 10) / 10 : 0,
+          modes: Object.fromEntries(a.modes),
+          browsers: Object.fromEntries(a.fams),
+        };
+      }
+      res.end(JSON.stringify(out));
       return;
     }
     // Hidden owner studio (OpenMausBot-style threads). NEVER linked from the
