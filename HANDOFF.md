@@ -13,7 +13,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
   server tsc + web build green (riot lazy-chunk 4.88KB), live WS smoke PASS
   (hello+token, 161 snaps, 7 bots, human scored, refusal intact).
   Prod: Render rebuilds from push; server 503 was pre-existing (dashboard
-  eyes still needed if it persists post-deploy). Next: RR-3 replay + RR-5 E2E.
+  eyes still needed if it persists post-deploy). Next: Sprint 4 tickets
+  (Doodle Duel) — Devika to write per Rule 14; crew pulls on sight.
 - D12 PIVOT SHIPPED (user order + R&D report): legacy arena FE/BE DELETED
   (`neon-blob-arena/` gone; 24846af + 4861f62 in history). New monorepo live:
   apps/web (4.84KB shell) + apps/server (Node24-pinned CI/Docker, local v22

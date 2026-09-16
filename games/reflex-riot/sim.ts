@@ -3,6 +3,7 @@
 // no DOM, no Math.random inside (seeded PRNG per round) — headless-testable.
 // The screen invents a new rule every few seconds: tap / hold / avoid /
 // mash / copy. First task begins <=3s after the first human arrives.
+import { buildGameUrl, type ShareArtifact } from '../../packages/share/src/index.js';
 export type TaskKind = 'tap' | 'hold' | 'avoid' | 'mash' | 'copy';
 export type RiotPhase = 'lobby' | 'task' | 'reveal' | 'final';
 
@@ -50,6 +51,20 @@ export const LOBBY_COUNTDOWN_MS = 1000;
 export const REVEAL_MS = 1500;
 export const FINAL_MS = 6000;
 export const FIRST_TASK_BUDGET_MS = 3000;
+export const REPLAY_FRAMES = 9;
+
+// RR-3: every input is logged; re-applying the log to a fresh sim with the
+// same step cadence regenerates the end state exactly.
+export interface RiotLogEvent {
+  at: number;
+  op: 'join' | 'leave' | 'press' | 'release' | 'answer';
+  by: string;
+  name?: string;
+  bot?: boolean;
+  i?: number;
+}
+
+export interface RiotFrame { kind: TaskKind; at: number; top: string; topScore: number }
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -85,6 +100,8 @@ export class RiotSim {
   phaseUntil = 0;
   players = new Map<string, RiotPlayer>();
   feed: string[] = [];
+  log: RiotLogEvent[] = [];
+  frames: RiotFrame[] = [];
   private rand: () => number = mulberry32(1);
   private lastKind: TaskKind | null = null;
 
@@ -98,13 +115,16 @@ export class RiotSim {
       pressed: false, pressAt: 0, presses: 0, copyIdx: 0,
       acted: false, failed: false, gain: 0,
     });
+    this.log.push({ at: this.time, op: 'join', by: id, name, bot: isBot });
     // First human in: the round starts NOW, first task within ~1s (budget 3s).
     if (!isBot && this.phase === 'lobby' && this.phaseUntil === 0) {
       this.phaseUntil = this.time + LOBBY_COUNTDOWN_MS;
     }
   }
 
-  leave(id: string): void { this.players.delete(id); }
+  leave(id: string): void {
+    if (this.players.delete(id)) this.log.push({ at: this.time, op: 'leave', by: id });
+  }
 
   /** Finger down. Returns nothing; scoring resolves at release / task end. */
   press(id: string, at: number = this.time): void {
@@ -113,6 +133,7 @@ export class RiotSim {
     p.pressed = true;
     p.pressAt = at;
     p.presses++;
+    this.log.push({ at, op: 'press', by: id });
     if (this.phase !== 'task' || !this.task || p.acted) return;
     const t = this.task;
     if (t.kind === 'avoid') {
@@ -127,6 +148,7 @@ export class RiotSim {
     const p = this.players.get(id);
     if (!p || !p.pressed) return;
     p.pressed = false;
+    this.log.push({ at, op: 'release', by: id });
     if (this.phase !== 'task' || !this.task || p.acted) return;
     const t = this.task;
     if (t.kind === 'tap' && !p.acted) {
@@ -148,6 +170,7 @@ export class RiotSim {
     if (!p || this.phase !== 'task' || !this.task || p.acted) return;
     const t = this.task;
     if (t.kind !== 'copy' || i < 0 || i > 3) return;
+    this.log.push({ at: _at, op: 'answer', by: id, i });
     if (i === t.seq[p.copyIdx]) {
       p.copyIdx++;
       p.gain += 150;
@@ -208,6 +231,13 @@ export class RiotSim {
         if (p.gain > 0) { p.score += p.gain; if (p.score > p.best) p.best = p.score; }
         else if (t.kind === 'tap' || t.kind === 'hold') { /* streak already handled */ }
       }
+      // RR-3: Chaos Strip frame — who ruled this rule.
+      let top: RiotPlayer | null = null;
+      for (const p of this.players.values()) if (!top || p.gain > top.gain) top = p;
+      if (top && top.gain > 0) {
+        this.frames.push({ kind: t.kind, at: this.time, top: top.name, topScore: top.gain });
+        if (this.frames.length > REPLAY_FRAMES) this.frames.splice(0, this.frames.length - REPLAY_FRAMES);
+      }
     }
     this.phase = 'reveal';
     this.phaseUntil = this.time + REVEAL_MS;
@@ -241,6 +271,60 @@ export class RiotSim {
   private pushFeed(s: string): void {
     this.feed.push(s);
     if (this.feed.length > 3) this.feed.splice(0, this.feed.length - 3);
+  }
+
+  /** RR-3: re-apply a recorded log to a fresh sim. Same step cadence in,
+   * identical end state out — provided ops don't race a phase transition
+   * within one step (human inputs land mid-window; transitions sit on step
+   * boundaries, so a >stepMs margin each side replays bit-exact). */
+  static replay(log: RiotLogEvent[], stepMs = 50, capMs = 300_000): RiotSim {
+    const s = new RiotSim();
+    const ordered = [...log].sort((a, b) => a.at - b.at);
+    let i = 0;
+    // Ops at t=0 (joins) apply before the first step.
+    while (i < ordered.length && ordered[i]!.at <= 0) { s.apply(ordered[i]!); i++; }
+    let t = 0;
+    while (i < ordered.length && t < capMs) {
+      s.step(stepMs);
+      t += stepMs;
+      while (i < ordered.length && ordered[i]!.at <= s.time) { s.apply(ordered[i]!); i++; }
+    }
+    // Drain: the log's last task still needs its whistle + reveal so the
+    // round settles exactly where the recorded room did (phase final).
+    let d = 0;
+    while (s.phase !== 'final' && d < capMs) { s.step(stepMs); d += stepMs; }
+    return s;
+  }
+
+  private apply(e: RiotLogEvent): void {
+    if (e.op === 'join') this.join(e.by, e.name ?? e.by, e.bot ?? false);
+    else if (e.op === 'leave') this.leave(e.by);
+    else if (e.op === 'press') this.press(e.by, e.at);
+    else if (e.op === 'release') this.release(e.by, e.at);
+    else if (e.op === 'answer') this.answer(e.by, e.i ?? 0, e.at);
+  }
+
+  /** RR-3: ReplayMoment share object — last frames ending in winner/fail. */
+  moment(room: string, origin: string): ShareArtifact {
+    let win: RiotPlayer | null = null;
+    for (const p of this.players.values()) if (!win || p.score > win.score) win = p;
+    const title = win && win.score > 0
+      ? `🏆 ${win.name} rules the riot with ${win.score}!`
+      : '🌪️ the riot is still wild — no winner yet';
+    return {
+      kind: 'ReplayMoment',
+      game: 'reflex-riot',
+      room,
+      title,
+      url: buildGameUrl(origin, 'reflex-riot', room),
+      data: {
+        round: this.roundNo,
+        frames: this.frames.map((f) => ({ k: f.kind, top: f.top, s: f.topScore })),
+        top: [...this.players.values()]
+          .sort((a, b) => b.score - a.score).slice(0, 3)
+          .map((p) => ({ n: p.name, s: p.score })),
+      },
+    };
   }
 
   snapshot(pid: string): RiotSnapshot {
