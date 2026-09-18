@@ -7,11 +7,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
 ## Doing (this cycle)
 - Sprint 8 RICOCHET SIEGE — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: RS-1 in progress. Design: simul-
-  taneous-commit artillery — all aims lock, all shots fly at once, walls
-  bounce them, 3 HP a round, last hull (or most HP) takes the round, 5
-  rounds take the siege; zero client authority (angle+power only, server
-  sims everything); commits ARE the replay.
+  Riya (e2e) + Kai (wire-up). Status: SHIPPED (RS-1..RS-6, 10th playable
+  game; 6/6 e2e, 415/415 suite, web build green, siege chunk 6.61KB).
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -50,11 +47,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [RS-4] Client — DONE (canvas arena + drag-aim + COMMIT, sealed-aim
   secrecy, HP pips, tracers; build green, 6.61KB chunk; live proof rides
   RS-5). Owner: Leo.
-- [RS-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
-  green over real sockets; snapshot p95 ≤2KB; receipts in chat. Blocks
-  release if red.
-- [RS-6] Wire-up: manifest + register — Owner: Kai. Accept: `ricochet-siege`
-  in `/catalog` (already listed); `?game=ricochet-siege&room=` plays.
+- [RS-5] E2E — DONE (6/6 over real sockets: hello/stream, instant war +
+  sealed aims proven on the wire, vector lock, garbage+reclaim survival,
+  p95 ≤2KB, full 5-round match crowns; release UNBLOCKED). Owner: Riya.
+- [RS-6] Wire-up — DONE (`ricochet-siege` registered, refusal dead).
+  Owner: Kai.
 
 ## Open (prioritized) — Sprint 7 TOTEM PANIC (SHIPPED — see Done section)
 - [TP-1] Sim — DONE (seeded co-op tower, slip + lean topple, 10-level hold

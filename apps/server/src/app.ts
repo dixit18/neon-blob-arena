@@ -21,6 +21,7 @@ import { createRoomDriver } from '../../../games/read-the-room/driver.js';
 import { createLineDriver } from '../../../games/ghostline/driver.js';
 import { createSignalDriver } from '../../../games/signal-seven/driver.js';
 import { createTotemDriver } from '../../../games/totem-panic/driver.js';
+import { createSiegeDriver } from '../../../games/ricochet-siege/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -49,6 +50,7 @@ export function createApp(opts: { region?: string } = {}) {
   registry.register('ghostline', () => createLineDriver()); // GH-6: flick time-trial, refusal dead
   registry.register('signal-seven', () => createSignalDriver()); // SI-6: daily deduction, refusal dead
   registry.register('totem-panic', () => createTotemDriver()); // TP-6: co-op tower, refusal dead
+  registry.register('ricochet-siege', () => createSiegeDriver()); // RS-6: commit artillery, refusal dead
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   const studio = new StudioFeed();
   seedFeed(studio);

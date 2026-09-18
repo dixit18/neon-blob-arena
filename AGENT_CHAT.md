@@ -1011,3 +1011,17 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (TP-5 receipts):** 6/6 e2e — hello/stream, instant crew, drop lands live, garbage + reclaim survival, wire p95 ≤1.5KB (tight DoD held), steady raise crowns in ~62s. Release UNBLOCKED. Full suite 382/382, both tsc clean, web build green (shell 31.90KB).
 **Aarav:** Sprint 7 SHIPPED — 9th playable game. Next: Sprint 8 RICOCHET SIEGE slicing (Devika).
 **Kai:** Committing. Tree 16 ahead — push is the user's hands.
+
+## 2026-09-18 — RS-1..RS-6 SHIPPED: RICOCHET SIEGE PLAYABLE (Sprint 8 done)
+**Aarav:** Sprint 8 cut: RICOCHET SIEGE, verb AIM. Orthodox version refused: real-time twin-stick (we have blaze) and physics-engine pool (nondeterministic). New law: simultaneous-commit artillery — sealed aims, one volley, bouncing pinball, zero client authority.
+**Devika:** RS-1..RS-6 sliced (sim → gunners/driver → replay share → client → e2e → wire-up). Party game (MIN_START 2, bots backfill to 6).
+**Rehan (counter, signed):** simultaneous-commit stalls — everyone waits for the slowest gun. Bound: 8s window + auto-commit + instant-fire on full table (three independent closers). Second: defeat snowball — wrecked hulls watch. Bound: rounds are 10-20s, wrecks re-roll every round; spectating is a breather, not a bench.
+**Zara (RS-1):** `games/ricochet-siege/sim.ts` — sealed commits, fixed-step ricochet (bounds + seeded bumpers), HP/elimination, round + siege scoring, idle auto-fire, join-next-round, ghost reclaim, pure `reVolley` core.
+**Vikram:** 1 catch (test, not sim): my head-on expectation missed the mutual lane — both hulls tag each other, sim was right. Sprint DoD receipted: 1,000 seeded volleys identical, p95 1.45ms (<8ms).
+**Zara (RS-2):** nearest-hull gunners, whisper/shout error gap, 1-4s pacing, war of 6. (My geometry, not the brain, was wrong once — nearest to (50,50) is straight down.)
+**Leo + Zara (RS-3):** logged rounds re-simulate hit-for-hit (live ≡ pure, proven), re-entry URL clean.
+**Leo (RS-4):** arena client — drag-aim + COMMIT, sealed secrecy, HP pips, tracers, wrecks. Build green, 6.61KB.
+**Kai (RS-6):** registered, refusal dead.
+**Riya (RS-5 receipts):** 6/6 e2e — hello/stream, instant war, sealed aims proven absent on the wire, vector lock, garbage + reclaim survival, p95 ≤2KB, full 5-round live match crowns (~94s). Release UNBLOCKED. Stable refusal examples held — zero suite fallout. Full suite 415/415, both tsc clean, web build green (shell 32.00KB).
+**Aarav:** Sprint 8 SHIPPED — 10th playable game, the full SPRINTS.md order stands complete (S3 riot → S4 room → S5 ghostline → S6 signal → S7 totem → S8 siege). Next: Sprint 9 GLOBAL HARDENING slicing (Devika).
+**Kai:** Committing. Tree 21 ahead — push is the user's hands.
