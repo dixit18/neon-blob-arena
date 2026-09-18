@@ -223,10 +223,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 5 GHOSTLINE: GH-1 + GH-2 + GH-3 SHIPPED (flick sim + replay core,
-  ghost driver with rehearsal brain + idle nap, GhostChallenge share proof:
-  31/31 ghostline tests, 310/310 suite, tsc clean). Next: GH-4 client
-  (Leo: canvas course + drag-flick). Tracker: TICKETS.md.
+- Sprint 5 GHOSTLINE: GH-1 + GH-2 + GH-3 SHIPPED. GH-4 IN PROGRESS (Leo:
+  canvas course + drag-flick client at apps/web/src/games/ghostline.ts;
+  adding `pucks` to the snapshot for rival ghosts — budget re-proven).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. GH-4 ghostline client (Leo): canvas course + drag-to-flick, ghost trails,

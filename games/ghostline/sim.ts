@@ -180,6 +180,8 @@ export interface LineSnapshot {
   atRest: boolean;
   endsInMs: number;
   leaders: { n: string; shots: number; finished: boolean; timeMs: number; you: boolean; bot: boolean }[];
+  /** Live dots for the client canvas — ints, tiny, budget-safe (GH-4). */
+  pucks: { n: string; x: number; y: number; you: boolean; bot: boolean; finished: boolean }[];
   feed: string[];
   you: { shots: number; best: number | null };
 }
@@ -375,6 +377,10 @@ export class LineSim {
       leaders: this.rank().slice(0, 8).map((p) => ({
         n: p.name, shots: p.shots, finished: p.finished,
         timeMs: Math.round(p.timeMs), you: p.id === pid, bot: p.isBot,
+      })),
+      pucks: [...this.players.values()].slice(0, 8).map((p) => ({
+        n: p.name, x: Math.round(p.x), y: Math.round(p.y),
+        you: p.id === pid, bot: p.isBot, finished: p.finished,
       })),
       feed: [...this.feed],
       you: { shots: me?.shots ?? 0, best: me?.best ?? null },

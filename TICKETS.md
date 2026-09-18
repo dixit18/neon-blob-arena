@@ -44,9 +44,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GH-3] Share — DONE (GhostChallenge with seeded re-entry URL; trail +
   replay payload ≤20KB proven, mid-game honesty, link replays the hole;
   23/23 sim tests). Owner: Leo + Zara.
-- [GH-4] Client: canvas course + flick — Owner: Leo. Accept: course + pucks
-  render, drag-to-flick same-tick, ghost trails, 360px clean, chunk ≤250KB;
-  mounts at `apps/web/src/games/ghostline.ts`.
+- [GH-4] Client — DONE (canvas course + drag-flick + keyboard aim, rival
+  ghosts with fading trails, snapshot-gated paint, 360px-fluid; build green,
+  6.14KB chunk; live proof rides GH-5). Owner: Leo.
+- [GH-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green over real sockets (incl. client-mount snapshot + flick flow + seed
+  re-entry); snapshot p95 ≤2KB; receipts in chat. Blocks release if red.
 - [GH-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
   green over real sockets; snapshot p95 ≤2KB; replay-link seed reproduces the
   author's course; receipts in chat. Blocks release if red.
