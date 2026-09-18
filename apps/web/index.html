@@ -100,6 +100,12 @@
   #roomview { display:none; }
   #roomview.on { display:block; }
   #mount { margin-top:14px; }
+  /* DDV-2: the panel docks to the bottom so the vista breathes — the right
+     corner stays open tunnel, PLAY stays primary and always in reach. */
+  #float { display:flex; flex-direction:column; justify-content:flex-end; min-height:100dvh; }
+  #sealRow { display:flex; gap:8px; margin:0 2px 10px; pointer-events:none; }
+  #sealRow .seal { width:26px; height:8px; border-radius:999px; background:rgba(242,237,227,.22); }
+  #sealRow .seal.got { background:var(--lime); box-shadow:0 0 12px rgba(198,241,53,.7); }
   @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
 </style>
 </head>
@@ -118,6 +124,7 @@
     <div class="kicker" id="kickerLive">NO SIGNUP · LINK = ROOM · BOTS NEVER SLEEP</div>
     <h1><span id="heroA">DON'T BROWSE.</span><br /><span class="poke" id="heroB">POKE SOMETHING.</span></h1>
     <p class="sub" id="heroSub">Zoom through the saga — every chapter ends in a game. Or hit PLAY for the chapter you face.</p>
+    <div id="sealRow" role="img" aria-label="Journey: 0 of 6 eras sealed"></div>
     <div id="faceBar"><b id="faceName">diving…</b><button id="play">▶ PLAY</button></div>
     <div class="moods" id="moods">
       <button data-mood="BEAT">⚔️ BEAT</button>

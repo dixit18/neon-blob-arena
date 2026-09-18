@@ -6,6 +6,7 @@ import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
 import { startDescent } from './descent.js';
 import { SAGAS, sagaAt, sagaIndex, buildChapterUrl, chaptersOf } from './sagas.js';
 import { t, getLang, setLang } from './strings.js';
+import { recordVisit, sealsOf, sealedCount, loadSeals, type SealStore } from './journey.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -98,6 +99,37 @@ try {
   const chParam = Number.parseInt(qs.get('ch') ?? '', 10);
   const startCh = Number.isInteger(chParam) ? Math.min(5, Math.max(0, chParam)) : 0;
   let stopDive: (() => void) | null = null;
+  // DDV-2 journey: era seals live here (per saga, persisted). Facing a
+  // chapter seals it — in 2D and 3D alike, through one shared handler.
+  let seals: SealStore = (() => {
+    try { return loadSeals(localStorage.getItem('pg-seals')); } catch { return {}; }
+  })();
+  const paintSeals = (): void => {
+    try {
+      const row = document.getElementById('sealRow');
+      if (!row) return;
+      const set = sealsOf(seals, sagaIdx);
+      row.innerHTML = '';
+      set.forEach((got, i) => {
+        const d = document.createElement('span');
+        d.className = 'seal' + (got ? ' got' : '');
+        d.setAttribute('aria-hidden', 'true');
+        row.appendChild(d);
+      });
+      row.setAttribute('aria-label', t('seal.row', { n: String(sealedCount(seals, sagaIdx)) }));
+    } catch { /* chrome never blocks play */ }
+  };
+  const faceGame = (game: string): void => {
+    resolveGame(game, false);
+    try {
+      const idx = chaptersOf(sagaIdx).findIndex((c) => c.game === game);
+      if (idx >= 0) {
+        seals = recordVisit(seals, sagaIdx, idx);
+        try { localStorage.setItem('pg-seals', JSON.stringify(seals)); } catch { /* private */ }
+        paintSeals();
+      }
+    } catch { /* seals never block play */ }
+  };
   // LZ-3 cliffhanger card: fires when the reader finishes chapter 6.
   // Bottom-docked + dismissible, PLAY stays in flow and primary, auto-hides on saga switch.
   let finaleEl: HTMLElement | null = null;
@@ -160,6 +192,7 @@ try {
           history.replaceState(null, '', u.toString());
         } catch { /* private */ }
         paintSagaTabs();
+        paintSeals();
         bootDive(i, 0);
       });
       tabs.appendChild(b);
@@ -170,7 +203,10 @@ try {
     if (!dive) return;
     try { stopDive?.(); } catch { /* gone */ }
     try { if (finaleEl) finaleEl.style.display = 'none'; } catch { /* gone */ }
-    const flat = startDescent(dive, { onPortal: divePortal, saga, startDepth: ch, onFinale: showFinale });
+    const flat = startDescent(dive, {
+      onPortal: divePortal, saga, startDepth: ch, onFinale: showFinale,
+      onFace: faceGame, sealedOf: () => sealsOf(seals, saga),
+    });
     stopDive = flat.stop;
     const upgrade = (): void => {
       void (async () => {
@@ -184,7 +220,7 @@ try {
           try { stopDive?.(); } catch { /* gone */ }
           const d3 = await mod.startDive3D(dive, {
             onPortal: divePortal,
-            onFace: (game: string) => resolveGame(game, false),
+            onFace: faceGame,
             onFinale: showFinale,
             rift,
             saga,
@@ -201,8 +237,9 @@ try {
     }
   };
   paintSagaTabs();
+  paintSeals();
   // LZ-3: a chapter link lands with PLAY already naming that chapter's game
-  // (2D has no face-follow; 3D re-affirms on first faced frame).
+  // (both engines re-affirm on faced frames via faceGame).
   try { resolveGame(chaptersOf(sagaIdx)[startCh]!.game, false); } catch { /* play still works via rings */ }
   bootDive(sagaIdx, startCh);
 } catch { /* art never blocks play */ }

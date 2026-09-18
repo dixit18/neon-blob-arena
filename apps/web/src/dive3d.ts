@@ -814,7 +814,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   }
   function paintCap(): void {
     const w = WORLDS[faced]!;
-    cap.textContent = `${String(faced + 1).padStart(2, '0')} · ${w.name} — ${w.sub}`;
+    cap.textContent = `${t('dive.era', { n: String(faced + 1), name: w.name })} — ${w.sub}`;
   }
 
   // ---------- frame ----------

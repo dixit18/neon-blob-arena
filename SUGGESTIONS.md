@@ -2,7 +2,19 @@
 Every entry: the user's words + status + owner + where it landed (or why not,
 with the user holding the overrule). Newest first.
 
-## SG-2 — Infinite zoom must never repeat (ACCEPTED, building FIRST)
+## SG-3 — Zoom needs a goal + eras must time-travel (ACCEPTED, building FIRST)
+User's words (2026-09-18): zooming should feel like time travel / different
+themes like epic serials (naruto/mahabharat/ramayan/one-piece/AoT named);
+right corner not good at all; zooming without a goal is no fun for anyone.
+- IP bound HELD (stated to user, SG-1 rule stands): epic-serial STRUCTURE
+  only (eras, journey, seals) — never their names, characters, or art.
+  Mahabharat/Ramayan myself are public-domain epics, but our sagas stay
+  original; no licensed IP, no adaptations.
+- What ships (DDV-2): 6 era SEALS (depth-earned, persisted, journey row) =
+  the goal; ERA n/6 caption framing in both engines = the time-travel
+  read; #float bottom-dock = the right corner breathes, PLAY primary.
+- Status: DDV-2 in progress (Leo). Visual proof: user eyes + headless
+  seal-fill DOM check.
 User's words (2026-09-18, with live screenshot): "i like the infinite
 scroll but look at top right and make sure while infinite scroll it should
 be not the same like currently if i do infinite scroll all things are same

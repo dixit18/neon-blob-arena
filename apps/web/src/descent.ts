@@ -32,7 +32,7 @@ interface Speck { x: number; y: number; z: number; tw: number }
 
 export function startDescent(
   cv: HTMLCanvasElement,
-  opts: { onPortal?: (game: string) => void; saga?: number; startDepth?: number; onFinale?: () => void } = {},
+  opts: { onPortal?: (game: string) => void; saga?: number; startDepth?: number; onFinale?: () => void; onFace?: (game: string) => void; sealedOf?: () => boolean[] } = {},
 ): { stop: () => void } {
   // SG-1: the dive reads saga chapters, not random worlds — depth turns pages.
   const WORLDS = chaptersOf(opts.saga ?? 0);
@@ -49,6 +49,7 @@ export function startDescent(
 
   let depth = clampDepth(opts.startDepth ?? 0); // float world index, endless
   let target = depth;
+  let lastFace = -1; // DDV-2: facing a chapter seals it (the zoom's goal)
   let dragging = false;
   let lastY = 0;
   let dead = false;
@@ -299,6 +300,10 @@ export function startDescent(
     const t = (now - t0) / 1000;
     const wi = Math.floor(depth) % WORLDS.length;
     const frac = depth - Math.floor(depth);
+    if (wi !== lastFace) {
+      lastFace = wi;
+      try { opts.onFace?.(WORLDS[wi]!.game); } catch { /* facing never blocks play */ }
+    }
     const wA = WORLDS[wi]!;
     const wB = WORLDS[(wi + 1) % WORLDS.length]!;
     const W = cv.width;
@@ -329,7 +334,7 @@ export function startDescent(
     ctx.fillStyle = wA.accent;
     ctx.font = `900 ${Math.round(15 * dpr)}px system-ui`;
     ctx.textAlign = 'center';
-    ctx.fillText(`${String(wi + 1).padStart(2, '0')} · ${wA.name}`, cx, H - 82 * dpr);
+    ctx.fillText(tx('dive.era', { n: String(wi + 1), name: wA.name }), cx, H - 82 * dpr);
     ctx.fillStyle = BONE;
     ctx.font = `${Math.round(12.5 * dpr)}px system-ui`;
     ctx.fillText(wA.sub, cx, H - 58 * dpr);
@@ -337,9 +342,11 @@ export function startDescent(
     ctx.font = `${Math.round(11 * dpr)}px system-ui`;
     ctx.fillText(reduced ? tx('dive.hintStill') : tx('dive.hint'), cx, H - 38 * dpr);
 
-    // depth dots
+    // depth dots — sealed eras glow, the faced one burns white
+    let sealed: boolean[] = [];
+    try { sealed = opts.sealedOf?.() ?? []; } catch { /* dots never block play */ }
     for (let i = 0; i < WORLDS.length; i++) {
-      ctx.fillStyle = i === wi ? wA.accent : 'rgba(242,237,227,.25)';
+      ctx.fillStyle = i === wi ? '#FFFFFF' : sealed[i] ? wA.accent : 'rgba(242,237,227,.25)';
       ctx.beginPath();
       ctx.arc(cx - (WORLDS.length - 1) * 9 * dpr + i * 18 * dpr, 16 * dpr, (i === wi ? 4 : 2.5) * dpr, 0, Math.PI * 2);
       ctx.fill();

@@ -223,10 +223,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DDV-1 SHIPPED (SG-2): per-lap sky/fog drift + shard turnover + ring
-  rotation in the 3D dive; lap-0 identical; 12/12 layout tests, build
-  green (dive 26,011B), boot sanity 4/4. Awaiting user deep-zoom eyeball.
-  GB-4b parked at 1/10 (ludo).
+- DDV-2 ZOOM GOAL (user priority one, SG-3): era seals (depth-earned,
+  persisted, journey row) + ERA n/6 captions both engines + #float bottom
+  dock (PLAY primary). GB-4b parked at 1/10 (ludo).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. User eyeball: scroll deep — top-right debris + mood must shift per lap.

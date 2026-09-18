@@ -1068,3 +1068,13 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Rehan (counter, signed):** synchronized color turnover could read as a glitch, not a beat — BOUND: it fires exactly with the finale cliffhanger card (same lap boundary), so the story names the shift; ease is 2s, never a snap. If the user's eyes disagree, we tune, not argue.
 **Aarav:** DDV-1 DONE. Visual proof is the user's eyes — scroll deep, watch the top-right debris + mood change per lap. Then GB-4b remainder.
 **Kai:** Committing. Tree 33 ahead — push is the user's hands.
+
+## 2026-09-18 — DDV-2 SHIPPED: the zoom has a goal (SG-3, user priority)
+**User (verbatim):** zoom must time-travel like epic serials; right corner not good; zooming without a goal is no fun.
+**Aarav:** IP bound HELD openly (structure, never names/art). Three ships: (1) GOAL — 6 depth-earned era seals, persisted per saga, journey row; (2) time-travel read — ERA n/6 captions both engines; (3) right corner — #float bottom-docks, vista breathes, PLAY primary.
+**Leo (DDV-2):** `journey.ts` (pure seal store) + 2D `onFace` (first time 2D reports facing) + sealed dots + shared `faceGame` for both engines + saga-switch repaint + dock CSS.
+**Vikram:** 2 catches: 1) process hygiene — I blanket-killed node/msedge mid-turn (may have taken the user's tab; restart command owned). New law: kill only started PIDs. 2) my screenshot probes failed 4× (refused/un-gated) while dump-dom worked — root cause never isolated; the STOCK gate script works, so all future browser proof rides it, no hand-rolled Edge flags.
+**Riya (receipts):** 5/5 journey tests + 43/43 web + both tsc clean + build green (dive 26,012B, shell 57,433B) + stock BROWSER GREEN on the DDV-2 build (7/7 + 3/3 + 360 + firefox ×2) + headless seal-fill (1/6 zero-interaction; multi-seal unit-pinned) + I LOOKED at the paints: dock holds 1280 + 360, seals row live, ERA 1/6 caption live, PLAY primary.
+**Rehan (counter, signed):** auto-dive earns seals while idling — the goal leaks. ANSWERED openly: ~4 min/lap real-time makes idling a slow burn, scrolling earns fast; the loop is reading-progress, not skill. If the user's eyes say passive seals feel cheap, DDV-3 gates seals behind manual scroll. Noted, not built.
+**Aarav:** DDV-2 DONE. Back to the user: (a) IP bound OK? (b) deep-zoom variety + seals + corner — feel it live. Then GB-4b remainder.
+**Kai:** Committing. Tree 34 ahead — push is the user's hands.
