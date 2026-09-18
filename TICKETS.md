@@ -6,11 +6,20 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- [DDV-2] Zoom goal + era framing + corner dock — DONE (6 depth-earned
-  seals persisted per saga + journey row, ERA n/6 captions both engines,
-  2D onFace, sealed dots, #float bottom-docked PLAY-primary; 5/5 journey
-  tests, 43/43 web, build green — dive 26,012B, shell 57,433B; headless
-  seal-fill proven zero-interaction). Owner: Leo.
+- [DV-1] Dive light rig — DONE (hemi + key + rim + figure spot, PMREM
+  softbox env, solids lit/faceted, era moods lap-0-identical; 13/13 layout
+  tests, build green — dive 27,364B ≤27,648 amended openly; 3D-up proven
+  live under SwiftShader, BROWSER GREEN on rerun). Owner: Mira + Leo.
+- [DV-2] Rust procgen crate — Owner: Zara. Accept: noise/fBm/Voronoi/
+  shard-layout in Rust, cargo green, 7+ parity vectors bit-identical
+  TS↔Rust, WASM-if-ready loader seam (NR-5 pattern).
+- [DV-3] WASM into dive builders — Owner: Leo + Zara. Accept: Rust-laid
+  shards/motif scatter with mirror fallback, lap-0 visual parity, build
+  green, no shell growth.
+- [DV-4] Epic line + figure introductions — Owner: Devika + Aarav (content)
+  + Leo (cards). Accept: 3rd saga of public-domain arcs in our words
+  (Mahabharat/Ramayan/Odyssey structures, zero licensed IP), Marvel-beat
+  figure cards on arrival, engine reads it, tests green.
 - Sprint 9 GLOBAL HARDENING — Owner: Riya (gates) + all. Status: SHIPPED
   (GB-1..GB-6: soak, audit, budgets, Hindi shell, report path, gates;
   431/431 suite, BROWSER GREEN, bundles hold). Open follow-ups: GB-4b

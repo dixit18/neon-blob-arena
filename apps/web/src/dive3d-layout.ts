@@ -110,6 +110,24 @@ export function ringLapRot(lap: number, len: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// DV-1 era light moods (SG-4: proper lighting). The rig's intensities breathe
+// per lap around the shipped constants — lap 0 IS today's look, deeper laps
+// run hotter, cooler, or softer. Pure math, runtime eases toward it.
+// ---------------------------------------------------------------------------
+
+export interface EraMood { key: number; hemi: number; rim: number; spot: number }
+
+export function eraMood(lap: number): EraMood {
+  if (lap <= 0) return { key: 1.0, hemi: 0.55, rim: 0.5, spot: 0.0 };
+  return {
+    key: 1.0 + 0.15 * Math.sin(lap * 1.7),
+    hemi: 0.55 + 0.1 * Math.sin(lap * 2.3 + 1),
+    rim: 0.5 + 0.15 * Math.sin(lap * 1.1 + 2),
+    spot: 0.5 + 0.2 * Math.sin(lap * 0.9 + 0.5),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Shard spiral (the STAR NURSERY look): hundreds of small colored dashes
 // wound in a helix down the tunnel. Pure placement math; dive3d.ts renders
 // them as ONE InstancedMesh (1 draw call) and flows them past the camera.

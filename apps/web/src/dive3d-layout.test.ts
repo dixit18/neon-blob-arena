@@ -6,6 +6,7 @@ import {
   shouldUse3D, layoutLap, splitDepth, facedWorld, heartFrac, tunnelLength,
   LAP_LEN, WORLD_GAP, layoutShards, stepShard, SHARD_COUNT, SHARD_COLORS,
   smoothApproach, portalHit, steerTarget, lapShift, shardLapRot, ringLapRot,
+  eraMood,
 } from './dive3d-layout.js';
 import { WORLDS } from './descent.js';
 
@@ -102,5 +103,18 @@ describe('dive3d layout', () => {
     assert.equal(ringLapRot(1, 4), 2);
     assert.equal(shardLapRot(0, 0), 0); // degenerate guard
     assert.equal(ringLapRot(5, 0), 0);
+  });
+  it('DV-1: lap 0 mood is exactly today’s rig, deeper laps breathe', () => {
+    assert.deepEqual(eraMood(0), { key: 1.0, hemi: 0.55, rim: 0.5, spot: 0.0 });
+    for (let lap = 1; lap <= 12; lap++) {
+      const m = eraMood(lap);
+      assert.deepEqual(eraMood(lap), m);
+      assert.ok(m.key >= 0.85 && m.key <= 1.15, `lap ${lap} key ${m.key}`);
+      assert.ok(m.hemi >= 0.45 && m.hemi <= 0.65, `lap ${lap} hemi ${m.hemi}`);
+      assert.ok(m.rim >= 0.35 && m.rim <= 0.65, `lap ${lap} rim ${m.rim}`);
+      assert.ok(m.spot >= 0.3 && m.spot <= 0.7, `lap ${lap} spot ${m.spot}`);
+    }
+    const keys = new Set(Array.from({ length: 8 }, (_, i) => eraMood(i + 1).key.toFixed(4)));
+    assert.ok(keys.size >= 5, 'moods must vary per lap');
   });
 });

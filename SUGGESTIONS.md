@@ -2,6 +2,23 @@
 Every entry: the user's words + status + owner + where it landed (or why not,
 with the user holding the overrule). Newest first.
 
+## SG-4 — Epic line + proper light (ACCEPTED, building FIRST)
+User's words (2026-09-18): use public-domain epics (mahabharat/ramayan/
+odyssey belong to no one, go big, no IP issue); procedural generation with
+rust+wasm+threepipe; lighting must be proper (study it); Marvel-intro-style
+character introductions along the timeline — our zoom should do the same.
+- IP bound (user's overrule, adopted with care): public-domain epics are
+  free material — our WORDS + our ART only; no dialogue/design/music lifted
+  from any modern adaptation; licensed IP (Naruto/One Piece/AoT) never
+  touched. SG-1 originals stand alongside, not replaced.
+- Program: DV-1 light rig → DV-2 rust procgen → DV-3 wasm in dive →
+  DV-4 epic line + figure cards. Threepipe-viewer port: declined with
+  reason (viewer owns the loop; our ride is custom) — threepipe stays the
+  game-scene path.
+- Status: DV-1 SHIPPED 2026-09-18 (light rig + softbox env + lit solids
+  + era moods; lap-0 identical; 3D-up proven live; dive 27,364B). Next:
+  DV-2 rust procgen.
+
 ## SG-3 — Zoom needs a goal + eras must time-travel (ACCEPTED, building FIRST)
 User's words (2026-09-18): zooming should feel like time travel / different
 themes like epic serials (naruto/mahabharat/ramayan/one-piece/AoT named);

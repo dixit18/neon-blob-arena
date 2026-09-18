@@ -223,15 +223,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DDV-2 ZOOM GOAL (user priority one, SG-3): era seals (depth-earned,
-  persisted, journey row) + ERA n/6 captions both engines + #float bottom
-  dock (PLAY primary). GB-4b parked at 1/10 (ludo).
+- DV-1 SHIPPED (SG-4): lit dive (rig + env + moods) proven live; dive
+  27,364B (284B margin — chunk diet noted). Next: DV-2 rust procgen.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. User eyeball: scroll deep — top-right debris + mood must shift per lap.
-   Then GB-4b remainder (9 clients) + GB-5b.
+1. DV-2 rust procgen → DV-3 wasm dive → DV-4 epic line.
+   User eyeballs: lit dive + variety + seals + corner (all live).
 2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 33 ahead) + Render deploy watch.
+   phone checks + `git push` (tree 35 ahead) + Render deploy watch.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

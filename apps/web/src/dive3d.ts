@@ -15,7 +15,7 @@ import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
   layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
   SHARD_COUNT, SHARD_COLORS, tunnelLength,
-  lapShift, shardLapRot, ringLapRot,
+  lapShift, shardLapRot, ringLapRot, eraMood,
 } from './dive3d-layout.js';
 import { THREE_PIN } from './three-lazy.js';
 import { t } from './strings.js';
@@ -233,6 +233,35 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   scene.fog = new T.FogExp2(0x070708, 0.0042);
   const camera = new T.PerspectiveCamera(62, 1, 0.1, 1200);
 
+  // DV-1 light rig (SG-4: proper lighting). Hemi fill + key + rim travel
+  // with the camera (positions refreshed per frame, targets ahead); the
+  // figure spot washes the faced heart — the Marvel entrance beat.
+  const hemi = new T.HemisphereLight(0x8a7bb8, 0x0a0a12, 0.55);
+  const key = new T.DirectionalLight(0xffffff, 1.0);
+  const rim = new T.DirectionalLight(ACCENT[0], 0.5);
+  const spot = new T.SpotLight(0xfff2d8, 0.0, 170, 0.42, 0.65, 0);
+  scene.add(hemi);
+  scene.add(key, key.target, rim, rim.target, spot, spot.target);
+
+  // DV-1 softbox environment: a tiny deterministic studio baked through
+  // PMREM — standard materials get real reflections, zero HDR downloads.
+  try {
+    const pmrem = new T.PMREMGenerator(renderer);
+    const env = new T.Scene();
+    const quad = (c: number, w: number, h: number, x: number, y: number, z: number): void => {
+      const q = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ color: c, side: T.DoubleSide }));
+      q.position.set(x, y, z);
+      q.lookAt(0, 0, 0);
+      env.add(q);
+    };
+    quad(0x8a7bb8, 30, 30, 0, 18, 0);
+    quad(0x0a0a12, 30, 30, 0, -18, 0);
+    quad(0xfff2d8, 14, 14, -18, 4, 6);
+    quad(0x46e0d4, 12, 12, 18, -2, -6);
+    scene.environment = pmrem.fromScene(env, 0.06).texture;
+    pmrem.dispose();
+  } catch { /* unlit look stands — art never blocks play */ }
+
   // sky dome (follows camera z)
   const skyUni = {
     uTop: { value: new T.Color('#1E1033') },
@@ -260,10 +289,13 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     cyl: new T.CylinderGeometry(0.5, 0.7, 1, 8),
   };
   const matCache = new Map<string, any>();
+  // DV-1: solids are LIT now (standard material, faceted, env-fed) — the
+  // flat look was MeshBasicMaterial everywhere. Sprites/points/lines/shader
+  // rings stay unlit by nature; glow sprites keep the pop.
   const mat = (color: number, extra: Record<string, unknown> = {}): any => {
     const key = `${color}${JSON.stringify(extra)}`;
     let m = matCache.get(key);
-    if (!m) { m = new T.MeshBasicMaterial({ color, ...extra }); matCache.set(key, m); }
+    if (!m) { m = new T.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0.12, flatShading: true, envMapIntensity: 0.7, ...extra }); matCache.set(key, m); }
     return m;
   };
   const ringMatCache = new Map<number, any>();
@@ -383,6 +415,8 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   }
   const fogTarget = new T.Color('#070708');
   const moteTarget = new T.Color('#c6f135');
+  const hemiTarget = new T.Color('#8a7bb8');
+  const rimTarget = new T.Color('#46e0d4');
 
   // ---------- biome builders (one group per world heart) ----------
   function buildBiome(group: any, index: number, seed: number, world: World): void {
@@ -905,6 +939,26 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     moteTarget.set(fw.accent);
     moteTarget.offsetHSL(lap.hue, 0, 0);
     (motes.material as any).color.lerp(moteTarget, 0.04);
+    // DV-1 era moods: the rig breathes per lap around the shipped constants
+    // (lap 0 === today's look). Lights ride the camera; colors ease to the
+    // faced chapter. Same lerp manners as fog — never a snap.
+    {
+      const mood = eraMood(camLap);
+      key.intensity += (mood.key - key.intensity) * 0.04;
+      hemi.intensity += (mood.hemi - hemi.intensity) * 0.04;
+      rim.intensity += (mood.rim - rim.intensity) * 0.04;
+      spot.intensity += (mood.spot - spot.intensity) * 0.04;
+      hemi.color.lerp(hemiTarget.set(fw.sky1), 0.04);
+      rim.color.lerp(rimTarget.set(fw.accent), 0.04);
+      const px = camera.position.x;
+      const py = camera.position.y;
+      key.position.set(px + 30, py + 60, camZ + 54);
+      key.target.position.set(px, py, camZ - 60);
+      rim.position.set(px - 20, py + 10, camZ + 94);
+      rim.target.position.set(px, py, camZ - 60);
+      spot.position.set(px, py + 26, camZ + 34);
+      spot.target.position.copy(camTarget);
+    }
     // foreground fronds + light shafts ride the camera: near-layer parallax.
     for (const f of fronds) {
       const s = f.userData.side as number;
