@@ -42,9 +42,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [RS-1] Sim — DONE (sealed commits, fixed-step ricochet, HP/elimination,
   rounds + siege, auto-fire, join-next-round, ghost reclaim; 1,000 seeded
   volleys identical, p95 1.45ms; snapshot ≤2KB; 18/18). Owner: Zara.
-- [RS-2] Bots + driver: gunners — Owner: Zara. Accept: tiered aim error
-  (sharps lead, casuals scatter), labelled, backfill to 6; driver on the
-  RoomDriver seam; ≥7 tests.
+- [RS-2] Bots + driver — DONE (nearest-hull gunners, whisper/shout error
+  gap, 1-4s pacing, instant war of 6; 8/8 driver tests, 26/26 siege).
+  Owner: Zara.
 - [RS-3] Share: ReplayMoment (round replay) — Owner: Leo + Zara. Accept:
   seed + commits re-sim exactly, re-entry URL, asserts clean, honest
   mid-round state.
