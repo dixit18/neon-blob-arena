@@ -228,4 +228,29 @@ describe('ricochet-siege sim', () => {
     assert.deepEqual(assertArtifact(r), []);
     assert.ok(r.title.includes('live'));
   });
+
+  it('RS-3: logged round re-simulates hit-for-hit + re-enters play', () => {
+    const s = duo(77);
+    toAim(s);
+    s.commit('a', 0.2, 0.9);
+    s.commit('b', Math.PI - 0.2, 0.9);
+    for (let i = 0; i < 2000 && s.phase === 'volley'; i++) s.step(50);
+    assert.equal(s.log.length, 1);
+    const entry = s.log[0]!;
+    // Exact replay: same pads (join order), same bumpers, same commits.
+    const pads = [PADS[0]!, PADS[1]!];
+    const again = reVolley(pads, makeBumpers(entry.seed), entry.commits);
+    const liveHits = [...s.players.values()].reduce((n, p) => n + p.hits, 0);
+    assert.equal(again.hits.length, liveHits, 'replay hits match live hits');
+    assert.deepEqual(
+      again.alive.sort(),
+      [...s.players.values()].filter((p) => p.hp > 0).map((p) => p.id).sort(),
+    );
+    const r = s.replay('WXYZ', 'https://x.test');
+    assert.deepEqual(assertArtifact(r), []);
+    const q = new URL(r.url).searchParams;
+    assert.equal(q.get('game'), 'ricochet-siege');
+    assert.equal(q.get('room'), 'WXYZ');
+    assert.equal((r.data as { rounds: unknown[] }).rounds.length, 1);
+  });
 });

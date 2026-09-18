@@ -45,9 +45,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [RS-2] Bots + driver — DONE (nearest-hull gunners, whisper/shout error
   gap, 1-4s pacing, instant war of 6; 8/8 driver tests, 26/26 siege).
   Owner: Zara.
-- [RS-3] Share: ReplayMoment (round replay) — Owner: Leo + Zara. Accept:
-  seed + commits re-sim exactly, re-entry URL, asserts clean, honest
-  mid-round state.
+- [RS-3] Share — DONE (logged round re-simulates hit-for-hit, re-entry URL,
+  asserts clean, honest mid-round). Owner: Leo + Zara.
 - [RS-4] Client: canvas arena + aim — Owner: Leo. Accept: arena + hulls +
   tracers render, drag-aim + COMMIT same-tick, sealed-aim secrecy, 360px
   clean, chunk ≤250KB; mounts at `apps/web/src/games/ricochet-siege.ts`.
