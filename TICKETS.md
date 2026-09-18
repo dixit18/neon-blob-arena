@@ -42,9 +42,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GB-2] Share-artifact audit — DONE (doodle `moment()` added with
   mid-draw prompt gating; 12/12 audit gate: all 10 titles resolve to
   drivers + own valid catalog-kind artifacts). Owner: Leo + Zara.
-- [GB-3] Snapshot budget sweep — Owner: Riya. Accept: every game's worst-
-  case snapshot (full table, late phase) asserted ≤2KB in-suite (totem
-  ≤1.5KB holds). Receipts in chat.
+- [GB-3] Snapshot budget sweep — DONE (all 10 assert worst-case caps
+  in-suite; per-verb table recorded in QA.md — doodle 4KB by stroke-
+  freight, all others ≤2KB, totem/riot tighter; e2e wire checks mirror).
+  Owner: Riya.
 - [GB-4] Hindi strings table — Owner: Devika + Leo. Accept: all menu/HUD
   copy in one strings table (UX-006 un-superseded); client builds; no
   gameplay change.

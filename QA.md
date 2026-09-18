@@ -10,6 +10,23 @@
 | Snapshot bytes | DevTools → WS frames | ≤ 12KB | > 20KB (backpressure kicks) |
 | Feel (input→move) | play it | < 150ms | visible rubber-band |
 
+### Per-game snapshot budgets (GB-3 sweep, CI-enforced in each game's suite)
+
+| Game | Cap | Why |
+|---|---|---|
+| reflex-riot | 700B | task card + pads, tiny by design |
+| blaze-squad | 1.5KB | 12 blobs + zone + loot |
+| nitro-rift | 1.5KB | 8 racers + pads + lap |
+| totem-panic | 1.5KB | 10 hands + 10-block tower (Sprint 7 DoD) |
+| ludo-clash | 2KB | 4 seats × tokens + options |
+| read-the-room | 2KB | 15 ballots + tally |
+| ghostline | 2KB | course + 8 dots + leaders |
+| signal-seven | 2KB | 7 clues + pip rows + leaders |
+| ricochet-siege | 2KB | 8 hulls + capped tracers + locks |
+| doodle-duel | 4KB | packed strokes ARE the game (16×32 base-36 ≈ 2.3KB worst + envelope); stride-downsampled, never raw |
+
+E2E wire p95 checks mirror these caps (riot 700B; room/ludo/ghost/signal/totem/siege at their caps).
+
 Slow-tick server log (`[tick] slow XXms`) is an automatic investigate.
 
 ## Lag triage runbook (in order — stop at first red)
@@ -57,3 +74,4 @@ Slow-tick server log (`[tick] slow XXms`) is an automatic investigate.
 
 `[QA-BLOCKER|QA-WARN] what / where (URL+room) / numbers (tick/fps/bytes) / repro steps / expected`
 Blockers stop the release. Warns go to next loop.
+
