@@ -6,6 +6,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
+- [ROOM-LITE] Zoom stays on the landing — DONE (direct game links skip
+  descent + 3D upgrade + rift backdrop + saga boot; rooms render game
+  only, proven by eyes; F-10 holds structurally; 44/44 web, build green).
+  Owner: Leo.
 - [DV-1] Dive light rig — DONE (hemi + key + rim + figure spot, PMREM
   softbox env, solids lit/faceted, era moods lap-0-identical; 13/13 layout
   tests, build green — dive 27,364B ≤27,648 amended openly; 3D-up proven

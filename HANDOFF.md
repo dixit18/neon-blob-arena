@@ -223,14 +223,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DV-1 SHIPPED (SG-4): lit dive (rig + env + moods) proven live; dive
-  27,364B (284B margin — chunk diet noted). Next: DV-2 rust procgen.
+- ROOM-LITE SHIPPED: rooms boot zero world (gated descent/3D/rift/saga);
+  eyes confirm pure-game rooms + healthy landing. Next: DV-2 rust procgen
+  (or user eyeballs first).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. DV-2 rust procgen → DV-3 wasm dive → DV-4 epic line.
    User eyeballs: lit dive + variety + seals + corner (all live).
-2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 35 ahead) + Render deploy watch.
+2. TREE IN SYNC with origin (pushed 2026-09-18, 35 commits landed).
+   USER still for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
+   phone checks + Render deploy watch.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

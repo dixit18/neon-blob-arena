@@ -15,6 +15,11 @@ type Manifest = {
 
 const el = (id: string) => document.getElementById(id)!;
 const qs = new URLSearchParams(location.search);
+// ROOM-LITE (user order): game rooms show game things only — no zoom, no
+// dive, no saga loops, no world weight. The infinite-zoom spectacle lives
+// on the landing page, for human interaction. Foundation law F-10 holds:
+// a direct game link loads 0 bytes of world bundle.
+const isRoomView = !!(qs.get('game') && qs.get('room'));
 // GB-4: the shell speaks Hindi too. Static chrome paints from the strings
 // table on boot (game clients + saga content stay English, openly).
 try {
@@ -23,37 +28,41 @@ try {
   if (langParam === 'hi' || langParam === 'en') setLang(langParam);
   document.documentElement.lang = getLang();
   document.title = t('meta.title');
-  el('kickerLive').textContent = t('kicker.live');
-  el('heroA').textContent = t('hero.a');
-  el('heroB').textContent = t('hero.b');
-  el('heroSub').textContent = t('hero.sub');
-  el('play').textContent = t('play.label');
-  el('faceName').textContent = t('play.diving');
-  document.querySelectorAll<HTMLButtonElement>('#moods button').forEach((b) => {
-    const m = (b.dataset.mood ?? '').toLowerCase();
-    if (m === 'beat' || m === 'chaos' || m === 'think' || m === 'surprise') {
-      b.textContent = t(`moods.${m}`);
-    }
-  });
-  el('riftCopy').textContent = t('rift.copy');
-  const langBtn = el('langBtn') as HTMLButtonElement;
-  langBtn.textContent = t('lang.toggle');
-  langBtn.addEventListener('click', () => {
-    setLang(getLang() === 'hi' ? 'en' : 'hi');
-    location.reload();
-  });
+  // Room chrome paints in both modes (rooms speak Hindi too).
   el('roomKicker').textContent = t('room.kicker');
   el('roomTitle').textContent = t('room.entering');
   el('roomSub').textContent = t('room.resolving');
   el('mount').textContent = t('room.mountDefault');
   el('backLink').textContent = t('room.back');
-  const tabs0 = document.getElementById('sagaTabs');
-  if (tabs0) tabs0.setAttribute('aria-label', t('saga.tabsAria'));
-  const dive0 = document.getElementById('diveCv');
-  if (dive0) dive0.setAttribute('aria-label', t('dive.aria'));
+  if (!isRoomView) {
+    // Landing chrome only — rooms never see it, never pay for it.
+    el('kickerLive').textContent = t('kicker.live');
+    el('heroA').textContent = t('hero.a');
+    el('heroB').textContent = t('hero.b');
+    el('heroSub').textContent = t('hero.sub');
+    el('play').textContent = t('play.label');
+    el('faceName').textContent = t('play.diving');
+    document.querySelectorAll<HTMLButtonElement>('#moods button').forEach((b) => {
+      const m = (b.dataset.mood ?? '').toLowerCase();
+      if (m === 'beat' || m === 'chaos' || m === 'think' || m === 'surprise') {
+        b.textContent = t(`moods.${m}`);
+      }
+    });
+    el('riftCopy').textContent = t('rift.copy');
+    const langBtn = el('langBtn') as HTMLButtonElement;
+    langBtn.textContent = t('lang.toggle');
+    langBtn.addEventListener('click', () => {
+      setLang(getLang() === 'hi' ? 'en' : 'hi');
+      location.reload();
+    });
+    const tabs0 = document.getElementById('sagaTabs');
+    if (tabs0) tabs0.setAttribute('aria-label', t('saga.tabsAria'));
+    const dive0 = document.getElementById('diveCv');
+    if (dive0) dive0.setAttribute('aria-label', t('dive.aria'));
+  }
 } catch { /* chrome never blocks play */ }
-// The living backdrop. Cheap, procedural, ours.
-try {
+// The living backdrop. Landing-only: rooms show game things, never this.
+if (!isRoomView) try {
   const cv = document.getElementById('riftCv') as HTMLCanvasElement | null;
   if (cv) {
     const rift = startRiftBackdrop(cv);
@@ -87,7 +96,10 @@ function resolveGame(game: string, enter: boolean): void {
 function divePortal(game: string): void {
   resolveGame(game, true);
 }
-try {
+// ROOM-LITE: the whole saga/dive/seal apparatus is landing-only. The `if`
+// wraps the try with zero re-indentation — rooms skip ~130 lines of loops,
+// idle callbacks, and lazy CDN weight.
+if (!isRoomView) try {
   // SG-1: the dive reads a saga — tabs + ?saga= pick the book, chapters turn.
   let sagaIdx = 0;
   const sagaParam = Number.parseInt(qs.get('saga') ?? '', 10);

@@ -1087,3 +1087,12 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (receipts):** 13/13 layout tests (lap-0 mood identity, bounds, variety) + web tsc clean + 43/43 web + build green + stock BROWSER GREEN on rerun + 3D-up markers (vista + fps + steer) live under SwiftShader on the lit build + 6/6 seals there too. Visual paint of the LIT scene: UNPROVEN headlessly — Edge `--screenshot` + any wait flag deterministically refuses localhost in this build (5 rounds burned; dump-dom works, plain screenshots work). Law logged: screenshots ride the stock script only, no hand-rolled flags. User eyes own the lit look.
 **Aarav:** DV-1 DONE → DV-2 rust procgen next.
 **Kai:** Committing. Tree 35 ahead — push is the user's hands.
+
+## 2026-09-18 — ROOM-LITE SHIPPED: zoom stays on the landing (user order)
+**User (verbatim):** game start needs no infinite zoom — players see game things; the spectacle is landing-only, for human interaction.
+**Aarav:** Already-hidden wasn't enough — rooms HID the dive but still BOOTED it (descent loop + lazy three.js + rift backdrop on every direct link). Orthodox version refused: splitting bundles (bigger refactor, same runtime result). Fix: gate the calls — early `isRoomView`, landing chrome split (room chrome still paints, Hindi rooms included), rift backdrop gated, whole saga/dive/seal block wrapped brace-free (`if (!) try`, zero re-indent).
+**Leo:** 4 gated call sites in main.ts; game clients untouched; server untouched.
+**Vikram:** 1 catch upgraded to incident: gate went RED twice (empty landing dump, live paint) then I proved it environmental — Edge `--dump-dom` hangs even on `about:blank` right now (screenshots + rooms green throughout). New law: DOM-marker gate is advisory until Edge heals; EYES are the gate (I can see paints now).
+**Riya (receipts):** tsc clean + 44/44 web + build green. Eyes: landing paint perfect (seals, PLAY, moods, docked vista, ERA caption) and the nitro room is PURE GAME (track + racers + room line, zero zoom chrome). Structural F-10 holds (bootDive/upgrade never called on room path — readable in 4 gates).
+**Aarav:** ROOM-LITE DONE. Next: DV-2 rust procgen (user eyeballs anytime).
+**Kai:** Committing + pushing (it worked last time).
