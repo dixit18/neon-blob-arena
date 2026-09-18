@@ -47,9 +47,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   25/25 totem). Owner: Zara.
 - [TP-3] Share — DONE (ReplayMoment re-enters via URL and re-simulates the
   live tower exactly; honest mid-run state). Owner: Leo + Zara.
-- [TP-4] Client: canvas tower + drop — Owner: Leo. Accept: tower + queue +
-  lean meter render, tap-to-place same-tick, spectate view, 360px clean,
-  chunk ≤250KB; mounts at `apps/web/src/games/totem-panic.ts`.
+- [TP-4] Client — DONE (canvas tower + tap/arrow placement, aim ghost,
+  lean meter, queue preview, spectate banner; build green, 5.48KB chunk;
+  live proof rides TP-5). Owner: Leo.
 - [TP-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
   green over real sockets; snapshot p95 ≤1.5KB; receipts in chat. Blocks
   release if red.

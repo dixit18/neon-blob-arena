@@ -223,8 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 7 TOTEM PANIC (in progress): Devika slicing TP-1..TP-6; Zara
-  pulling TP-1 sim (seeded co-op tower, topple model, replay core).
+- Sprint 7 TOTEM PANIC: TP-1 + TP-2 + TP-3 SHIPPED (26/26 totem tests).
+  TP-4 IN PROGRESS (Leo: canvas tower + tap-to-place client).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 7 TOTEM PANIC — Devika to slice TP-1..TP-6; crew pulls on sight.
