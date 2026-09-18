@@ -982,3 +982,18 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** 1 catch, load-bearing: full suite went 315/317 — the retired ghostline refusal broke `integration.test.ts` (it used ghostline as the unimplemented example; leaked socket poisoned the next test too). Fixed: refusal example rolled to signal-seven (Sprint 6's honest refusal). Full suite re-proven 317/317, both tsc clean, web build green (shell 31.72KB).
 **Aarav:** Sprint 5 GHOSTLINE SHIPPED — 7th playable game. Next: G-2 soak + Sprint 6 SIGNAL SEVEN slicing (Devika).
 **Kai:** Committing. Tree 8 ahead of origin — push is the user's hands.
+
+## 2026-09-18 — G-2 + SI-1..SI-6 SHIPPED: SIGNAL SEVEN PLAYABLE (Sprint 6 done)
+**Riya (G-2):** soak covers all 7 live games (ghostline flick vectors join the chatter) — 30/30, 408/s, tickAvg 0.13/max 16.9ms, 0 unhandled. SOAK GREEN.
+**Aarav:** Sprint 6 cut: SIGNAL SEVEN, verb DEDUCE. Orthodox version refused: trivia reskin (we have room) and open-ended riddle rooms (unverifiable). New law: one UTC-day mystery for the whole world — hidden 3-rune code + 7 clues, pip guesses, fewest wins, solver-proven fair.
+**Devika:** SI-1..SI-6 sliced (sim+solver → tablets/driver → grid share → client → e2e → wire-up). Solo-safe from day one.
+**Rehan (counter, signed):** Wordle-clone charge — mitigate: clues are the game (deduction tablet, not word list), rival tablets + bests give the daily loop teeth; spoiler-safety is load-bearing (a leaked code kills the ritual) — grid carries pips only, seed banned from payload. Second: 365-proof means nothing if gen is slow — bound: proof must run in-suite fast (it does: <1s).
+**Zara (SI-1):** `games/signal-seven/sim.ts` — daySeedUTC, 210-code solver, greedy-narrow + positional-fallback clue builder (total), pip feedback, validation, ranking, bests, 60s... no — idle rule came in SI-2. CATCH (self): grid `data` carried `seed`, which regenerates the code — dropped before shipping; pips only.
+**Zara (SI-2):** rival tablets deduce with the solver (consistent-set narrowing from clues + pip history); sharps read the top, casuals wander + 30% wild; triple rides `input` {dx,dy,aim} (answer shape too small — zero contract change). CATCH (tests): silent humans stalled puzzles forever — 60s idle close-out, same class as the ghostline nap.
+**Leo + Zara (SI-3):** DailyGrid proof — re-entry URL, pip counts, leak gate live at package level + no-seed/no-code keys asserted at game level.
+**Leo (SI-4):** tablet client — clues, pip grid, 7-key rune keyboard, same-tick lock, arrows/Enter, 360px-first. Build green, 6.19KB.
+**Kai (SI-6):** registered, refusal dead. No seed concept — the UTC day is the seed.
+**Riya (SI-5 receipts):** 6/6 e2e — hello/stream, instant 4-table, triple lands live, garbage + reclaim survival, wire p95 ≤2KB, one-UTC-day + white-box solve crowns. Release UNBLOCKED.
+**Vikram:** 1 catch, structural: my own SI-6 overtook the integration refusal example (second roll-forward) — killed the tax permanently: refusal example is now cut-content `portal-rush`, never to be wired. Full suite 350/350, both tsc clean, web build green (shell 31.81KB).
+**Aarav:** Sprint 6 SHIPPED — 8th playable game. Next: Sprint 7 TOTEM PANIC slicing (Devika).
+**Kai:** Committing. Tree 14 ahead — push is the user's hands.

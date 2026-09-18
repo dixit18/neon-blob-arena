@@ -19,6 +19,7 @@ import { createNitroDriver } from '../../../games/nitro-rift/driver.js';
 import { createLudoDriver } from '../../../games/ludo-clash/driver.js';
 import { createRoomDriver } from '../../../games/read-the-room/driver.js';
 import { createLineDriver } from '../../../games/ghostline/driver.js';
+import { createSignalDriver } from '../../../games/signal-seven/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -45,6 +46,7 @@ export function createApp(opts: { region?: string } = {}) {
   registry.register('ludo-clash', () => createLudoDriver()); // LD-6: turn board, dice + picks
   registry.register('read-the-room', () => createRoomDriver()); // RT-6: party vote, crowns + fingerprint
   registry.register('ghostline', () => createLineDriver()); // GH-6: flick time-trial, refusal dead
+  registry.register('signal-seven', () => createSignalDriver()); // SI-6: daily deduction, refusal dead
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   const studio = new StudioFeed();
   seedFeed(studio);

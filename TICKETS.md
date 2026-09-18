@@ -7,11 +7,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
 ## Doing (this cycle)
 - Sprint 6 SIGNAL SEVEN — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: SI-1 in progress. Design: daily
-  deduction — one UTC-day mystery (hidden 3-rune code from 7 runes + 7
-  clues), Mastermind-pip guesses, fewest guesses wins; solo-safe
-  (MIN_START 1); solver proves every 2026 day uniquely solvable; DailyGrid
-  share never leaks the solution.
+  Riya (e2e) + Kai (wire-up). Status: SHIPPED (SI-1..SI-6, 8th playable
+  game; 6/6 e2e, 350/350 suite, web build green, signal chunk 6.19KB).
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -51,11 +48,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [SI-4] Client — DONE (clue tablet + rune keyboard + pip grid, triple-
   over-input submit, same-tick lock, 360px-first keys; build green, 6.19KB
   chunk; live proof rides SI-5). Owner: Leo.
-- [SI-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
-  green over real sockets; snapshot p95 ≤2KB; receipts in chat. Blocks
-  release if red.
-- [SI-6] Wire-up: manifest + register — Owner: Kai. Accept: `signal-seven`
-  in `/catalog` (already listed); `?game=signal-seven&room=` plays.
+- [SI-5] E2E — DONE (6/6 over real sockets: hello/stream, instant table,
+  triple-guess landing, garbage+reclaim survival, p95 ≤2KB, one-UTC-day +
+  white-box solve crowns; release UNBLOCKED). Owner: Riya.
+- [SI-6] Wire-up — DONE (`signal-seven` registered, refusal dead; no seed
+  concept — the UTC day is the seed). Owner: Kai.
 
 ## Open (prioritized) — Sprint 5 GHOSTLINE (SHIPPED — see Done section)
 - [GH-1] Sim — DONE (seeded course + fixed-step flick physics + replay core;

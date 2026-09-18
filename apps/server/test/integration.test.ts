@@ -65,9 +65,10 @@ describe('server integration', () => {
   });
   it('refuses unimplemented games with a code', async () => {
     await new Promise<void>((resolve, reject) => {
-      // ghostline was the refusal example until GH-6 wired it; signal-seven
-      // (Sprint 6) is the next honest refusal.
-      const ws = new WebSocket(`${wsBase}?game=signal-seven&name=X`);
+      // Stable refusal example: portal-rush is CUT content (see SPRINTS),
+      // never to be wired — no more rolling the example forward every
+      // time a sprint lands (ghostline → GH-6, signal-seven → SI-6).
+      const ws = new WebSocket(`${wsBase}?game=portal-rush&name=X`);
       const to = setTimeout(() => reject(new Error('no refusal')), 5000);
       ws.on('message', (d) => {
         try {
