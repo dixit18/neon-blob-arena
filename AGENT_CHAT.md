@@ -1088,6 +1088,15 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Aarav:** DV-1 DONE → DV-2 rust procgen next.
 **Kai:** Committing. Tree 35 ahead — push is the user's hands.
 
+## 2026-09-18 — ART-3 SHIPPED: color scripts, both sagas (SG-6 program)
+**Mira (method, cited):** Pixar color-script doctrine (Romano/Eggleston via MoMA; Khan Academy) — palette follows feeling, intensity with emotion, one script unifying light+color. Prescription: value arcs per saga (dawns/noons/ballrooms luminous, dread dark for contrast), accents standing apart from their OWN sky (silhouette logic).
+**Leo (ART-3):** data-only regrade, both engines consume it. The oath convicted Salt mid-build (sky1 range 0.072 — all-murky); no controls kept in slop. Then eyes convicted v1 (both chapter-0s still read near-black — I had optimized sky1, the hidden half); v2 puts the read in sky0 + tab pills for bright-sky survival.
+**Vikram:** 3 catches, all process: 1) PowerShell `&` mangles Edge args (comma-split) — convicted by A/B, node-driven only from here (helpers promoted to scripts/). 2) stale preview processes serve old bytes — new law: probe served content before shooting. 3) 360px headless clip is pre-existing + headless enforces ~500px min viewport — TRUE 360 truth stays human-hands; base hero min lowered anyway.
+**Riya (receipts):** 11/11 sagas (oaths: unique accents, sky0+sky1 breathe, accent-distance) + 45/45 web + build green + EYES: lit steel-dawn 3D (lit shards, shafts, vista UI) vs the old murk; runtime DOM proves ?saga= routing + ERA captions live + 6/6 seals in 3D.
+**Rehan (counter, signed):** bright eras risk washing portal legibility — ANSWERED by the accent-distance oath (measured per chapter, not vibes); the 3D shot shows rings + UI crisp on steel.
+**Aarav:** ART-3 DONE. Next: figures with proper materials (your "characters" order) + DV-3.
+**Kai:** Committing + pushing.
+
 ## 2026-09-18 — ART-1 SHIPPED: the slop is gone (SG-5, user priority)
 **Leo (ART-1):** index.html CSS + font link + grain div ONLY — Unbounded display type (OFL, swap + fallback), sticker kicker (rotate + keyline + hard shadow), flat hard-shadow PLAY with press physics, grain tile over the frame (static, 7%, below dialogs), 360 hardening (winning selectors + tighter kicker spacing + lower hero min). Zero JS, zero canvas, zero behavior.
 **Vikram:** 3 catches: 1) hand-rolled Edge screenshots refused 4× while the stock script worked — root cause STILL unknown; law stands (stock script only). 2) my 360 media query never applied — bare `h1` loses to `#float h1`; fixed with winning selectors. 3) served-stale-bytes confusion — stale preview processes; new law: verify PID alive + probe content before shooting.

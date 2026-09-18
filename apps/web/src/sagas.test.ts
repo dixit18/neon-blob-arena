@@ -92,4 +92,25 @@ describe('sagas', () => {
     assert.ok(buildChapterUrl('https://x/', 99, 99).includes('saga=0'));
     assert.ok(buildChapterUrl('https://x/', 0, -3).includes('ch=0'));
   });
+
+  it('ART-3 anti-slop oaths: accents unique, skies breathe, accent stands apart', () => {
+    const lum = (h: string): number => {
+      const n = (a: number, b: number): number => parseInt(h.slice(a, b), 16) / 255;
+      return 0.299 * n(1, 3) + 0.587 * n(3, 5) + 0.114 * n(5, 7);
+    };
+    const spread = (xs: number[]): number => Math.max(...xs) - Math.min(...xs);
+    for (const s of SAGAS) {
+      const accents = s.chapters.map((c) => c.accent.toLowerCase());
+      assert.equal(new Set(accents).size, 6, `${s.id}: two chapters share an accent`);
+      // The eye lives in sky0 and dives into sky1 — BOTH must breathe.
+      assert.ok(spread(s.chapters.map((c) => lum(c.sky0))) >= 0.12, `${s.id}: sky0 flat`);
+      assert.ok(spread(s.chapters.map((c) => lum(c.sky1))) >= 0.15, `${s.id}: sky1 flat`);
+      for (const c of s.chapters) {
+        // Silhouette logic: the accent reads against its own sky, always.
+        const gap = Math.abs(lum(c.accent) - lum(c.sky1));
+        assert.ok(gap >= 0.08, `${c.name}: accent drowns in its sky (gap ${gap.toFixed(3)})`);
+        assert.ok(/^#[0-9a-f]{6}$/i.test(c.sky0) && /^#[0-9a-f]{6}$/i.test(c.sky1), `${c.name}: hex`);
+      }
+    }
+  });
 });

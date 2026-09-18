@@ -2,6 +2,23 @@
 Every entry: the user's words + status + owner + where it landed (or why not,
 with the user holding the overrule). Newest first.
 
+## SG-6 — Reading platform, film-built worlds, no slop (ACCEPTED, building)
+User's words (2026-09-18): no audio needed; build a READING PLATFORM that
+doesn't exist — full-3D reader experience; story known first, then generate
+the environment around it like movies; characters with proper material +
+lighting when they exist; learn procgen first (skills.sh or study); no AI
+slop — current colors all feel the same and nothing feels good.
+- Thesis adopted: the DIVE is the product (reading platform); games are
+  portals/companions. Audio explicitly OUT.
+- Method: Pixar-style COLOR SCRIPTS (cited: Romano/Eggleston/MoMA — palette
+  follows feeling, intensity with emotion; Khan Academy: script unifies
+  light+color before lighting). Skill installed:
+  threejs-aaa-graphics-builder (scored us ~1.2: glow-primitives + fog-style
+  convicted; forms→materials→light→effects order adopted).
+- Status: ART-3 SHIPPED 2026-09-18 (BOTH sagas on color scripts — the
+  oath convicted Salt too; tab pills; eyes: lit steel-dawn 3D vs old murk).
+  Next: figures (characters with proper materials) + DV-3.
+
 ## SG-5 — Kill the AI-slop look with real references (ACCEPTED, researching)
 User's words (2026-09-18): UI still looks AI-generated; go to Pinterest and
 find different ideas — not full-page copies: header ideas, hero ideas, 3D

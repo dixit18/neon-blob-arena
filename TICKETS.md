@@ -6,6 +6,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
+- [ART-3] Filmic color script — DONE (both sagas on emotion arcs, oaths
+  green incl. sky0 range + accent-distance; tab pills; 11/11; build green;
+  eyes: steel-dawn 3D with lit shards vs the old murk). Owner: Mira + Leo.
 - [ART-1] De-slop the landing — DONE (Unbounded display type, sticker
   grammar, film grain, 360 hardening; CSS/HTML only, zero JS; build
   green, BROWSER GREEN, eyes on 1280 + 360). Owner: Mira + Leo.

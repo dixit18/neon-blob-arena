@@ -31,13 +31,18 @@ const CINDER: Saga = {
     title: 'THE ASH IS FALLING UPWARD NOW…',
     teaser: 'The Game of Crowns has a seventh player — and it just moved. Season 2 is being written. Challenge a friend to read it first.',
   },
+  // ART-3 color scripts (cited: color follows feeling — Romano/Eggleston).
+  // The eye lives in sky0: luminous eras go BRIGHT there, dread stays dark
+  // for contrast. Accents stand apart from their OWN sky (silhouette logic).
+  // CINDER: ash-dawn grey → steel-morning glare → blood-night dread →
+  // candle blaze → indigo mystery → ember climax.
   chapters: [
-    { name: 'ASHFALL OVER THE SIX COURTS', sub: 'The sky burned nine days. The courts count the cost in embers.', game: 'blaze-squad', sky0: '#141114', sky1: '#3A2A33', accent: '#FF7A1A', biome: 1, motif: 'ash dunes' },
-    { name: "THE HERALD'S RUN", sub: 'Six riders, one warning. The roads are lanes and mercy ran out.', game: 'nitro-rift', sky0: '#0A1420', sky1: '#1E3A4A', accent: '#46E0D4', biome: 3, motif: 'reef lanes' },
-    { name: "THE ASSASSIN'S TEST", sub: 'The queen hires killers the way others hire cooks: fast, and often.', game: 'reflex-riot', sky0: '#0B0B16', sky1: '#2A0F2E', accent: '#FF3D8A', biome: 0, motif: 'trial rings' },
-    { name: 'THE MASK BALL', sub: 'Everyone smiles. Someone lies. Read the room or lose your head.', game: 'read-the-room', sky0: '#101014', sky1: '#2E2340', accent: '#FFE9A8', biome: 2, motif: 'mask garden' },
-    { name: 'THE PAINTED PROPHECY', sub: 'A mural appeared overnight — and everyone sees themselves in it.', game: 'doodle-duel', sky0: '#050510', sky1: '#1A1A3E', accent: '#7A5CFF', biome: 5, motif: 'star mural' },
-    { name: 'THE GAME OF CROWNS', sub: 'Four heirs. One cup of fate. But the ash is falling upward now…', game: 'ludo-clash', sky0: '#160B08', sky1: '#3A1C08', accent: '#FFD93D', biome: 4, motif: 'crown forge' },
+    { name: 'ASHFALL OVER THE SIX COURTS', sub: 'The sky burned nine days. The courts count the cost in embers.', game: 'blaze-squad', sky0: '#4A4238', sky1: '#6E5C44', accent: '#E4DED2', biome: 1, motif: 'ash dunes' },
+    { name: "THE HERALD'S RUN", sub: 'Six riders, one warning. The roads are lanes and mercy ran out.', game: 'nitro-rift', sky0: '#3D6078', sky1: '#8FB4C8', accent: '#0B2E3B', biome: 3, motif: 'reef lanes' },
+    { name: "THE ASSASSIN'S TEST", sub: 'The queen hires killers the way others hire cooks: fast, and often.', game: 'reflex-riot', sky0: '#120608', sky1: '#4A0E18', accent: '#E63946', biome: 0, motif: 'trial rings' },
+    { name: 'THE MASK BALL', sub: 'Everyone smiles. Someone lies. Read the room or lose your head.', game: 'read-the-room', sky0: '#4A2E12', sky1: '#A06A2E', accent: '#FFC46B', biome: 2, motif: 'mask garden' },
+    { name: 'THE PAINTED PROPHECY', sub: 'A mural appeared overnight — and everyone sees themselves in it.', game: 'doodle-duel', sky0: '#1A1A5C', sky1: '#3A3AA8', accent: '#B4BEFF', biome: 5, motif: 'star mural' },
+    { name: 'THE GAME OF CROWNS', sub: 'Four heirs. One cup of fate. But the ash is falling upward now…', game: 'ludo-clash', sky0: '#40200C', sky1: '#A85E1E', accent: '#FFB52E', biome: 4, motif: 'crown forge' },
   ],
 };
 
@@ -49,13 +54,15 @@ const SALT: Saga = {
     title: 'SOMETHING DOWN THERE JUST OPENED ITS EYES…',
     teaser: 'The Drowned Star knows your name now. Season 2 is being charted. Challenge a friend to sail it first.',
   },
+  // SALT: murky debt → lagoon-noon glare → slate dread → lantern warmth →
+  // ink mystery → abyssal starlight.
   chapters: [
-    { name: 'THE DEBT OF TIDES', sub: 'The sea took their captain. It left a bill.', game: 'blaze-squad', sky0: '#0A0F14', sky1: '#2E2A33', accent: '#FF7A1A', biome: 4, motif: 'lantern cliffs' },
-    { name: "THE SMUGGLER'S LANES", sub: 'Four currents through the reef. The fastest boat eats.', game: 'nitro-rift', sky0: '#031018', sky1: '#0A2E3A', accent: '#46E0D4', biome: 3, motif: 'reef lanes' },
-    { name: 'STORM DRILLS', sub: "First mate's rule: react before the wave finishes thinking.", game: 'reflex-riot', sky0: '#080B18', sky1: '#1E2A4A', accent: '#9BF2EA', biome: 0, motif: 'whirlpool rings' },
-    { name: 'THE PARLEY', sub: 'Pirates vote. The wrong read walks the plank.', game: 'read-the-room', sky0: '#0C0C18', sky1: '#2A2440', accent: '#FFE9A8', biome: 2, motif: 'parley cove' },
-    { name: 'THE MAP ROOM', sub: 'The chart redraws itself nightly. Someone aboard helps it.', game: 'doodle-duel', sky0: '#050514', sky1: '#161638', accent: '#7A5CFF', biome: 5, motif: 'living chart' },
-    { name: 'THE DROWNED STAR', sub: 'Whoever raises the star names the sea — and it just opened its eyes…', game: 'ludo-clash', sky0: '#020A12', sky1: '#0E2E4A', accent: '#FFD93D', biome: 4, motif: 'volcanic isle' },
+    { name: 'THE DEBT OF TIDES', sub: 'The sea took their captain. It left a bill.', game: 'blaze-squad', sky0: '#16302A', sky1: '#3A6A5C', accent: '#C8F2D8', biome: 4, motif: 'lantern cliffs' },
+    { name: "THE SMUGGLER'S LANES", sub: 'Four currents through the reef. The fastest boat eats.', game: 'nitro-rift', sky0: '#2A7A8E', sky1: '#7AD4DE', accent: '#08333C', biome: 3, motif: 'reef lanes' },
+    { name: 'STORM DRILLS', sub: "First mate's rule: react before the wave finishes thinking.", game: 'reflex-riot', sky0: '#1C222E', sky1: '#4A5878', accent: '#C8D4F2', biome: 0, motif: 'whirlpool rings' },
+    { name: 'THE PARLEY', sub: 'Pirates vote. The wrong read walks the plank.', game: 'read-the-room', sky0: '#40260E', sky1: '#96622A', accent: '#FF9E4A', biome: 2, motif: 'parley cove' },
+    { name: 'THE MAP ROOM', sub: 'The chart redraws itself nightly. Someone aboard helps it.', game: 'doodle-duel', sky0: '#221A3E', sky1: '#4A3E8E', accent: '#E8D88A', biome: 5, motif: 'living chart' },
+    { name: 'THE DROWNED STAR', sub: 'Whoever raises the star names the sea — and it just opened its eyes…', game: 'ludo-clash', sky0: '#0A2A44', sky1: '#1E6A9E', accent: '#B8F2FF', biome: 4, motif: 'volcanic isle' },
   ],
 };
 

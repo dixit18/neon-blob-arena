@@ -223,9 +223,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- ART-1 SHIPPED (SG-5): de-slopped landing (type + sticker + grain),
-  eyes on 1280 + 360, BROWSER GREEN. Next: DV-3 wasm dive (program
-  resumes) unless user eyeballs redirect.
+- ART-3 SHIPPED (SG-6): both sagas on color scripts, oaths green, eyes
+  confirm lit steel-dawn 3D. Laws: node-driven browser proof only (PS `&`
+  mangles Edge args); stale previews bite — probe content before shooting.
+  Next: figures + DV-3.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. DV-3 wasm dive → DV-4 epic line → GB-4b remainder → GB-5b.
