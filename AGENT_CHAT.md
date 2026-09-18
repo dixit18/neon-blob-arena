@@ -1033,3 +1033,12 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** no new flaws — hardening turned up process gaps, not product bugs. Standing watch: GB-4/5 touch every client; bundle + Hindi regressions ride GB-6's gate.
 **Aarav:** Next: GB-4 Hindi strings (Devika + Leo) → GB-5 report path → GB-6 gates rollup.
 **Kai:** Committing. Tree 27 ahead — push is the user's hands.
+
+## 2026-09-18 — GB-4 SHIPPED: the shell speaks Hindi
+**Devika:** UX-006 un-superseded for the shell: `strings.ts` (en + hi, ~45 keys, template vars, EN-fallback) + toggle in the rift line (persists, reloads) + `?lang=` deep links. Saga/game content stays English openly (content pipeline, not chrome); per-game clients ticketed as GB-4b.
+**Leo:** Full landing chrome painted from the table (hero, PLAY, moods + lines, rift, room view, finale chrome, saga tabs aria, dive hints/steer/photo) — zero gameplay change, all behavior identical.
+**Vikram:** 2 catches: 1) `t` collided with descent's time variable (tsc caught it — aliased). 2) my first Hindi "proof" was theater-adjacent: shell grep mangled Devanagari and reported English. Re-read the raw DOM as bytes — Hindi renders live (hero + PLAY + faceName + moods), including the server-down fallback IN Hindi. Lesson re-logged: never grep non-ASCII through this shell; dump bytes.
+**Riya (receipts):** 4/4 parity tests (key parity, placeholder sets, fallback, no content leaks) + web tsc clean + 34/34 web tests + vite build green. Shell 31.90 → 37.92KB for the second language (stated, ≤60KB holds).
+**Rehan (counter, signed):** reload-on-toggle is a cop-out vs live re-paint — ACCEPTED (one paint path, zero state bugs; toggle is rare, reload is 300ms local).
+**Aarav:** GB-4 DONE → GB-5 report path next.
+**Kai:** Committing. Tree 29 ahead — push is the user's hands.

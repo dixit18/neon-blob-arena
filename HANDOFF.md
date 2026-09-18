@@ -223,14 +223,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 9 GLOBAL HARDENING: GB-1 SHIPPED (10-game soak green) + GB-2
-  SHIPPED (share audit 12/12) + GB-3 SHIPPED (budget sweep recorded).
-  Next: GB-4 Hindi strings table (Devika + Leo).
+- Sprint 9 GLOBAL HARDENING: GB-1 + GB-2 + GB-3 + GB-4 SHIPPED (10-game
+  soak, share audit, budget sweep, Hindi shell + toggle + ?lang=; 34/34 web
+  tests, live Hindi DOM proven, shell 37.92KB). Next: GB-5 report path.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. GB-4 Hindi strings table (Devika + Leo) → GB-5 report path → GB-6 gates.
+1. GB-5 report path (Leo + Zara) → GB-6 gates rollup.
 2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 27 ahead).
+   phone checks + `git push` (tree 29 ahead).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

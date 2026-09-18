@@ -4,6 +4,7 @@
 // Zero assets. DPR-capped, reduced-motion safe, pauses offscreen.
 import { rng, BONE, LIME, MAG, CYAN, GOLD, INK } from './art.js';
 import { chaptersOf } from './sagas.js';
+import { t as tx } from './strings.js';
 import { paintMotif2D } from './motifs.js';
 
 export interface World {
@@ -334,7 +335,7 @@ export function startDescent(
     ctx.fillText(wA.sub, cx, H - 58 * dpr);
     ctx.fillStyle = 'rgba(242,237,227,.6)';
     ctx.font = `${Math.round(11 * dpr)}px system-ui`;
-    ctx.fillText(reduced ? 'tap to enter' : 'scroll / drag to dive · tap to enter', cx, H - 38 * dpr);
+    ctx.fillText(reduced ? tx('dive.hintStill') : tx('dive.hint'), cx, H - 38 * dpr);
 
     // depth dots
     for (let i = 0; i < WORLDS.length; i++) {
@@ -348,3 +349,4 @@ export function startDescent(
   raf = requestAnimationFrame(frame);
   return { stop: () => { dead = true; cancelAnimationFrame(raf); } };
 }
+

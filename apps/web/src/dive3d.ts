@@ -17,6 +17,7 @@ import {
   SHARD_COUNT, SHARD_COLORS, tunnelLength,
 } from './dive3d-layout.js';
 import { THREE_PIN } from './three-lazy.js';
+import { t } from './strings.js';
 
 // ---------- palette ----------
 const PALETTE = ['#C6F135', '#FF3D8A', '#46E0D4', '#FFE9A8'];
@@ -681,8 +682,8 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   cap.style.cssText = 'position:absolute;left:12px;bottom:10px;z-index:3;pointer-events:none;font:800 12px/1.5 system-ui;color:#F2EDE3;text-shadow:0 2px 10px #000;letter-spacing:.04em';
   cv.after(cap);
   const photo = document.createElement('button');
-  photo.textContent = '📸 vista';
-  photo.setAttribute('aria-label', 'Capture this vista as a shareable image');
+  photo.textContent = t('dive.photo');
+  photo.setAttribute('aria-label', t('dive.photoAria'));
   photo.style.cssText = 'position:absolute;right:12px;top:10px;z-index:3;cursor:pointer;border:2px solid rgba(198,241,53,.7);background:rgba(7,7,8,.6);color:#C6F135;border-radius:999px;padding:8px 14px;font:800 13px system-ui;backdrop-filter:blur(6px)';
   cv.after(photo);
 
@@ -712,9 +713,9 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
           a.click();
           setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         }
-        await navigator.clipboard.writeText(`I found ${world.name} — come poke it: ${link}`);
-        say('vista saved + invite link copied 📸');
-      } catch { say('vista blocked by the browser — screenshot it!'); }
+        await navigator.clipboard.writeText(t('dive.invite', { name: world.name, link }));
+        say(t('dive.saved'));
+      } catch { say(t('dive.blocked')); }
     }
   }
   photo.addEventListener('click', () => { void capture(); });
@@ -726,7 +727,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   cv.after(fpsChip);
   // First-flight coach mark (the only tutorial the site has): fades in 7s.
   const steerHint = document.createElement('div');
-  steerHint.textContent = '✈ steer to fly — dive INTO a glowing ring to play · tap works too';
+  steerHint.textContent = t('dive.steer');
   steerHint.style.cssText = 'position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:3;pointer-events:none;font:800 12px system-ui;color:#F2EDE3;background:rgba(7,7,8,.6);border:1px solid rgba(70,224,212,.5);border-radius:999px;padding:8px 16px;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis';
   cv.after(steerHint);
   window.setTimeout(() => { try { steerHint.remove(); } catch { /* gone */ } }, 7000);
@@ -1006,3 +1007,4 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
 }
 
 export { shouldUse3D };
+

@@ -115,9 +115,9 @@
       <canvas id="diveCv" aria-label="Endless story dive through six saga chapters. Scroll to turn the page, tap a glowing ring to play." style="width:100%; height:68vh; min-height:430px; border-radius:20px; border:2px solid #2A2A2E; cursor:pointer; display:block;"></canvas>
     </div>
     <div id="float">
-    <div class="kicker">NO SIGNUP · LINK = ROOM · BOTS NEVER SLEEP</div>
-    <h1>DON'T BROWSE.<br /><span class="poke">POKE SOMETHING.</span></h1>
-    <p class="sub">Zoom through the saga — every chapter ends in a game. Or hit PLAY for the chapter you face.</p>
+    <div class="kicker" id="kickerLive">NO SIGNUP · LINK = ROOM · BOTS NEVER SLEEP</div>
+    <h1><span id="heroA">DON'T BROWSE.</span><br /><span class="poke" id="heroB">POKE SOMETHING.</span></h1>
+    <p class="sub" id="heroSub">Zoom through the saga — every chapter ends in a game. Or hit PLAY for the chapter you face.</p>
     <div id="faceBar"><b id="faceName">diving…</b><button id="play">▶ PLAY</button></div>
     <div class="moods" id="moods">
       <button data-mood="BEAT">⚔️ BEAT</button>
@@ -126,7 +126,7 @@
       <button data-mood="SURPRISE">🎲 SURPRISE ME</button>
     </div>
     <div id="status" role="status"></div>
-    <p id="rift">rift <b id="riftSeed">…</b> · <button id="riftCopy">copy my world link</button></p>
+    <p id="rift">rift <b id="riftSeed">…</b> · <button id="riftCopy">copy my world link</button> · <button id="langBtn">हिंदी में देखें</button></p>
     </div>
   </div>
   <div id="roomview">
@@ -134,7 +134,7 @@
     <h1 id="roomTitle">Entering…</h1>
     <p class="sub" id="roomSub">resolving room…</p>
     <div id="mount">game client mounts here</div>
-    <p id="rift"><a href="./" style="color:var(--lime); font-weight:800;">← back to the playground</a></p>
+    <p id="rift"><a id="backLink" href="./" style="color:var(--lime); font-weight:800;">← back to the playground</a></p>
   </div>
 </div>
 <script type="module" src="/src/main.ts"></script>

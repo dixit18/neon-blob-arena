@@ -46,9 +46,13 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   in-suite; per-verb table recorded in QA.md — doodle 4KB by stroke-
   freight, all others ≤2KB, totem/riot tighter; e2e wire checks mirror).
   Owner: Riya.
-- [GB-4] Hindi strings table — Owner: Devika + Leo. Accept: all menu/HUD
-  copy in one strings table (UX-006 un-superseded); client builds; no
-  gameplay change.
+- [GB-4] Hindi strings table — DONE (strings.ts en+hi, full shell chrome
+  painted + toggle + ?lang= deep link, dive hints; 4/4 parity tests, live
+  Hindi DOM proven; shell 37.92KB ≤60KB; game clients stay English —
+  follow-up ticketed). Owner: Devika + Leo.
+- [GB-4b] Per-game Hindi clients — Owner: Leo. Accept: all 10 game clients
+  read the strings table; parity tests per client; no copy change in
+  English. Phase 2 with UX-006.
 - [GB-5] Report path (safety MVP) — Owner: Leo + Zara. Accept: in-match
   report posts without leaving (`/report` log with match/reporter/reported/
   reason per UX-011); block-mutes-taunts local. Tests green.

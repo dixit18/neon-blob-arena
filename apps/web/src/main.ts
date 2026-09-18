@@ -5,6 +5,7 @@ import { genGuestId, genName } from '../../../packages/identity/src/index.js';
 import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
 import { startDescent } from './descent.js';
 import { SAGAS, sagaAt, sagaIndex, buildChapterUrl, chaptersOf } from './sagas.js';
+import { t, getLang, setLang } from './strings.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -13,6 +14,43 @@ type Manifest = {
 
 const el = (id: string) => document.getElementById(id)!;
 const qs = new URLSearchParams(location.search);
+// GB-4: the shell speaks Hindi too. Static chrome paints from the strings
+// table on boot (game clients + saga content stay English, openly).
+try {
+  // ?lang=hi deep-links the Hindi shell (shareable, and the test hook).
+  const langParam = qs.get('lang');
+  if (langParam === 'hi' || langParam === 'en') setLang(langParam);
+  document.documentElement.lang = getLang();
+  document.title = t('meta.title');
+  el('kickerLive').textContent = t('kicker.live');
+  el('heroA').textContent = t('hero.a');
+  el('heroB').textContent = t('hero.b');
+  el('heroSub').textContent = t('hero.sub');
+  el('play').textContent = t('play.label');
+  el('faceName').textContent = t('play.diving');
+  document.querySelectorAll<HTMLButtonElement>('#moods button').forEach((b) => {
+    const m = (b.dataset.mood ?? '').toLowerCase();
+    if (m === 'beat' || m === 'chaos' || m === 'think' || m === 'surprise') {
+      b.textContent = t(`moods.${m}`);
+    }
+  });
+  el('riftCopy').textContent = t('rift.copy');
+  const langBtn = el('langBtn') as HTMLButtonElement;
+  langBtn.textContent = t('lang.toggle');
+  langBtn.addEventListener('click', () => {
+    setLang(getLang() === 'hi' ? 'en' : 'hi');
+    location.reload();
+  });
+  el('roomKicker').textContent = t('room.kicker');
+  el('roomTitle').textContent = t('room.entering');
+  el('roomSub').textContent = t('room.resolving');
+  el('mount').textContent = t('room.mountDefault');
+  el('backLink').textContent = t('room.back');
+  const tabs0 = document.getElementById('sagaTabs');
+  if (tabs0) tabs0.setAttribute('aria-label', t('saga.tabsAria'));
+  const dive0 = document.getElementById('diveCv');
+  if (dive0) dive0.setAttribute('aria-label', t('dive.aria'));
+} catch { /* chrome never blocks play */ }
 // The living backdrop. Cheap, procedural, ours.
 try {
   const cv = document.getElementById('riftCv') as HTMLCanvasElement | null;
@@ -32,15 +70,15 @@ function resolveGame(game: string, enter: boolean): void {
   void catalog.then((games) => {
     const g = games.find((x) => x.id === game) ?? null;
     if (!g) {
-      el('faceName').textContent = 'that world is still being excavated.';
-      status('that world is still being excavated.');
+      el('faceName').textContent = t('play.excavated');
+      status(t('play.excavated'));
       return;
     }
     picked = g;
     try { localStorage.setItem('pg-game', g.id); } catch { /* private */ }
     el('faceName').textContent = `${g.verb} — ${g.id}: ${g.hook}`;
     if (!enter) return;
-    status('diving in — see you inside!');
+    status(t('play.divingIn'));
     location.href = `./?game=${g.id}&room=${rift}`;
   });
 }
@@ -70,26 +108,26 @@ try {
         finaleEl = document.createElement('div');
         finaleEl.id = 'finale';
         finaleEl.setAttribute('role', 'dialog');
-        finaleEl.setAttribute('aria-label', 'Saga finale');
+        finaleEl.setAttribute('aria-label', t('finale.aria'));
         finaleEl.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;max-width:min(92vw,480px);background:#121214;border:2px solid #C6F135;border-radius:16px;padding:16px 18px;box-shadow:0 12px 48px rgba(0,0,0,.6)';
         finaleEl.innerHTML = '<div id="finTitle" style="font-weight:900;font-size:17px;margin-bottom:6px"></div>'
           + '<div id="finTeaser" style="font-size:14px;line-height:1.45;color:#F2EDE3;margin-bottom:12px"></div>'
-          + '<div style="display:flex;gap:8px"><button id="finShare" style="flex:1;cursor:pointer;border:none;border-radius:12px;padding:12px;font-weight:900;min-height:48px;background:#C6F135;color:#070708">⚔ CHALLENGE A FRIEND</button>'
-          + '<button id="finDive" style="cursor:pointer;border:2px solid #2A2A2E;border-radius:12px;padding:12px 16px;font-weight:800;min-height:48px;background:#0E0E12;color:#fff">keep diving</button></div>';
+          + '<div style="display:flex;gap:8px"><button id="finShare" style="flex:1;cursor:pointer;border:none;border-radius:12px;padding:12px;font-weight:900;min-height:48px;background:#C6F135;color:#070708">' + t('finale.share') + '</button>'
+          + '<button id="finDive" style="cursor:pointer;border:2px solid #2A2A2E;border-radius:12px;padding:12px 16px;font-weight:800;min-height:48px;background:#0E0E12;color:#fff">' + t('finale.dive') + '</button></div>';
         document.body.appendChild(finaleEl);
         (finaleEl.querySelector('#finDive') as HTMLButtonElement).addEventListener('click', () => {
           try { finaleEl!.style.display = 'none'; } catch { /* gone */ }
         });
         (finaleEl.querySelector('#finShare') as HTMLButtonElement).addEventListener('click', async () => {
           const link = buildChapterUrl(location.origin, sagaIdx, 5);
-          const text = `${sagaAt(sagaIdx).finale.title} — read it before Season 2. ${link}`;
+          const text = t('finale.shareText', { title: sagaAt(sagaIdx).finale.title, link });
           try {
             const nav = navigator as unknown as { share?: (d: object) => Promise<void> };
             if (typeof nav.share === 'function') { await nav.share({ title: sagaAt(sagaIdx).name, text, url: link }); return; }
             throw new Error('no native share');
           } catch {
-            try { await navigator.clipboard.writeText(text); status('challenge link copied — send it!'); }
-            catch { prompt('Challenge a friend:', text); }
+            try { await navigator.clipboard.writeText(text); status(t('finale.copied')); }
+            catch { prompt(t('finale.prompt'), text); }
           }
         });
       }
@@ -202,7 +240,7 @@ if (!rift) {
 el('riftSeed').textContent = `RIFT-${rift}`;
 el('riftCopy').addEventListener('click', async () => {
   const link = `${location.origin}${location.pathname}?rift=${rift}`;
-  try { await navigator.clipboard.writeText(link); } catch { prompt('Share this world:', link); }
+  try { await navigator.clipboard.writeText(link); } catch { prompt(t('rift.sharePrompt'), link); }
 });
 
 let picked: Manifest | null = null;
@@ -217,7 +255,7 @@ async function loadCatalog(): Promise<Manifest[]> {
     if (!r.ok) throw new Error(`http ${r.status}`);
     return (await r.json()) as Manifest[];
   } catch {
-    status('server is waking up — PLAY retries automatically.');
+    status(t('play.waking'));
     return [];
   }
 }
@@ -225,10 +263,10 @@ async function loadCatalog(): Promise<Manifest[]> {
 // D14: moods are tunnel weather, not filters — no grid left to filter.
 // Tapping one tints the rift and names the feeling; Surprise picks a world.
 const MOOD_LINE: Record<string, string> = {
-  BEAT: 'beat weather — fast rings, faster friends.',
-  CHAOS: 'chaos weather — everything sparkles at once.',
-  THINK: 'think weather — slow water, deep dive.',
-  SURPRISE: 'surprise weather — the rift chooses for you.',
+  BEAT: t('moodline.beat'),
+  CHAOS: t('moodline.chaos'),
+  THINK: t('moodline.think'),
+  SURPRISE: t('moodline.surprise'),
 };
 
 document.querySelectorAll<HTMLButtonElement>('#moods button').forEach(b => {
@@ -263,10 +301,10 @@ el('play').addEventListener('click', () => {
       if (picked) el('faceName').textContent = `${picked.verb} — ${picked.id}: ${picked.hook}`;
     }
     if (!picked) {
-      status('server is still waking — wait a few seconds, hit PLAY again.');
+      status(t('play.wakingRetry'));
       return;
     }
-    status(`entering ${picked.id}…`);
+    status(t('play.entering', { id: picked.id }));
     location.href = `./?game=${picked.id}&room=${rift}`;
   })();
 });
@@ -280,7 +318,7 @@ void catalog.then(games => {
     el('faceName').textContent = `${picked.verb} — ${picked.id}: ${picked.hook}`;
     status(`${picked.id}: ${picked.hook}`);
   } else {
-    el('faceName').textContent = 'steer toward a glowing ring…';
+    el('faceName').textContent = t('play.steer');
   }
 });
 
@@ -301,7 +339,7 @@ if (studioPath || studioView) {
       const mod = await import('./employees.js');
       await mod.mount(sv, { server: SERVER });
     } catch {
-      sv.textContent = 'studio failed to load.';
+      sv.textContent = t('studio.failed');
     }
   })();
 }
@@ -314,15 +352,15 @@ if (gameParam && roomParam) {
   el('landing').style.display = 'none';
   el('roomview').classList.add('on');
   el('roomTitle').textContent = gameParam;
-  el('roomSub').textContent = `room ${roomParam} · joining as ${myName}…`;
+  el('roomSub').textContent = t('play.roomJoining', { room: roomParam, name: myName });
   void (async () => {
     try {
       const mod = await import(`./games/${gameParam}.ts`);
       await mod.mount(el('mount'), { server: SERVER, game: gameParam, room: roomParam, name: myName });
-      el('roomSub').textContent = `room ${roomParam} · playing as ${myName}`;
+      el('roomSub').textContent = t('play.roomPlaying', { room: roomParam, name: myName });
     } catch {
-      el('roomSub').textContent = `room ${roomParam} · game client lands in its sprint — server rooms are live now.`;
-      el('mount').textContent = 'this game is still being excavated. try another portal.';
+      el('roomSub').textContent = t('play.roomFallback', { room: roomParam });
+      el('mount').textContent = t('play.mountFallback');
     }
   })();
 }
