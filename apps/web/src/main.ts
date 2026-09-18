@@ -4,7 +4,7 @@
 import { genGuestId, genName } from '../../../packages/identity/src/index.js';
 import { startRiftBackdrop, MOOD_TINT, sfx } from './art.js';
 import { startDescent } from './descent.js';
-import { SAGAS, sagaAt } from './sagas.js';
+import { SAGAS, sagaAt, sagaIndex, buildChapterUrl, chaptersOf } from './sagas.js';
 
 type Manifest = {
   id: string; verb: string; hook: string; moods: string[];
@@ -56,8 +56,48 @@ try {
     const saved = Number.parseInt(localStorage.getItem('pg-saga') ?? '', 10);
     sagaIdx = Number.isInteger(sagaParam) ? sagaParam : (Number.isInteger(saved) ? saved : 0);
   } catch { sagaIdx = Number.isInteger(sagaParam) ? sagaParam : 0; }
-  sagaIdx = SAGAS.indexOf(sagaAt(sagaIdx));
+  sagaIdx = sagaIndex(sagaIdx);
+  const chParam = Number.parseInt(qs.get('ch') ?? '', 10);
+  const startCh = Number.isInteger(chParam) ? Math.min(5, Math.max(0, chParam)) : 0;
   let stopDive: (() => void) | null = null;
+  // LZ-3 cliffhanger card: fires when the reader finishes chapter 6.
+  // Bottom-docked + dismissible, PLAY stays in flow and primary, auto-hides on saga switch.
+  let finaleEl: HTMLElement | null = null;
+  const showFinale = (): void => {
+    try {
+      const fin = sagaAt(sagaIdx).finale;
+      if (!finaleEl) {
+        finaleEl = document.createElement('div');
+        finaleEl.id = 'finale';
+        finaleEl.setAttribute('role', 'dialog');
+        finaleEl.setAttribute('aria-label', 'Saga finale');
+        finaleEl.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;max-width:min(92vw,480px);background:#121214;border:2px solid #C6F135;border-radius:16px;padding:16px 18px;box-shadow:0 12px 48px rgba(0,0,0,.6)';
+        finaleEl.innerHTML = '<div id="finTitle" style="font-weight:900;font-size:17px;margin-bottom:6px"></div>'
+          + '<div id="finTeaser" style="font-size:14px;line-height:1.45;color:#F2EDE3;margin-bottom:12px"></div>'
+          + '<div style="display:flex;gap:8px"><button id="finShare" style="flex:1;cursor:pointer;border:none;border-radius:12px;padding:12px;font-weight:900;min-height:48px;background:#C6F135;color:#070708">⚔ CHALLENGE A FRIEND</button>'
+          + '<button id="finDive" style="cursor:pointer;border:2px solid #2A2A2E;border-radius:12px;padding:12px 16px;font-weight:800;min-height:48px;background:#0E0E12;color:#fff">keep diving</button></div>';
+        document.body.appendChild(finaleEl);
+        (finaleEl.querySelector('#finDive') as HTMLButtonElement).addEventListener('click', () => {
+          try { finaleEl!.style.display = 'none'; } catch { /* gone */ }
+        });
+        (finaleEl.querySelector('#finShare') as HTMLButtonElement).addEventListener('click', async () => {
+          const link = buildChapterUrl(location.origin, sagaIdx, 5);
+          const text = `${sagaAt(sagaIdx).finale.title} — read it before Season 2. ${link}`;
+          try {
+            const nav = navigator as unknown as { share?: (d: object) => Promise<void> };
+            if (typeof nav.share === 'function') { await nav.share({ title: sagaAt(sagaIdx).name, text, url: link }); return; }
+            throw new Error('no native share');
+          } catch {
+            try { await navigator.clipboard.writeText(text); status('challenge link copied — send it!'); }
+            catch { prompt('Challenge a friend:', text); }
+          }
+        });
+      }
+      (finaleEl.querySelector('#finTitle') as HTMLElement).textContent = fin.title;
+      (finaleEl.querySelector('#finTeaser') as HTMLElement).textContent = fin.teaser;
+      finaleEl.style.display = 'block';
+    } catch { /* story never blocks play */ }
+  };
   const paintSagaTabs = (): void => {
     const tabs = document.getElementById('sagaTabs');
     const sub = document.getElementById('sagaSub');
@@ -78,19 +118,21 @@ try {
         try {
           const u = new URL(location.href);
           u.searchParams.set('saga', String(i));
+          u.searchParams.delete('ch');
           history.replaceState(null, '', u.toString());
         } catch { /* private */ }
         paintSagaTabs();
-        bootDive(i);
+        bootDive(i, 0);
       });
       tabs.appendChild(b);
     });
   };
-  const bootDive = (saga: number): void => {
+  const bootDive = (saga: number, ch: number): void => {
     const dive = document.getElementById('diveCv') as HTMLCanvasElement | null;
     if (!dive) return;
     try { stopDive?.(); } catch { /* gone */ }
-    const flat = startDescent(dive, { onPortal: divePortal, saga });
+    try { if (finaleEl) finaleEl.style.display = 'none'; } catch { /* gone */ }
+    const flat = startDescent(dive, { onPortal: divePortal, saga, startDepth: ch, onFinale: showFinale });
     stopDive = flat.stop;
     const upgrade = (): void => {
       void (async () => {
@@ -105,8 +147,10 @@ try {
           const d3 = await mod.startDive3D(dive, {
             onPortal: divePortal,
             onFace: (game: string) => resolveGame(game, false),
+            onFinale: showFinale,
             rift,
             saga,
+            startDepth: ch,
           });
           stopDive = d3.stop;
         } catch { /* 2D stays — art never blocks play */ }
@@ -119,7 +163,10 @@ try {
     }
   };
   paintSagaTabs();
-  bootDive(sagaIdx);
+  // LZ-3: a chapter link lands with PLAY already naming that chapter's game
+  // (2D has no face-follow; 3D re-affirms on first faced frame).
+  try { resolveGame(chaptersOf(sagaIdx)[startCh]!.game, false); } catch { /* play still works via rings */ }
+  bootDive(sagaIdx, startCh);
 } catch { /* art never blocks play */ }
 const SERVER =
   qs.get('server') ||

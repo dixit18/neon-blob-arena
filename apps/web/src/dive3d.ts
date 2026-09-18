@@ -9,7 +9,7 @@
 // CDN at runtime, 2D descent.ts stays as the fallback (WebGL fail / 2GB RAM /
 // reduced motion). DPR governor + hidden-tab pause + zero per-frame alloc.
 import { type World } from './descent.js';
-import { chaptersOf } from './sagas.js';
+import { chaptersOf, sagaIndex } from './sagas.js';
 import { makeNoise2D, fbm, hashSeed, lsystem } from './procgen.js';
 import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
@@ -26,9 +26,13 @@ export interface Dive3DOpts {
   onPortal?: (game: string) => void;
   /** Fires when the faced world changes (face-follow PLAY bar). */
   onFace?: (game: string) => void;
+  /** LZ-3: fires each time the reader finishes chapter 6 (cliffhanger). */
+  onFinale?: () => void;
   rift?: string;
   /** SG-1: which saga the dive reads (depth turns its pages). */
   saga?: number;
+  /** LZ-3: boot the dive at a chapter (?ch= deep link). */
+  startDepth?: number;
 }
 
 function hexColor(h: string): number {
@@ -686,14 +690,15 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     render(performance.now() / 1000, 0.016); // fresh frame, then grab synchronously
     const blob = await new Promise<Blob | null>((res) => cv.toBlob((b) => res(b), 'image/png'));
     const world = WORLDS[faced]!;
-    const link = `${location.origin}${location.pathname}?rift=${encodeURIComponent(opts.rift ?? '')}&game=${world.game}`;
-    const name = `rift-${(opts.rift ?? 'vista').toLowerCase()}-${world.game}.png`;
+    const sagaIdx = sagaIndex(opts.saga ?? 0);
+    const link = `${location.origin}${location.pathname}?rift=${encodeURIComponent(opts.rift ?? '')}&game=${world.game}&saga=${sagaIdx}&ch=${faced}`;
+    const name = `saga-${sagaIdx}-ch${faced + 1}-${world.game}.png`;
     try {
       const nav = navigator as unknown as { share?: (d: object) => Promise<void>; canShare?: (d: object) => boolean };
       if (blob && typeof nav.share === 'function' && typeof nav.canShare === 'function') {
         const file = new File([blob], name, { type: 'image/png' });
         if (nav.canShare({ files: [file] })) {
-          await nav.share({ files: [file], title: `I found ${world.name} — ${world.sub}`, url: link });
+          await nav.share({ files: [file], title: `${world.name} — ${world.sub}`, url: link });
           return;
         }
       }
@@ -730,10 +735,11 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   // Hover/drag steers the camera (choosing = steering); diving INTO a portal
   // ring enters its game (tap still works — flight is additive, never the
   // only door). Passive users still arrive: auto-dive never stops.
-  let depth = 0;
-  let target = 0;
+  let depth = Math.min(5.999, Math.max(0, opts.startDepth ?? 0));
+  let target = depth;
   let faced = 0;
   let lastFaced = -1;
+  let lastLap = Math.floor(depth / 6);
   let lastFlyAt = 0;
   let steerTX = 0;
   let steerTY = 2;
@@ -958,6 +964,8 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     bankX *= 1 - Math.min(1, dt * 2);
     faced = facedWorld(depth);
     if (faced !== lastFaced) { lastFaced = faced; opts.onFace?.(WORLDS[faced]!.game); }
+    const lapNow = Math.floor(depth / 6); // a full saga read → cliffhanger
+    if (lapNow > lastLap) { lastLap = lapNow; try { opts.onFinale?.(); } catch { /* story never blocks play */ } }
     // fly-through entry: pierce a heart ring while passing it → that game.
     // 3s cooldown so one pass = one entry; tap stays as the other door.
     if (now - lastFlyAt > 3000) {

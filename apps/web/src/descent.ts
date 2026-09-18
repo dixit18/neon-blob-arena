@@ -31,10 +31,11 @@ interface Speck { x: number; y: number; z: number; tw: number }
 
 export function startDescent(
   cv: HTMLCanvasElement,
-  opts: { onPortal?: (game: string) => void; saga?: number } = {},
+  opts: { onPortal?: (game: string) => void; saga?: number; startDepth?: number; onFinale?: () => void } = {},
 ): { stop: () => void } {
   // SG-1: the dive reads saga chapters, not random worlds — depth turns pages.
   const WORLDS = chaptersOf(opts.saga ?? 0);
+  const clampDepth = (d: number): number => Math.min(WORLDS.length - 0.001, Math.max(0, d));
   const ctx = cv.getContext('2d')!;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rand = rng(4242);
@@ -45,12 +46,16 @@ export function startDescent(
     a: rand() * Math.PI * 2, r: rand(), s: 0.2 + rand() * 0.8, w: rand(),
   }));
 
-  let depth = 0; // float world index, endless
-  let target = 0;
+  let depth = clampDepth(opts.startDepth ?? 0); // float world index, endless
+  let target = depth;
   let dragging = false;
   let lastY = 0;
   let dead = false;
   let raf = 0;
+  let lastFrame = performance.now();
+  let frameAvg = 16;
+  let calmFrames = 0;
+  let detail = 1; // 1 full motifs, 0 shed load (governor above)
   const t0 = performance.now();
 
   const clampTarget = (): void => {
@@ -267,6 +272,16 @@ export function startDescent(
     if (dead) return;
     raf = requestAnimationFrame(frame);
     if (document.hidden) return;
+    // No-hang governor: sustained slow frames shed motif detail (first the
+    // crossfade layer, then voronoi grids); recovery needs a long clean run.
+    const dtms = now - lastFrame;
+    lastFrame = now;
+    frameAvg = frameAvg * 0.95 + Math.min(100, dtms) * 0.05;
+    if (detail === 1 && frameAvg > 26) { detail = 0; calmFrames = 0; }
+    else if (detail === 0) {
+      if (frameAvg < 15) { if (++calmFrames > 240) detail = 1; }
+      else calmFrames = 0;
+    }
     const dpr = Math.min(1.5, window.devicePixelRatio || 1);
     const w = Math.floor(cv.clientWidth * dpr);
     const h = Math.floor(cv.clientHeight * dpr);
@@ -276,7 +291,8 @@ export function startDescent(
     if (!reduced) depth += (target - depth) * 0.06;
     else depth = target;
     if (target >= WORLDS.length - 0.001 && depth >= WORLDS.length - 0.01) {
-      target = 0; // endless loop
+      try { opts.onFinale?.(); } catch { /* story never blocks play */ }
+      target = 0; // endless loop — the saga re-reads from chapter 1
       if (!reduced) depth = 0;
     }
     const t = (now - t0) / 1000;
@@ -301,8 +317,8 @@ export function startDescent(
     if (frac > 0.02) drawWorld(wB, wB.biome ?? ((wi + 1) % WORLDS.length), cx, cy, R * (zoom - 1.6), reduced ? 0 : t, Math.min(1, frac * 1.4));
     // LZ-2: procedural motif layer — the chapter's own weather, seeded + cached.
     const mt = reduced ? 0 : t;
-    if (wA.motif) paintMotif2D(ctx, wA.motif, wA, cx, cy, R * zoom, mt, 1 - frac * 0.85, W, H);
-    if (frac > 0.02 && wB.motif) paintMotif2D(ctx, wB.motif, wB, cx, cy, R * (zoom - 1.6), mt, Math.min(1, frac * 1.4), W, H);
+    if (wA.motif) paintMotif2D(ctx, wA.motif, wA, cx, cy, R * zoom, mt, 1 - frac * 0.85, W, H, detail);
+    if (frac > 0.02 && detail === 1 && wB.motif) paintMotif2D(ctx, wB.motif, wB, cx, cy, R * (zoom - 1.6), mt, Math.min(1, frac * 1.4), W, H, detail);
 
     // portal heart + label
     ctx.globalAlpha = 1;

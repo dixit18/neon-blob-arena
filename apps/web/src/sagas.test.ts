@@ -2,7 +2,7 @@
 // canvas-fit beats, valid colors, sane biome pointers.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { SAGAS, chaptersOf, sagaAt, MAX_BEAT } from './sagas.js';
+import { SAGAS, chaptersOf, sagaAt, MAX_BEAT, buildChapterUrl } from './sagas.js';
 import { MOTIF_KEYS } from './motifs.js';
 import { GAMES } from '../../../packages/catalog/src/index.js';
 
@@ -73,5 +73,23 @@ describe('sagas', () => {
         assert.ok(c.motif && keys.has(c.motif), `${s.id}/${c.name}: motif '${c.motif}' unpainted`);
       }
     }
+  });
+
+  it('each saga ends on a real cliffhanger (title + teaser)', () => {
+    for (const s of SAGAS) {
+      assert.ok(s.finale.title.length > 10, `${s.id} finale title`);
+      assert.ok(s.finale.teaser.length > 40, `${s.id} finale teaser`);
+      assert.ok(/season 2/i.test(s.finale.teaser), 'finale promises the return hook');
+    }
+    assert.notEqual(SAGAS[0]!.finale.title, SAGAS[1]!.finale.title);
+  });
+
+  it('chapter deep-links roundtrip saga + chapter, clamp garbage', () => {
+    const u = buildChapterUrl('https://play.example/', 1, 5);
+    assert.ok(u.includes('saga=1') && u.includes('ch=5'));
+    const q = new URL(u).searchParams;
+    assert.equal(sagaAt(Number(q.get('saga'))).id, SAGAS[1]!.id);
+    assert.ok(buildChapterUrl('https://x/', 99, 99).includes('saga=0'));
+    assert.ok(buildChapterUrl('https://x/', 0, -3).includes('ch=0'));
   });
 });

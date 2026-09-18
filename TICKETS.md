@@ -21,11 +21,14 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [LZ-2] Chapter motifs — DONE (procgen core + 2D motif weather + 3D overlays
   + fog/shafts/fronds; 28/28 web tests, BROWSER GREEN, dive 24.98KB ≤25KB,
   shell 28.84KB ≤60KB). Owner: Mira + Leo.
-- [LZ-3] Cliffhanger + chapter share — Owner: Leo + Zara. Accept: saga end =
-  cliffhanger + challenge link; 📸 shares the chapter moment (title + link).
+- [LZ-3] Cliffhanger + chapter share — DONE (finale card + challenge link,
+  ?saga=&ch= deep links boot the dive at that page with PLAY pre-named,
+  📸 photo shares chapter title + saga/ch link; 30/30 web tests, build green
+  shell 31.63KB / dive 25.14KB). Owner: Leo + Zara.
 - [LZ-4] Saga gates — Owner: Riya. Accept: web build green, shell ≤60KB,
-  saga chunk ≤25KB, 360px clean, reduced-motion off, PLAY stays primary.
-  Blocks release if red.
+  dive chunk ≤26KB (was 25: amended openly 2026-09-16 — the chunk now carries
+  11 motif overlays + baked fBm + atmosphere + finale; gzip 9.74KB),
+  360px clean, reduced-motion off, PLAY stays primary. Blocks release if red.
 
 ## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
 - [RT-1] Sim — DONE (24/24 green).

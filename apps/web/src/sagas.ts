@@ -17,6 +17,8 @@ export interface Saga {
   name: string;
   sub: string;
   chapters: Chapter[];
+  /** LZ-3 cliffhanger: fires when the reader finishes chapter 6. */
+  finale: { title: string; teaser: string };
 }
 
 export const MAX_BEAT = 90;
@@ -25,6 +27,10 @@ const CINDER: Saga = {
   id: 'cinder-throne',
   name: 'THE CINDER THRONE',
   sub: 'Six courts. One empty throne. Zoom to turn the page.',
+  finale: {
+    title: 'THE ASH IS FALLING UPWARD NOW…',
+    teaser: 'The Game of Crowns has a seventh player — and it just moved. Season 2 is being written. Challenge a friend to read it first.',
+  },
   chapters: [
     { name: 'ASHFALL OVER THE SIX COURTS', sub: 'The sky burned nine days. The courts count the cost in embers.', game: 'blaze-squad', sky0: '#141114', sky1: '#3A2A33', accent: '#FF7A1A', biome: 1, motif: 'ash dunes' },
     { name: "THE HERALD'S RUN", sub: 'Six riders, one warning. The roads are lanes and mercy ran out.', game: 'nitro-rift', sky0: '#0A1420', sky1: '#1E3A4A', accent: '#46E0D4', biome: 3, motif: 'reef lanes' },
@@ -39,6 +45,10 @@ const SALT: Saga = {
   id: 'salt-starlight',
   name: 'SALT & STARLIGHT',
   sub: 'A debt-owed crew. A drowned star. Zoom to sail on.',
+  finale: {
+    title: 'SOMETHING DOWN THERE JUST OPENED ITS EYES…',
+    teaser: 'The Drowned Star knows your name now. Season 2 is being charted. Challenge a friend to sail it first.',
+  },
   chapters: [
     { name: 'THE DEBT OF TIDES', sub: 'The sea took their captain. It left a bill.', game: 'blaze-squad', sky0: '#0A0F14', sky1: '#2E2A33', accent: '#FF7A1A', biome: 4, motif: 'lantern cliffs' },
     { name: "THE SMUGGLER'S LANES", sub: 'Four currents through the reef. The fastest boat eats.', game: 'nitro-rift', sky0: '#031018', sky1: '#0A2E3A', accent: '#46E0D4', biome: 3, motif: 'reef lanes' },
@@ -57,7 +67,20 @@ export function sagaAt(i: number): Saga {
   return SAGAS[i]!;
 }
 
+/** Clamped saga index — single source for links (?saga= roundtrips). */
+export function sagaIndex(i: number): number {
+  return SAGAS.indexOf(sagaAt(i));
+}
+
 /** Chapters in dive order (World-compatible — depth index = chapter). */
 export function chaptersOf(i: number): Chapter[] {
   return sagaAt(i).chapters;
+}
+
+/** Deep link into a chapter: `/?saga=N&ch=M` boots the dive at that page. */
+export function buildChapterUrl(origin: string, saga: number, ch: number): string {
+  const s = sagaAt(saga);
+  const idx = SAGAS.indexOf(s);
+  const c = Math.min(5, Math.max(0, Math.floor(ch)));
+  return `${origin.replace(/\/$/, '')}/?saga=${idx}&ch=${c}`;
 }

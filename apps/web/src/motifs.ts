@@ -109,6 +109,7 @@ function maskLantern(ctx: CanvasRenderingContext2D, x: number, y: number, r: num
 export function paintMotif2D(
   ctx: CanvasRenderingContext2D, motif: string, w: World,
   cx: number, cy: number, R: number, t: number, alpha: number, W: number, H: number,
+  detail = 1, // 0 sheds voronoi grids (governor) — lanes/stars stay
 ): void {
   const seed = hashSeed(`${w.name}|${w.game}|${motif}`);
   const c = getCache(motif, seed);
@@ -155,19 +156,21 @@ export function paintMotif2D(
     }
   } else if (motif === 'reef lanes' || motif === 'crown forge') {
     // voronoi glow-web: reef light / forge basalt cracks
-    const step = Math.max(20, R * 0.035);
-    ctx.lineWidth = 1.2;
-    for (let gy = cy - R * 0.6; gy < cy + R * 0.6; gy += step) {
-      for (let gx = cx - R * 0.7; gx < cx + R * 0.7; gx += step) {
-        const v = voronoi(gx / step + t * 0.03, gy / step, seed);
-        if (v.edge < 0.09) {
-          ctx.globalAlpha = alpha * (0.5 - v.edge * 4);
-          ctx.fillStyle = w.accent;
-          ctx.fillRect(gx, gy, 2, 2);
+    const step = Math.max(20, R * 0.035) * (detail === 0 ? 2.5 : 1);
+    if (detail === 1) {
+      ctx.lineWidth = 1.2;
+      for (let gy = cy - R * 0.6; gy < cy + R * 0.6; gy += step) {
+        for (let gx = cx - R * 0.7; gx < cx + R * 0.7; gx += step) {
+          const v = voronoi(gx / step + t * 0.03, gy / step, seed);
+          if (v.edge < 0.09) {
+            ctx.globalAlpha = alpha * (0.5 - v.edge * 4);
+            ctx.fillStyle = w.accent;
+            ctx.fillRect(gx, gy, 2, 2);
+          }
         }
       }
+      ctx.globalAlpha = alpha;
     }
-    ctx.globalAlpha = alpha;
     for (const l of c.lanes) {
       const y = cy - R * 0.5 + l.y * R;
       const xoff = (t * 40 * l.sp) % (W * 0.5);

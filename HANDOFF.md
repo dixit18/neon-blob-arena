@@ -4,6 +4,11 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- LZ-3 SHIPPED (SG-1 story zoom): saga finales (title + Season-2 teaser card
+  with challenge-link share) + ?saga=&ch= deep links (dive boots at that page,
+  PLAY pre-named) + chapter 📸 share (title + saga/ch link). Verified: 30/30
+  web tests (2 new), server tsc + web build green (shell 31.63KB ≤60KB, dive
+  25.14KB ≤26KB). Pushing. Next: LZ-4 gates.
 - PF-1 + BX-1 SHIPPED (user: track fps, no lag, browser-agent check every
   browser): fps/p95 pills in blaze + nitro (+3D mode), dive fps chip, 15s
   /perf beacon with browser caps, GET /perf aggregates; zero-dep Edge +
@@ -208,15 +213,18 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SG-1 STORY ZOOM: LZ-1 + LZ-2 SHIPPED (saga chapters, procgen core, 2D motif
-  weather, 3D overlays + atmosphere; 28/28 web tests, BROWSER GREEN, dive
-  24.98KB / shell 28.84KB). Next: LZ-3 cliffhanger + chapter share
-  (Leo + Zara). Tracker: `SUGGESTIONS.md`.
+- SG-1 STORY ZOOM: LZ-1 + LZ-2 + LZ-3 SHIPPED (saga chapters, procgen core,
+  2D motif weather, 3D overlays + atmosphere, cliffhanger finale card +
+  ?saga=&ch= chapter links + chapter 📸 share; 30/30 web tests, build green
+  shell 31.63KB / dive 25.14KB). Next: LZ-4 saga gates (Riya).
+  Tracker: `SUGGESTIONS.md`.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
+1. LZ-4 saga gates (Riya): web build green, shell ≤60KB, dive ≤26KB,
+   360px clean, reduced-motion off, PLAY stays primary. Blocks release if red.
+2. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
    Devika to slice GH-1..GH-6; crew pulls on sight.
-2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
+3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.
