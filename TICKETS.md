@@ -9,9 +9,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - Sprint 5 GHOSTLINE — Owner: Zara (sim/bots) + Leo (share/client) +
   Riya (e2e) + Kai (wire-up). Status: SHIPPED (GH-1..GH-6, 7th playable
   game; 6/6 e2e, 317/317 suite, web build green, ghostline chunk 6.16KB).
-- [G-2] 7-game soak incl. ghostline — Owner: Riya. Accept: scripts/soak.ts
-  covers all live games (ghostline + read-the-room chatter), 30/30, tickAvg
-  <5ms, 0 unhandled. (GAMES list still ends at ludo; ghostline/room missing.)
+- [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
+  flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
+  SOAK GREEN). Owner: Riya.
 - RD-1 RIFT DIVE 3D flagship — Owner: Leo + Mira + Riya. Accept: lazy
   post-paint upgrade, 2D fallback intact, shell ≤60KB, own chunk ≤25KB,
   vista share, portals for all 5 games. Status: SHIPPED (D13, build green

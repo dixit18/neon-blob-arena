@@ -1,6 +1,6 @@
-// scripts/soak.ts — G-0 mixed-game soak gate.
-// 30 clients spread across riot/doodle/blaze/nitro/ludo/room for 30s with
-// random VALID inputs. Gates: tickAvgMs < 5, zero unhandled exceptions,
+// scripts/soak.ts — G-2 seven-game soak gate.
+// 30 clients spread across riot/doodle/blaze/nitro/ludo/room/line for 30s
+// with random VALID inputs. Gates: tickAvgMs < 5, zero unhandled exceptions,
 // every client keeps receiving snapshots. Run: npx tsx scripts/soak.ts
 // (CI runs the headless suites; this is the live-traffic proof.)
 import WebSocket from 'ws';
@@ -8,7 +8,7 @@ import { createApp } from '../apps/server/src/app.js';
 
 const CLIENTS = 30;
 const SECONDS = 30;
-const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift', 'ludo-clash', 'read-the-room'];
+const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift', 'ludo-clash', 'read-the-room', 'ghostline'];
 
 const app = createApp({ region: 'soak' });
 let unhandled = 0;
@@ -49,6 +49,11 @@ for (let i = 0; i < CLIENTS; i++) {
           } else if (game === 'read-the-room') {
             // room: vote seat 0-3 (dupes + self-votes die server-side by design)
             ws.send(JSON.stringify({ v: 1, type: 'answer', room: 'SOAK', seq: ++seq, payload: { i: Math.floor(r * 4) } }));
+          } else if (game === 'ghostline') {
+            // line: flick vector (mid-roll + zero vectors die sim-side by design)
+            const a = r * Math.PI * 2;
+            const pw = 0.3 + ((r * 7) % 0.7);
+            ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: Math.cos(a) * pw, dy: Math.sin(a) * pw } }));
           } else {
             // ludo-clash: roll on roll stage, pick slot 0-3 in pick stage
             if (r > 0.5) ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: 0, dy: 0, fire: true } }));

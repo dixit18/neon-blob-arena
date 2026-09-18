@@ -223,11 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 5 GHOSTLINE SHIPPED (7th playable game): GH-1 flick sim + replay
-  core, GH-2 rehearsal-brain ghost driver + idle nap, GH-3 GhostChallenge
-  proof, GH-4 canvas drag-flick client (6.16KB), GH-5 6/6 e2e, GH-6 wire-up
-  (`?seed=` challenge rooms). Receipts: 317/317 suite, both tsc clean, web
-  build green (shell 31.72KB). Tree 8 ahead of origin (push = user).
+- G-2 SHIPPED (7-game soak green). Slicing Sprint 6 SIGNAL SEVEN (Devika),
+  then pulling SI-1 sim.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. G-2 7-game soak (Riya): scripts/soak.ts + ghostline/room chatter.
