@@ -1,14 +1,14 @@
-// scripts/soak.ts — G-2 seven-game soak gate.
-// 30 clients spread across riot/doodle/blaze/nitro/ludo/room/line for 30s
-// with random VALID inputs. Gates: tickAvgMs < 5, zero unhandled exceptions,
-// every client keeps receiving snapshots. Run: npx tsx scripts/soak.ts
+// scripts/soak.ts — GB-1 ten-game soak gate.
+// 30 clients spread across all 10 live games for 30s with random VALID
+// inputs. Gates: tickAvgMs < 5, zero unhandled exceptions, every client
+// keeps receiving snapshots. Run: npx tsx scripts/soak.ts
 // (CI runs the headless suites; this is the live-traffic proof.)
 import WebSocket from 'ws';
 import { createApp } from '../apps/server/src/app.js';
 
 const CLIENTS = 30;
 const SECONDS = 30;
-const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift', 'ludo-clash', 'read-the-room', 'ghostline'];
+const GAMES = ['reflex-riot', 'doodle-duel', 'blaze-squad', 'nitro-rift', 'ludo-clash', 'read-the-room', 'ghostline', 'signal-seven', 'totem-panic', 'ricochet-siege'];
 
 const app = createApp({ region: 'soak' });
 let unhandled = 0;
@@ -54,6 +54,16 @@ for (let i = 0; i < CLIENTS; i++) {
             const a = r * Math.PI * 2;
             const pw = 0.3 + ((r * 7) % 0.7);
             ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: Math.cos(a) * pw, dy: Math.sin(a) * pw } }));
+          } else if (game === 'signal-seven') {
+            // signal: rune triple, one per axis (dupes + bad runes die sim-side)
+            ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: Math.floor(r * 7), dy: Math.floor((r * 13) % 7), aim: Math.floor((r * 29) % 7) } }));
+          } else if (game === 'totem-panic') {
+            // totem: drop offset (wrong-turn drops die sim-side by design)
+            ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: r * 180 - 90, dy: 0 } }));
+          } else if (game === 'ricochet-siege') {
+            // siege: aim vector (mid-volley + zero vectors die sim-side)
+            const a = r * Math.PI * 2;
+            ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: Math.cos(a), dy: Math.sin(a) } }));
           } else {
             // ludo-clash: roll on roll stage, pick slot 0-3 in pick stage
             if (r > 0.5) ws.send(JSON.stringify({ v: 1, type: 'input', room: 'SOAK', seq: ++seq, payload: { dx: 0, dy: 0, fire: true } }));
