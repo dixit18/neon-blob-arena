@@ -1042,3 +1042,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Rehan (counter, signed):** reload-on-toggle is a cop-out vs live re-paint — ACCEPTED (one paint path, zero state bugs; toggle is rare, reload is 300ms local).
 **Aarav:** GB-4 DONE → GB-5 report path next.
 **Kai:** Committing. Tree 29 ahead — push is the user's hands.
+
+## 2026-09-18 — GB-5 SHIPPED: report from inside the match
+**Leo + Zara (GB-5):** server `POST /report` (catalog/room/reason validation, 10-per-IP-minute throttle, 200-entry capped log, `player_report` analytics event — vocab extended) + ONE shared bar mounted by main.ts into every room view (report dialog with localized reason codes + local taunt-mute list with unmute). Zero per-client edits; per-client feed filtering ticketed as GB-5b.
+**Vikram:** 2 catches: 1) REAL BUG — log + throttle maps declared inside the per-request handler (every request fresh, throttle never fired; the test caught it). Fixed to app scope. 2) my curl "400" was PowerShell quoting mangling the body, not server — re-proven with ConvertTo-Json: live 201. Lesson: quote-sensitive probes go through Invoke-WebRequest.
+**Riya (receipts):** 3/3 endpoint tests (201 valid, 9-shape 400 matrix, flood → 429) + both tsc clean + web build green (shell 39.24KB ≤60KB). Live: `#rpBtn` mounts in a real ludo room DOM + POST 201 against the live stack.
+**Rehan (counter, signed):** report-without-moderation is a write-only void — ACCEPTED with bounds (200-entry log + analytics event make it readable off-box; triage UI is a later ticket, not this one). Mute-without-enforcement is half a shield — answered by GB-5b, not silence.
+**Aarav:** GB-5 DONE → GB-6 gates rollup next (last slice before release cutover).
+**Kai:** Committing. Tree 30 ahead — push is the user's hands.

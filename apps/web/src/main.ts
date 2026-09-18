@@ -363,4 +363,14 @@ if (gameParam && roomParam) {
       el('mount').textContent = t('play.mountFallback');
     }
   })();
+  // GB-5: one shared safety bar for every game — report + taunt-mutes ride
+  // the room chrome, never the per-game clients.
+  void (async () => {
+    try {
+      const bar = document.getElementById('reportBar');
+      if (!bar) return;
+      const mod = await import('./report.js');
+      mod.mountReportBar(bar, { http: httpBase, game: gameParam, room: roomParam, name: myName });
+    } catch { /* safety bar never blocks play */ }
+  })();
 }

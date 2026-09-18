@@ -53,9 +53,13 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GB-4b] Per-game Hindi clients — Owner: Leo. Accept: all 10 game clients
   read the strings table; parity tests per client; no copy change in
   English. Phase 2 with UX-006.
-- [GB-5] Report path (safety MVP) — Owner: Leo + Zara. Accept: in-match
-  report posts without leaving (`/report` log with match/reporter/reported/
-  reason per UX-011); block-mutes-taunts local. Tests green.
+- [GB-5] Report path — DONE (POST /report validated + throttled + logged;
+  one shared roomview bar across all 10 games with localized dialog +
+  local mute list; bar mounts live, POST 201 live; 3/3 endpoint tests).
+  Owner: Leo + Zara.
+- [GB-5b] Per-client mute enforcement — Owner: Leo. Accept: all 10 game
+  clients honor isMuted() in feeds/taunts; headless test per client.
+  Follow-up (bar + list ship in GB-5).
 - [GB-6] Release gates rollup — Owner: Riya. Accept: browser gate re-run on
   the 10-game stack, bundle budget check (shell ≤60KB, chunks sane),
   HANDOFF cutover to release. Blocks release if red.

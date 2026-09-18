@@ -55,6 +55,10 @@ export function createApp(opts: { region?: string } = {}) {
   const studio = new StudioFeed();
   seedFeed(studio);
   const studioHits = new Map<string, number[]>();
+  // GB-5 safety MVP store: capped report log + per-IP throttle windows.
+  const REPORT_REASONS = ['cheating', 'harassment', 'griefing', 'spam', 'other'];
+  const reports: { at: number; ip: string; game: string; room: string; reporter: string; reported: string; reason: string }[] = [];
+  const reportHits = new Map<string, number[]>();
   let joinsTotal = 0;
   let tickAvgMs = 0;
   let tickMaxMs = 0;
@@ -204,6 +208,45 @@ export function createApp(opts: { region?: string } = {}) {
         } catch (e) {
           res.statusCode = 400;
           res.end(JSON.stringify({ error: e instanceof Error ? e.message : 'bad thought' }));
+        }
+      });
+      return;
+    }
+    // GB-5 safety MVP: in-match reports. Validated + per-IP rate-limited,
+    // in-memory capped log (moderation reads it off-box). Reasons are fixed
+    // codes so clients can localize labels freely.
+    if (url.pathname === '/report' && req.method === 'POST') {
+      const ip = (req.socket.remoteAddress || '?') + '';
+      const now = Date.now();
+      const hits = (reportHits.get(ip) ?? []).filter((t) => now - t < 60_000);
+      if (hits.length >= 10) { res.statusCode = 429; res.end(JSON.stringify({ error: 'slow down' })); return; }
+      hits.push(now);
+      reportHits.set(ip, hits);
+      let body = '';
+      req.on('data', (c) => { body += String(c); if (body.length > 2048) req.destroy(); });
+      req.on('end', () => {
+        try {
+          const p = JSON.parse(body || '{}') as Record<string, unknown>;
+          const clean = (v: unknown, re: RegExp): string | null =>
+            typeof v === 'string' && re.test(v) ? v.slice(0, 40) : null;
+          const game = typeof p.game === 'string' && getGame(p.game) ? p.game : null;
+          const room = clean(p.room, /^[A-Z0-9]{4,8}$/);
+          const reporter = clean(p.reporter, /^.{1,40}$/);
+          const reported = clean(p.reported, /^.{1,40}$/);
+          const reason = typeof p.reason === 'string' && REPORT_REASONS.includes(p.reason) ? p.reason : null;
+          if (!game || !room || !reporter || !reported || !reason) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'bad report' }));
+            return;
+          }
+          reports.push({ at: now, ip, game, room, reporter, reported, reason });
+          if (reports.length > 200) reports.splice(0, reports.length - 200);
+          events.push('player_report', { game, room });
+          res.statusCode = 201;
+          res.end(JSON.stringify({ ok: true }));
+        } catch {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: 'bad report' }));
         }
       });
       return;
