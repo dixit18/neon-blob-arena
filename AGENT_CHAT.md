@@ -966,3 +966,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (receipts):** 19/19 sim tests green (100-seed bit-identical reproduce, replay roundtrip, snapshot worst-case 8-player ≤2KB, ghost artifact asserts clean) + server tsc clean + full suite 298/298 (279 old + 19 new).
 **Aarav:** GH-1 DONE → GH-2 ghost driver next, same turn.
 **Kai:** Committing GH-1, pulling GH-2.
+
+## 2026-09-18 — GH-2 + GH-3 SHIPPED (ghosts have brains, links hold)
+**Zara (GH-2):** `games/ghostline/driver.ts` on the RoomDriver seam — instant table of 8 labelled 🤖 ghosts, human flicks via `input` {angle, power} with garbage dying quietly. The brain (`planFlick`, pure + tested) rehearses with the replay core: rolls out candidates from the live puck via new `rollOut(course, from, flicks)`, goal-directed full-circle spokes + golden-ratio power sweep; sharps search 24 and take the best hole, casuals search 6, cap 0.8 power, flub 25% onto the second-best line.
+**Vikram:** 3 catches: 1) spoke search without goal bias missed the lane outright — fixed goal-directed (also makes bots lane-aware, not lucky). 2) seeded direct-line eval tripped the casual early-break → zero second-best → flubs impossible; restructured (honest line considered first, loop always runs). 3) PRODUCT BUG: an AFK human stalled the run forever (allDone waited on a seat that never flicks) — fixed with a 30s idle nap (scores what it has, feed says so), proven by test.
+**Leo + Zara (GH-3):** share proof, 3 new tests — max-length trail + replay payload ≤20KB with asserts clean; mid-game ghost honest (no author/seed/crown); challenge URL seed regenerates the exact walls and the author replay re-holes.
+**Riya (receipts):** 31/31 ghostline tests (23 sim + 8 driver), server tsc clean, full suite 310/310.
+**Aarav:** GH-2 + GH-3 DONE → GH-4 client (Leo) next.
+**Kai:** Committing. Tree ahead of origin by 6 — push is the user's hands (token rule).

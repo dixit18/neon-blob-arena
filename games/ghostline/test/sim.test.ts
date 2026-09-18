@@ -236,6 +236,47 @@ describe('ghostline sim', () => {
     assert.ok(g.url.includes('seed='));
   });
 
+  it('GH-3: even a max-length trail replay fits the 20KB ghost budget', () => {
+    const ace = aceSeed();
+    const s = solo(ace.seed);
+    s.flick('a', 0, ace.power);
+    stepRest(s);
+    for (let i = 0; i < 200 && (s.phase as string) !== 'final'; i++) s.step(50);
+    const g = s.ghost('ABCD', 'https://x.test');
+    // The link payload a challenger downloads: replay + full ghost trail.
+    const rep = s.replayOf('a')!;
+    const trail = simulate(createCourse(rep.seed), rep.flicks, true).trail;
+    const bytes = new TextEncoder().encode(
+      JSON.stringify({ ...g.data, trail }),
+    ).length;
+    assert.deepEqual(assertArtifact({ ...g, data: { ...g.data, trail } }), []);
+    assert.ok(bytes <= 20 * 1024, `ghost payload ${bytes}B > 20KB`);
+  });
+
+  it('GH-3: mid-game ghost is honest — no author, no seed, no crown', () => {
+    const s = solo();
+    s.flick('a', 0, 0.3);
+    const g = s.ghost('ABCD', 'https://x.test');
+    assert.deepEqual(assertArtifact(g), []);
+    assert.ok(g.title.includes('no ghost set yet'));
+    assert.equal((g.data as { author: unknown }).author, null);
+    assert.ok(!g.url.includes('seed='));
+  });
+
+  it('GH-3: the challenge link re-enters the exact course', () => {
+    const ace = aceSeed();
+    const s = solo(ace.seed);
+    s.flick('a', 0, ace.power);
+    stepRest(s);
+    for (let i = 0; i < 200 && (s.phase as string) !== 'final'; i++) s.step(50);
+    const g = s.ghost('ABCD', 'https://x.test');
+    const seed = Number(new URL(g.url).searchParams.get('seed'));
+    assert.deepEqual(createCourse(seed).walls, s.course.walls);
+    // And the author's replay re-runs to the same hole.
+    const rep = s.replayOf('a')!;
+    assert.equal(runReplay({ seed, flicks: rep.flicks })!.finished, true);
+  });
+
   it('puck never leaves the field, wherever it is flicked', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const r = simulate(createCourse(seed), [

@@ -223,15 +223,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 5 GHOSTLINE: GH-1 SHIPPED (flick sim + replay core) + GH-2 SHIPPED
-  (ghost driver: instant table of 8, rehearsal brain, sharp/casual tiers,
-  idle nap; 307/307 suite, tsc clean). Pulling GH-3 (GhostChallenge share
-  proof) same turn — small: trail payload + mid-game honesty tests.
+- Sprint 5 GHOSTLINE: GH-1 + GH-2 + GH-3 SHIPPED (flick sim + replay core,
+  ghost driver with rehearsal brain + idle nap, GhostChallenge share proof:
+  31/31 ghostline tests, 310/310 suite, tsc clean). Next: GH-4 client
+  (Leo: canvas course + drag-flick). Tracker: TICKETS.md.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
-   Devika to slice GH-1..GH-6; crew pulls on sight.
-2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
+1. GH-4 ghostline client (Leo): canvas course + drag-to-flick, ghost trails,
+   360px clean, chunk ≤250KB at `apps/web/src/games/ghostline.ts`.
+2. GH-5 e2e (Riya) then GH-6 wire-up (Kai) — release unblocks after e2e.
+3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

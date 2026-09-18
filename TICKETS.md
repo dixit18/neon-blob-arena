@@ -41,9 +41,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GH-2] Bots + driver — DONE (instant table of 8 labelled ghosts, goal-
   directed rehearsal brain with sharp/casual tiers + flubs, human `input`
   transport, 30s idle nap; 8/8 driver tests, 307/307 suite). Owner: Zara.
-- [GH-3] Share: GhostChallenge (seed + author replay) — Owner: Leo + Zara.
-  Accept: `?game=ghostline&room=&seed=` re-entry URL, payload ≤20KB via
-  `assertArtifact`, honest mid-game state.
+- [GH-3] Share — DONE (GhostChallenge with seeded re-entry URL; trail +
+  replay payload ≤20KB proven, mid-game honesty, link replays the hole;
+  23/23 sim tests). Owner: Leo + Zara.
 - [GH-4] Client: canvas course + flick — Owner: Leo. Accept: course + pucks
   render, drag-to-flick same-tick, ghost trails, 360px clean, chunk ≤250KB;
   mounts at `apps/web/src/games/ghostline.ts`.
