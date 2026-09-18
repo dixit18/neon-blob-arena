@@ -15,6 +15,7 @@ import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
   layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
   SHARD_COUNT, SHARD_COLORS, tunnelLength,
+  lapShift, shardLapRot, ringLapRot,
 } from './dive3d-layout.js';
 import { THREE_PIN } from './three-lazy.js';
 import { t } from './strings.js';
@@ -347,6 +348,14 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
   shardMesh.frustumCulled = false;
   scene.add(shardMesh);
   const shardDummy = new T.Object3D();
+  // DDV-1 lap turnover: shard colors ease to the new lap's rotation over
+  // ~2s (no pop — the dream deepens). One target buffer; frames ease toward
+  // it exponentially and snap exact at the end. Zero per-frame alloc
+  // outside the transition window.
+  const shardTo = new Float32Array(shards.length * 3);
+  let shardLapShown = 0;
+  let shardMix = 1;
+  const shardCol = new T.Color('#ffffff');
 
   // ---------- cinematic atmosphere: foreground fronds (IMAX parallax) +
   // light shafts. They ride the camera (repositioned, never reallocated);
@@ -840,6 +849,37 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
         fillLap(l.group, l.lap, l.animated, l.hearts);
       }
     }
+    // DDV-1: the dream deepens — new lap, new light. Shard colors ease to
+    // the lap rotation, tunnel rings swap palette offset, skies/fog/motes
+    // drift hue+light. Chapter order, portals and captions never move.
+    if (camLap !== shardLapShown) {
+      const rot = shardLapRot(camLap);
+      for (let i = 0; i < shards.length; i++) {
+        shardCol.set(SHARD_COLORS[(shards[i]!.color + rot) % SHARD_COLORS.length]!);
+        shardTo[i * 3] = shardCol.r;
+        shardTo[i * 3 + 1] = shardCol.g;
+        shardTo[i * 3 + 2] = shardCol.b;
+      }
+      shardMix = 0;
+      shardLapShown = camLap;
+      // Tunnel rings take the same turnover beat (shared-material swap,
+      // cache-bounded by the 4-color palette — no leak across laps).
+      const ringRot = ringLapRot(camLap, PALETTE.length);
+      for (let i = 0; i < rings.length; i++) {
+        rings[i].material = ringMat(hexColor(PALETTE[(i + ringRot) % PALETTE.length]!), (i * 0.37) % 1);
+      }
+    }
+    if (shardMix < 1) {
+      shardMix = Math.min(1, shardMix + dt * 0.5);
+      const arr = (shardMesh.instanceColor as unknown as { array: Float32Array }).array;
+      const k = shardMix >= 1 ? 1 : Math.min(1, dt * 3);
+      for (let i = 0; i < arr.length; i++) {
+        const t = shardTo[i]!;
+        arr[i] = k >= 1 ? t : arr[i]! + (t - arr[i]!) * k;
+      }
+      shardMesh.instanceColor.needsUpdate = true;
+    }
+    const lap = lapShift(camLap);
     const camZ = -depth * WORLD_GAP;
     // steering: pointer target approached smoothly; sway + bank ride along.
     camX = smoothApproach(camX, steerTX, dt, 3);
@@ -854,11 +894,16 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     skyUni.uTop.value.set(fw.sky1);
     skyUni.uBot.value.set(fw.sky0);
     skyUni.uAccent.value.set(fw.accent);
+    skyUni.uTop.value.offsetHSL(lap.hue, 0, lap.light);
+    skyUni.uBot.value.offsetHSL(lap.hue, 0, lap.light);
+    skyUni.uAccent.value.offsetHSL(lap.hue, 0, 0);
     // atmosphere breathes with the story: fog + spore tint ease to the faced
     // chapter (lerp, never snap — a hard cut would read as a loading hitch).
     fogTarget.set(fw.sky0);
+    fogTarget.offsetHSL(lap.hue, 0, lap.light);
     scene.fog.color.lerp(fogTarget, 0.04);
     moteTarget.set(fw.accent);
+    moteTarget.offsetHSL(lap.hue, 0, 0);
     (motes.material as any).color.lerp(moteTarget, 0.04);
     // foreground fronds + light shafts ride the camera: near-layer parallax.
     for (const f of fronds) {

@@ -223,16 +223,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- GB-4b PER-GAME HINDI (in progress, Leo): common game-chrome keys once +
-  per-game keys, all 10 clients wired, prefix-parity tests; English copy
-  byte-identical.
+- DDV-1 SHIPPED (SG-2): per-lap sky/fog drift + shard turnover + ring
+  rotation in the 3D dive; lap-0 identical; 12/12 layout tests, build
+  green (dive 26,011B), boot sanity 4/4. Awaiting user deep-zoom eyeball.
+  GB-4b parked at 1/10 (ludo).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. GB-4b per-game Hindi + GB-5b per-client mutes (Leo) — Phase 2, no gate.
-2. Sprint 10 / north-star WAPS — Devika cuts the next sprint from MARKET +
-   telemetry; crew pulls on sight.
-3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 31 ahead) + Render deploy watch.
+1. User eyeball: scroll deep — top-right debris + mood must shift per lap.
+   Then GB-4b remainder (9 clients) + GB-5b.
+2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
+   phone checks + `git push` (tree 33 ahead) + Render deploy watch.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

@@ -1058,3 +1058,13 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Rehan (counter, signed):** "release UNBLOCKED" overclaims while pushes sit 31 ahead and Render hasn't rebuilt — BOUND ACCEPTED: code-release unblocked (all gates green); production release waits on user hands (push + deploy watch + pinger), listed in Next up, not buried.
 **Aarav:** Sprint 9 GLOBAL HARDENING SHIPPED. The board: GB-4b + GB-5b (Phase 2, no gate), then Devika cuts Sprint 10 from MARKET + telemetry.
 **Kai:** Committing. Tree 31 ahead — push is the user's hands.
+
+## 2026-09-18 — DDV-1 SHIPPED: deep zoom never repeats (SG-2, user priority)
+**User (verbatim, screenshot):** infinite scroll must not be the same — everything repeating kills deep diving; make it different, prepare that first.
+**Aarav:** Reprioritized on sight: GB-4b remainder parked (ludo fully wired + committed as 1/10 WIP). Orthodox version refused: rebuilding biomes per lap (allocation churn, chunk blowout). New law: same geometry, evolving light — the dream deepens.
+**Mira + Leo (DDV-1):** root-caused the repeat — one seed-fixed shard field + fixed ring palette + chapter-locked fog, all wrapping identically. Fix, all lap-driven: (1) shard instance colors ease to a rotated palette over ~2s at each lap boundary, (2) tunnel rings swap palette offset on the same beat (cache-bounded, no leak), (3) sky/fog/mote targets drift hue ±0.07/light ±0.035 per lap. Lap 0 is byte-identical math (today's look untouched). Story order, portals, captions, finale: unmoved. 2D deliberately untouched (clamps to one lap and loops by design).
+**Vikram:** 2 catches: 1) first cut hit 26.08KB — OVER the 26KB gate. Fixed buffer-free (exponential ease + exact snap, one target buffer). Exact bytes now 26,011 ≤ 26,624 (613B margin — thin, GB-6 owns the pressure). 2) growth 1.5KB vs my own 1KB line — amended openly: the flagship visual ask earned it; the gate holds.
+**Riya (receipts):** 12/12 layout tests (lap-0 identity, determinism, bounds, 12-lap variety, degenerate guards) + web tsc clean + 38/38 web tests + vite build green + live boot sanity 4/4 on the DDV-1 build (first attempt 0/4 was a locked Edge profile, re-ran clean — stated).
+**Rehan (counter, signed):** synchronized color turnover could read as a glitch, not a beat — BOUND: it fires exactly with the finale cliffhanger card (same lap boundary), so the story names the shift; ease is 2s, never a snap. If the user's eyes disagree, we tune, not argue.
+**Aarav:** DDV-1 DONE. Visual proof is the user's eyes — scroll deep, watch the top-right debris + mood change per lap. Then GB-4b remainder.
+**Kai:** Committing. Tree 33 ahead — push is the user's hands.

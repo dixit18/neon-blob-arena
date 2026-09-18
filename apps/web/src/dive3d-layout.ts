@@ -81,6 +81,35 @@ export function tunnelLength(): number {
 }
 
 // ---------------------------------------------------------------------------
+// DDV-1 lap variety (SG-2: deep zoom must never repeat). Laps replay the
+// same six chapters, so the LOOK has to evolve while the story stands
+// still: a small deterministic hue/light drift for skies + fog, and a
+// palette rotation for the endlessly-wrapping shards + tunnel rings.
+// Lap 0 is the identity (today's look, byte-identical); every deeper lap
+// shifts. Pure math — dive3d.ts applies it, tests pin it.
+// ---------------------------------------------------------------------------
+
+/** Sky/fog drift for a lap: subtle (±0.07 hue, ±0.035 light), never garish. */
+export function lapShift(lap: number): { hue: number; light: number } {
+  if (lap <= 0) return { hue: 0, light: 0 };
+  const g = (((lap * 0.6180339887) % 1) + 1) % 1;
+  const l = (((lap * 0.3819660113) % 1) + 1) % 1;
+  return { hue: (g - 0.5) * 0.14, light: (l - 0.5) * 0.07 };
+}
+
+/** Shard color rotation for a lap (index offset into SHARD_COLORS). */
+export function shardLapRot(lap: number, len: number = SHARD_COLORS.length): number {
+  if (lap <= 0 || len <= 0) return 0;
+  return (lap * 3 + Math.floor(lap / len)) % len;
+}
+
+/** Tunnel-ring palette rotation for a lap. */
+export function ringLapRot(lap: number, len: number): number {
+  if (lap <= 0 || len <= 0) return 0;
+  return (lap * 2 + Math.floor(lap / Math.max(1, len))) % len;
+}
+
+// ---------------------------------------------------------------------------
 // Shard spiral (the STAR NURSERY look): hundreds of small colored dashes
 // wound in a helix down the tunnel. Pure placement math; dive3d.ts renders
 // them as ONE InstancedMesh (1 draw call) and flows them past the camera.

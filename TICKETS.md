@@ -6,6 +6,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
+- [DDV-1] Infinite-zoom variety — DONE (per-lap sky/fog drift + shard
+  turnover + ring rotation, story order intact; lap-math tests; dive
+  26,011B ≤26,624 gate holds with 613B margin — growth 1.5KB stated
+  openly against my own 1KB line: the flagship visual ask earned it;
+  reduced-motion + 2D fallback intact). Visual proof: user eyes on-device.
 - Sprint 9 GLOBAL HARDENING — Owner: Riya (gates) + all. Status: SHIPPED
   (GB-1..GB-6: soak, audit, budgets, Hindi shell, report path, gates;
   431/431 suite, BROWSER GREEN, bundles hold). Open follow-ups: GB-4b

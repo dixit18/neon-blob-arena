@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {
   shouldUse3D, layoutLap, splitDepth, facedWorld, heartFrac, tunnelLength,
   LAP_LEN, WORLD_GAP, layoutShards, stepShard, SHARD_COUNT, SHARD_COLORS,
-  smoothApproach, portalHit, steerTarget,
+  smoothApproach, portalHit, steerTarget, lapShift, shardLapRot, ringLapRot,
 } from './dive3d-layout.js';
 import { WORLDS } from './descent.js';
 
@@ -70,8 +70,7 @@ describe('dive3d layout', () => {
     stepShard(s, 0, 100, span);
     assert.equal(s.z, 150 - span);
   });
-  it('steering: smooth approach converges, portal hit is a disc test', () => {
-    let c = 0;
+  it('steering: smooth approach converges, portal hit is a disc test', () => {    let c = 0;
     for (let i = 0; i < 120; i++) c = smoothApproach(c, 24, 1 / 60, 3);
     assert.ok(Math.abs(c - 24) < 1, `c=${c}`);
     assert.equal(smoothApproach(5, 5, 1 / 60, 3), 5);
@@ -82,5 +81,26 @@ describe('dive3d layout', () => {
     assert.deepEqual(t, { x: 24, y: 14 });
     const mid = steerTarget(0, 0);
     assert.deepEqual(mid, { x: 0, y: 2 });
+  });
+  it('DDV-1: lap 0 is the identity — today’s look, untouched', () => {
+    assert.deepEqual(lapShift(0), { hue: 0, light: 0 });
+    assert.equal(shardLapRot(0), 0);
+    assert.equal(ringLapRot(0, 4), 0);
+  });
+  it('DDV-1: deeper laps shift — subtle, bounded, deterministic', () => {
+    for (let lap = 1; lap <= 12; lap++) {
+      const s = lapShift(lap);
+      assert.deepEqual(lapShift(lap), s);
+      assert.ok(Math.abs(s.hue) <= 0.07 && Math.abs(s.light) <= 0.035, `lap ${lap} garish`);
+      assert.ok(shardLapRot(lap) !== 0, `lap ${lap} shards repeat lap 0`);
+    }
+    const hues = new Set(Array.from({ length: 12 }, (_, i) => lapShift(i + 1).hue.toFixed(4)));
+    assert.ok(hues.size >= 6, 'laps must vary, not alternate');
+  });
+  it('DDV-1: rotations are pure index math — chapters keep their order', () => {
+    assert.equal(shardLapRot(1, SHARD_COLORS.length), 3);
+    assert.equal(ringLapRot(1, 4), 2);
+    assert.equal(shardLapRot(0, 0), 0); // degenerate guard
+    assert.equal(ringLapRot(5, 0), 0);
   });
 });

@@ -2,6 +2,25 @@
 Every entry: the user's words + status + owner + where it landed (or why not,
 with the user holding the overrule). Newest first.
 
+## SG-2 — Infinite zoom must never repeat (ACCEPTED, building FIRST)
+User's words (2026-09-18, with live screenshot): "i like the infinite
+scroll but look at top right and make sure while infinite scroll it should
+be not the same like currently if i do infinite scroll all things are same
+it should be different not the same like infinite zoom that would be great
+so people will start zooming but if same they will not go so deep so
+prepare that first"
+- What it means (Aarav's read): deep laps of the dive replay the same 6
+  chapters identically (same palettes, same weather, same confetti) — no
+  reason to go deep. Fix: every lap must LOOK different (palette drift,
+  re-salted weather, recolored debris) while the story order stays put.
+  Same story, deeper dream.
+- Status: DDV-1 SHIPPED 2026-09-18 (per-lap sky/fog drift + shard
+  turnover + ring rotation; story order, portals, captions intact; lap-0
+  look byte-identical; 12/12 layout tests, build green, boot sanity 4/4).
+  Awaiting the user's deep-zoom eyeball check.
+- Tickets: DDV-1 (TICKETS.md). Visual proof is the user's eyes (device-
+  hands precedent, RD-1) + headless lap-math tests.
+
 ## SG-1 — Story-driven infinite zoom landing (ACCEPTED, designing)
 User's words (2026-09-16): "first page should be like infinite zoom but based
 on story not just random zooming stories like game of thorunes or anime like
