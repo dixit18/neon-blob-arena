@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {
   TotemSim, BASE, WIN_LEVELS, HOLD_MS, TURN_MS, MIN_START,
   LOBBY_COUNTDOWN_MS, FINAL_MS, dropOrder, centerOfMass, reSim,
-  type Placement,
+  type Placement, type Outcome,
 } from '../sim.js';
 import { assertArtifact } from '../../../packages/share/src/index.js';
 
@@ -250,5 +250,22 @@ describe('totem-panic sim', () => {
     assert.deepEqual(assertArtifact(r), []);
     assert.ok(r.title.includes('live'));
     assert.equal((r.data as { outcome: unknown }).outcome, null);
+  });
+
+  it('TP-3: replay re-enters play and re-simulates exactly', () => {
+    const s = duo(31);
+    raise(s);
+    s.step(HOLD_MS);
+    const r = s.replay('WXYZ', 'https://x.test');
+    assert.deepEqual(assertArtifact(r), []);
+    const q = new URL(r.url).searchParams;
+    assert.equal(q.get('game'), 'totem-panic');
+    assert.equal(q.get('room'), 'WXYZ');
+    const data = r.data as { seed: number; outcome: Outcome; placements: Placement[] };
+    assert.equal(data.seed, s.seed);
+    const again = reSim(data.seed, data.placements);
+    assert.deepEqual(again.outcome, s.outcome);
+    assert.equal(again.tower.length, s.tower.length);
+    assert.ok(r.title.includes(`${WIN_LEVELS}`));
   });
 });
