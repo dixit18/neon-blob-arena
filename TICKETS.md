@@ -42,9 +42,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [TP-1] Sim — DONE (seeded co-op tower, slip + lean topple, 10-level hold
   win, auto-place turns, spectate + ghost reclaim, exact re-sim; 500 seeded
   cases green, snapshot ≤1.5KB; 17/17). Owner: Zara.
-- [TP-2] Bots + driver: steady hands — Owner: Zara. Accept: tiered offset
-  noise (sharps hug center, casuals flirt with edges), labelled, backfill
-  to 4; driver on the RoomDriver seam; ≥7 tests.
+- [TP-2] Bots + driver — DONE (steady tiered hands, legal-window clamp so
+  bots never slip, 2-5s human pacing, instant party of 4; 8/8 driver tests,
+  25/25 totem). Owner: Zara.
 - [TP-3] Share: ReplayMoment (2s collapse/raise) — Owner: Leo + Zara.
   Accept: placements replay + outcome + re-entry URL, asserts clean,
   honest mid-run state.

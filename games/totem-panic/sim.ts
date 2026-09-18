@@ -133,6 +133,13 @@ export class TotemSim {
     return n;
   }
 
+  /** Whose block it is (TP-2 driver + tests). Null outside build. */
+  turnId(): string | null {
+    if (this.phase !== 'build') return null;
+    const ids = this.activeIds();
+    return ids.length > 0 ? ids[this.turnIdx % ids.length]! : null;
+  }
+
   private activeIds(): string[] {
     return this.order.filter((id) => {
       const p = this.players.get(id)!;
