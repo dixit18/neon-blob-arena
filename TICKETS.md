@@ -6,9 +6,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- Sprint 7 TOTEM PANIC — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: SHIPPED (TP-1..TP-6, 9th playable
-  game; 6/6 e2e, 382/382 suite, web build green, totem chunk 5.48KB).
+- Sprint 8 RICOCHET SIEGE — Owner: Zara (sim/bots) + Leo (share/client) +
+  Riya (e2e) + Kai (wire-up). Status: RS-1 in progress. Design: simul-
+  taneous-commit artillery — all aims lock, all shots fly at once, walls
+  bounce them, 3 HP a round, last hull (or most HP) takes the round, 5
+  rounds take the siege; zero client authority (angle+power only, server
+  sims everything); commits ARE the replay.
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -35,7 +38,26 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
-## Open (prioritized) — Sprint 7 TOTEM PANIC (pull in order, Rule 14)
+## Open (prioritized) — Sprint 8 RICOCHET SIEGE (pull in order, Rule 14)
+- [RS-1] Sim — DONE (sealed commits, fixed-step ricochet, HP/elimination,
+  rounds + siege, auto-fire, join-next-round, ghost reclaim; 1,000 seeded
+  volleys identical, p95 1.45ms; snapshot ≤2KB; 18/18). Owner: Zara.
+- [RS-2] Bots + driver: gunners — Owner: Zara. Accept: tiered aim error
+  (sharps lead, casuals scatter), labelled, backfill to 6; driver on the
+  RoomDriver seam; ≥7 tests.
+- [RS-3] Share: ReplayMoment (round replay) — Owner: Leo + Zara. Accept:
+  seed + commits re-sim exactly, re-entry URL, asserts clean, honest
+  mid-round state.
+- [RS-4] Client: canvas arena + aim — Owner: Leo. Accept: arena + hulls +
+  tracers render, drag-aim + COMMIT same-tick, sealed-aim secrecy, 360px
+  clean, chunk ≤250KB; mounts at `apps/web/src/games/ricochet-siege.ts`.
+- [RS-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green over real sockets; snapshot p95 ≤2KB; receipts in chat. Blocks
+  release if red.
+- [RS-6] Wire-up: manifest + register — Owner: Kai. Accept: `ricochet-siege`
+  in `/catalog` (already listed); `?game=ricochet-siege&room=` plays.
+
+## Open (prioritized) — Sprint 7 TOTEM PANIC (SHIPPED — see Done section)
 - [TP-1] Sim — DONE (seeded co-op tower, slip + lean topple, 10-level hold
   win, auto-place turns, spectate + ghost reclaim, exact re-sim; 500 seeded
   cases green, snapshot ≤1.5KB; 17/17). Owner: Zara.
