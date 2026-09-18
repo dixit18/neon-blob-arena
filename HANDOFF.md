@@ -223,10 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 6 SIGNAL SEVEN: SI-1 SHIPPED (daily mystery + solver, 365-day
-  proof) + SI-2 SHIPPED (solver-driven rival tablets; 26/26 tests, tsc
-  clean). Pulling SI-3 (DailyGrid share proof — small, grid() already
-  coreside) same turn.
+- Sprint 6 SIGNAL SEVEN: SI-1 + SI-2 + SI-3 SHIPPED (27/27 signal tests).
+  SI-4 IN PROGRESS (Leo: clue tablet + rune keyboard client).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. G-2 7-game soak (Riya): scripts/soak.ts + ghostline/room chatter.

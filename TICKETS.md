@@ -48,9 +48,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [SI-3] Share — DONE (DailyGrid re-enters via URL, renders pip counts;
   package-level leak gate proven live; no seed/code in payload).
   Owner: Leo + Zara.
-- [SI-4] Client: clue tablet + rune keys — Owner: Leo. Accept: clues + pip
-  grid render, tappable rune keyboard, 360px clean, chunk ≤250KB; mounts at
-  `apps/web/src/games/signal-seven.ts`.
+- [SI-4] Client — DONE (clue tablet + rune keyboard + pip grid, triple-
+  over-input submit, same-tick lock, 360px-first keys; build green, 6.19KB
+  chunk; live proof rides SI-5). Owner: Leo.
 - [SI-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
   green over real sockets; snapshot p95 ≤2KB; receipts in chat. Blocks
   release if red.
