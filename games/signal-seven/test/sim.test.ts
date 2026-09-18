@@ -211,4 +211,24 @@ describe('signal-seven sim', () => {
     assert.ok(g.title.includes('unread'));
     assert.equal((g.data as { author: unknown }).author, null);
   });
+
+  it('SI-3: grid re-enters play and renders pip counts', () => {
+    const s = solo();
+    const code = [...s.mystery!.code];
+    const wrong = [0, 1, 2, 3, 4, 5, 6].filter((r) => !code.includes(r)).slice(0, 3);
+    s.guess('a', wrong);
+    solve(s);
+    for (let i = 0; i < 200 && s.phase !== 'final'; i++) s.step(50);
+    const g = s.grid('WXYZ', 'https://x.test');
+    assert.deepEqual(assertArtifact(g), []);
+    const q = new URL(g.url).searchParams;
+    assert.equal(q.get('game'), 'signal-seven');
+    assert.equal(q.get('room'), 'WXYZ');
+    const data = g.data as { guesses: number; rows: { inCode: number; inPos: number }[]; day: string };
+    assert.equal(data.guesses, 2);
+    assert.equal(data.rows.length, 2);
+    assert.equal(data.day, DAY.day);
+    assert.deepEqual(data.rows[1], { inCode: 3, inPos: 3 });
+    assert.ok(g.title.includes('2'));
+  });
 });

@@ -45,9 +45,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [SI-2] Bots + driver — DONE (solver-driven rival tablets, sharp/casual
   tiers, instant table of 4, triple-over-input transport, 60s idle close;
   8/8 driver tests). Owner: Zara.
-- [SI-3] Share: DailyGrid spoiler-safe — Owner: Leo + Zara. Accept: pip-grid
-  + guess count + re-entry URL, solution never in payload
-  (`daily-leaks-solution` assert), honest mid-day state.
+- [SI-3] Share — DONE (DailyGrid re-enters via URL, renders pip counts;
+  package-level leak gate proven live; no seed/code in payload).
+  Owner: Leo + Zara.
 - [SI-4] Client: clue tablet + rune keys — Owner: Leo. Accept: clues + pip
   grid render, tappable rune keyboard, 360px clean, chunk ≤250KB; mounts at
   `apps/web/src/games/signal-seven.ts`.
