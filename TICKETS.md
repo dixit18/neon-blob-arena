@@ -42,9 +42,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [SI-1] Sim — DONE (UTC-day mystery engine + brute-force solver; all 365
   days of 2026 proven uniquely solvable; pip guesses, solo start, ≤2KB
   snapshots, spoiler-free grid core; 17/17 green). Owner: Zara.
-- [SI-2] Bots + driver: rival tablets — Owner: Zara. Accept: tiered solve
-  curves (sharps 3-5, casuals 5-8), labelled, instant fill; driver on the
-  RoomDriver seam; human guess flow intact; ≥7 tests.
+- [SI-2] Bots + driver — DONE (solver-driven rival tablets, sharp/casual
+  tiers, instant table of 4, triple-over-input transport, 60s idle close;
+  8/8 driver tests). Owner: Zara.
 - [SI-3] Share: DailyGrid spoiler-safe — Owner: Leo + Zara. Accept: pip-grid
   + guess count + re-entry URL, solution never in payload
   (`daily-leaks-solution` assert), honest mid-day state.

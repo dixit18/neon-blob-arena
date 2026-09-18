@@ -25,6 +25,7 @@ export const MAX_GUESSES = 7;
 export const MIN_START = 1;
 export const LOBBY_COUNTDOWN_MS = 1500;
 export const FINAL_MS = 8000;
+export const IDLE_MS = 60_000; // untouched tablets close out — puzzles end
 
 export type Clue =
   | { k: 'in'; rune: number }
@@ -86,7 +87,8 @@ export function allCodes(): number[][] {
 
 const CODES = allCodes();
 
-function holds(code: number[], c: Clue): boolean {
+/** SI-2: exported so rival tablets rehearse against the same truth. */
+export function holds(code: number[], c: Clue): boolean {
   switch (c.k) {
     case 'in': return code.includes(c.rune);
     case 'out': return !code.includes(c.rune);
@@ -214,6 +216,7 @@ export function validGuess(g: unknown): g is number[] {
 export interface SignalPlayer {
   id: string; name: string; isBot: boolean;
   attempts: Attempt[]; won: boolean; done: boolean; solveMs: number;
+  lastAct: number; // sim-time of join / last guess (idle tablets close out)
   best: number | null; // fewest winning guesses, all puzzles
 }
 
@@ -256,7 +259,7 @@ export class SignalSim {
   join(id: string, name: string, isBot: boolean): void {
     if (this.players.has(id)) return;
     this.players.set(id, {
-      id, name, isBot, attempts: [], won: false, done: false, solveMs: 0, best: null,
+      id, name, isBot, attempts: [], won: false, done: false, solveMs: 0, lastAct: this.time, best: null,
     });
     this.order.push(id);
     if (this.phase === 'lobby' && this.phaseUntil === 0 && this.order.length >= MIN_START) {
@@ -287,6 +290,7 @@ export class SignalSim {
     const fb = feedback(this.mystery.code, g);
     const won = fb.inPos === CODE_LEN;
     p.attempts.push({ guess: [...g], inCode: fb.inCode, inPos: fb.inPos, won });
+    p.lastAct = this.time;
     if (won) {
       p.won = true;
       p.done = true;
@@ -338,6 +342,13 @@ export class SignalSim {
         this.phaseUntil = this.time + LOBBY_COUNTDOWN_MS;
       }
     } else if (this.phase === 'puzzle') {
+      for (const p of this.players.values()) {
+        // Idle tablets close out: a silent seat scores what it has.
+        if (!p.done && this.time - p.lastAct > IDLE_MS) {
+          p.done = true;
+          this.pushFeed(`🌫️ ${p.name} sets the tablet down!`);
+        }
+      }
       if (this.allDone()) this.doFinal();
     } else if (this.phase === 'final') {
       if (this.time >= this.phaseUntil) {

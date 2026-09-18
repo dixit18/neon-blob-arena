@@ -223,8 +223,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- G-2 SHIPPED (7-game soak green). Slicing Sprint 6 SIGNAL SEVEN (Devika),
-  then pulling SI-1 sim.
+- Sprint 6 SIGNAL SEVEN: SI-1 SHIPPED (daily mystery + solver, 365-day
+  proof) + SI-2 SHIPPED (solver-driven rival tablets; 26/26 tests, tsc
+  clean). Pulling SI-3 (DailyGrid share proof — small, grid() already
+  coreside) same turn.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. G-2 7-game soak (Riya): scripts/soak.ts + ghostline/room chatter.

@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   SignalSim, RUNES, CODE_LEN, CLUE_COUNT, MAX_GUESSES, MIN_START,
-  LOBBY_COUNTDOWN_MS, FINAL_MS, daySeedUTC, genMystery, countConsistent,
+  LOBBY_COUNTDOWN_MS, FINAL_MS, IDLE_MS, daySeedUTC, genMystery, countConsistent,
   feedback, validGuess, clueText, allCodes,
 } from '../sim.js';
 import { assertArtifact } from '../../../packages/share/src/index.js';
@@ -141,6 +141,14 @@ describe('signal-seven sim', () => {
     s.leave('a');
     assert.equal(s.phase, 'lobby');
     assert.equal(s.mystery, null);
+  });
+
+  it('untouched tablets close out after IDLE_MS and end the puzzle', () => {
+    const s = solo();
+    s.step(IDLE_MS + 1000);
+    assert.equal(s.players.get('a')!.done, true);
+    assert.ok(s.feed.join(' ').includes('sets the tablet down'));
+    assert.equal(s.phase, 'final');
   });
 
   it('snapshots stay ≤2KB at a full table of 8', () => {
