@@ -17,6 +17,9 @@ random so it will be more and people tends to come"
   both engines rebound to chapters + saga tabs + ?saga=; 16/16 tests, web
   build green, shell 21.81KB). LZ-2 SHIPPED (procgen core + 2D motif weather
   + 3D motif overlays + cinematic atmosphere; 28/28 web tests, BROWSER GREEN,
-  dive 24.98KB / shell 28.84KB). Next: LZ-3 cliffhanger/share.
+  dive 24.98KB / shell 28.84KB). LZ-3 SHIPPED (finale cliffhanger card +
+  challenge-link share + ?ch= deep links + chapter 📸; 30/30 web tests,
+  shell 31.63KB / dive 25.14KB). LZ-4 SHIPPED (gates green: build + budgets
+  + BROWSER GREEN + reduced-motion + PLAY primary). SG-1 COMPLETE 2026-09-18.
 - Tickets: LZ-1..LZ-4 (TICKETS.md, Landing saga queue). Build starts on approval.
 - Replaces: random zoom tunnel + dive + rift fly-through (deleted when saga ships).
