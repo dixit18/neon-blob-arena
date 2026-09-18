@@ -6,9 +6,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- Sprint 8 RICOCHET SIEGE — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: SHIPPED (RS-1..RS-6, 10th playable
-  game; 6/6 e2e, 415/415 suite, web build green, siege chunk 6.61KB).
+- Sprint 9 GLOBAL HARDENING — Owner: Riya (gates) + all. Status: GB-1 in
+  progress. Scope per SPRINTS.md: 10-game soak, share-artifact audit,
+  snapshot budgets, Hindi strings table, device tiers, safety/report path.
+  Human-hands items (2h soak, device truth, UptimeRobot) stay user-side.
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -35,7 +36,26 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
-## Open (prioritized) — Sprint 8 RICOCHET SIEGE (pull in order, Rule 14)
+## Open (prioritized) — Sprint 9 GLOBAL HARDENING (pull in order, Rule 14)
+- [GB-1] 10-game soak — Owner: Riya. Accept: soak covers all 10 live games
+  with valid chatter, 30/30, tickAvg <5ms, 0 unhandled. SOAK GREEN.
+- [GB-2] Share-artifact audit — DONE (doodle `moment()` added with
+  mid-draw prompt gating; 12/12 audit gate: all 10 titles resolve to
+  drivers + own valid catalog-kind artifacts). Owner: Leo + Zara.
+- [GB-3] Snapshot budget sweep — Owner: Riya. Accept: every game's worst-
+  case snapshot (full table, late phase) asserted ≤2KB in-suite (totem
+  ≤1.5KB holds). Receipts in chat.
+- [GB-4] Hindi strings table — Owner: Devika + Leo. Accept: all menu/HUD
+  copy in one strings table (UX-006 un-superseded); client builds; no
+  gameplay change.
+- [GB-5] Report path (safety MVP) — Owner: Leo + Zara. Accept: in-match
+  report posts without leaving (`/report` log with match/reporter/reported/
+  reason per UX-011); block-mutes-taunts local. Tests green.
+- [GB-6] Release gates rollup — Owner: Riya. Accept: browser gate re-run on
+  the 10-game stack, bundle budget check (shell ≤60KB, chunks sane),
+  HANDOFF cutover to release. Blocks release if red.
+
+## Open (prioritized) — Sprint 8 RICOCHET SIEGE (SHIPPED — see Done section)
 - [RS-1] Sim — DONE (sealed commits, fixed-step ricochet, HP/elimination,
   rounds + siege, auto-fire, join-next-round, ghost reclaim; 1,000 seeded
   volleys identical, p95 1.45ms; snapshot ≤2KB; 18/18). Owner: Zara.

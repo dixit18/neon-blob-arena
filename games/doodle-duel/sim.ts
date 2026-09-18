@@ -3,6 +3,7 @@
 // strokeBatch, guessers pick 1-of-4 titles via answer. Bots guess, never
 // draw (D10 verdict). Pure deterministic sim like riot: ms clock, seeded
 // options, headless-testable.
+import { buildGameUrl, type ShareArtifact } from '../../packages/share/src/index.js';
 export type DoodlePhase = 'lobby' | 'draw' | 'reveal' | 'final';
 
 export interface Stroke { id: number; pts: { x: number; y: number }[]; done: boolean }
@@ -232,6 +233,36 @@ export class DoodleSim {
   private pushFeed(s: string): void {
     this.feed.push(s);
     if (this.feed.length > 3) this.feed.splice(0, this.feed.length - 3);
+  }
+
+  /** GB-2: ReplayMoment — the drawing + (revealed-only) prompt + top table.
+   * Mid-draw shares NEVER carry the prompt: guessers must read the lines,
+   * not the link (same gating as the snapshot). */
+  moment(room: string, origin: string): ShareArtifact {
+    const revealed = this.phase === 'reveal' || this.phase === 'final';
+    let win: DoodlePlayer | null = null;
+    for (const p of this.players.values()) if (!win || p.score > win.score) win = p;
+    const title = this.phase === 'final' && win && win.score > 0
+      ? `🏆 ${win.name} takes the duel with ${win.score}!`
+      : revealed
+        ? `🎨 “${this.prompt}” — could you read it?`
+        : `🎨 ${this.players.get(this.drawerId)?.name ?? '?'} is drawing — guess the title!`;
+    return {
+      kind: 'ReplayMoment',
+      game: 'doodle-duel',
+      room,
+      title,
+      url: buildGameUrl(origin, 'doodle-duel', room),
+      data: {
+        drawing: Math.min(this.drawingIdx + 1, DRAWINGS_PER_GAME),
+        drawer: this.players.get(this.drawerId)?.name ?? null,
+        strokes: packStrokes(this.strokes),
+        prompt: revealed ? this.prompt : null,
+        top: [...this.players.values()]
+          .sort((a, b) => b.score - a.score).slice(0, 3)
+          .map((p) => ({ n: p.name, s: p.score })),
+      },
+    };
   }
 
   snapshot(pid: string): DoodleSnapshot {

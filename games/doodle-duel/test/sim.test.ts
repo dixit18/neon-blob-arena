@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   DoodleSim, PROMPTS, DRAWINGS_PER_GAME, MAX_STROKES, MAX_PTS, unpackStrokes,
 } from '../sim.js';
+import { assertArtifact } from '../../../packages/share/src/index.js';
 
 const TICK = 50;
 function withHumans(n = 2): DoodleSim {
@@ -230,5 +231,19 @@ describe('doodle sim', () => {
     s.players.get(g)!.streak = 3;
     endDraw(s);
     assert.equal(s.players.get(g)!.streak, 0);
+  });
+
+  it('moment shares the drawing but never the prompt mid-draw', () => {
+    const s = withHumans();
+    untilDraw(s);
+    s.stroke(s.drawerId, 0, [{ x: 10, y: 10 }, { x: 20, y: 20 }], true);
+    const mid = s.moment('ABCD', 'https://x.test');
+    assert.deepEqual(assertArtifact(mid), []);
+    assert.equal(mid.kind, 'ReplayMoment');
+    assert.equal((mid.data as { prompt: unknown }).prompt, null);
+    assert.ok((mid.data as { strokes: unknown[] }).strokes.length > 0);
+    endDraw(s);
+    const open = s.moment('ABCD', 'https://x.test');
+    assert.equal((open.data as { prompt: unknown }).prompt, s.prompt);
   });
 });
