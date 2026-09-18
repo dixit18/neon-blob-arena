@@ -2,6 +2,7 @@
 // Stylized parametric board (superellipse 52-loop + 4 home lanes + bases +
 // center crown) — readable at 360px, no asset weight. ROLL paints same-tick;
 // option tokens pulse and are tappable. Keyboard: Space = roll, 1-4 = pick.
+import { t } from '../strings.js';
 export interface MountCtx { server: string; game: string; room: string; name: string }
 
 type Snap = {
@@ -60,11 +61,11 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   el.appendChild(css);
   const box = document.createElement('div');
   box.id = 'ld';
-  box.innerHTML = '<div id="ldStat">connecting…</div>'
-    + '<canvas id="ldCv" width="600" height="600" aria-label="Ludo board"></canvas>'
+  box.innerHTML = `<div id="ldStat">${t('game.connecting')}</div>`
+    + `<canvas id="ldCv" width="600" height="600" aria-label="${t('ld.aria')}"></canvas>`
     + '<div class="hud"><span class="pill" id="ldTurn">🎲 —</span><span class="pill" id="ldDice">⚄ —</span>'
-    + '<span class="pill" id="ldYou">you 0/4</span></div>'
-    + '<div class="row"><button id="ldRoll" disabled>ROLL</button></div>'
+    + `<span class="pill" id="ldYou">${t('ld.you', { f: '0', s: '0' })}</span></div>`
+    + `<div class="row"><button id="ldRoll" disabled>${t('ld.roll')}</button></div>`
     + '<div id="ldFeed"></div>';
   el.appendChild(box);
 
@@ -96,7 +97,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
   function doRoll(): void {
     if (rollBtn.disabled) return;
     rollBtn.disabled = true; // same-tick paint: no double-roll
-    say('rolling…');
+    say(t('ld.rolling'));
     send('input', { dx: 0, dy: 0, fire: true });
   }
   rollBtn.addEventListener('click', doRoll);
@@ -117,7 +118,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     for (const h of hot) {
       if (Math.hypot(px - h.x, py - h.y) < 34) {
         send('answer', { i: h.i }); // same-tick: tap paints via next snap
-        say('moving…');
+        say(t('ld.moving'));
         break;
       }
     }
@@ -189,21 +190,23 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
         g.stroke();
       });
     });
-    turnP.textContent = turn ? `🎲 ${turn.name}${turn.you ? ' (you)' : ''} · ${Math.ceil(turn.endsInMs / 1000)}s` : '🎲 —';
-    diceP.textContent = turn && turn.dice > 0 ? `⚄ ${turn.dice}` : '⚄ —';
-    youP.textContent = `you ${snap.you.finished}/4 · ${snap.you.score}`;
+    turnP.textContent = turn
+      ? t('ld.turn', { n: turn.name, you: turn.you ? t('ld.turnYou') : '', s: String(Math.ceil(turn.endsInMs / 1000)) })
+      : '🎲 —';
+    diceP.textContent = turn && turn.dice > 0 ? t('ld.dice', { d: String(turn.dice) }) : t('ld.diceNone');
+    youP.textContent = t('ld.you', { f: String(snap.you.finished), s: String(snap.you.score) });
     feed.textContent = snap.feed.join(' · ');
     rollBtn.disabled = !(turn && turn.you && turn.canRoll);
     if (snap.phase === 'play' && turn) {
-      if (turn.you && turn.canRoll) say('your roll — tap ROLL!');
-      else if (turn.you) say('pick a glowing token!');
-      else say(`${turn.name} is thinking…`);
-    } else if (snap.phase === 'final') say('game over — fresh table in a few seconds');
+      if (turn.you && turn.canRoll) say(t('ld.yourRoll'));
+      else if (turn.you) say(t('ld.pick'));
+      else say(t('ld.thinking', { n: turn.name }));
+    } else if (snap.phase === 'final') say(t('ld.final'));
   }
 
   function connect(): void {
     if (closed) return;
-    say(retry === 0 ? 'connecting…' : `reconnecting… (try ${retry + 1})`);
+    say(retry === 0 ? t('game.connecting') : t('game.reconnecting', { n: String(retry + 1) }));
     const q = `game=ludo-clash&room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(ctx.name)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
     ws = new WebSocket(`${ctx.server}?${q}`);
     ws.onopen = () => { retry = 0; };
@@ -215,7 +218,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
         if (p.t === 'hello') {
           if (p.token) token = p.token;
           if (p.room) roomId = p.room;
-          say('seated — waiting for the table…');
+          say(t('ld.seated'));
         }
       } else if (m.type === 'snapshot') {
         const p = m.payload as Snap;
@@ -225,7 +228,7 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     ws.onclose = () => {
       if (closed) return;
       retry++;
-      say('dropped — rejoining in 1.5s…');
+      say(t('game.dropped'));
       setTimeout(connect, 1500);
     };
     ws.onerror = () => { try { ws?.close(); } catch { /* gone */ } };

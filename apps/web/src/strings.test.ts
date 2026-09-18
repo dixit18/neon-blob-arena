@@ -34,4 +34,12 @@ describe('strings', () => {
       assert.ok(!low.includes(b), `content leak: ${b}`);
     }
   });
+
+  it('every game client owns keys (GB-4b: none left behind)', () => {
+    const prefixes = ['rr.', 'dd.', 'bz.', 'nr.', 'ld.', 'rm.', 'gl.', 'sg.', 'tt.', 'rs.', 'game.', 'game3d.'];
+    for (const p of prefixes) {
+      const n = enKeys().filter((k) => k.startsWith(p)).length;
+      assert.ok(n >= 2, `prefix ${p} thin: ${n}`);
+    }
+  });
 });

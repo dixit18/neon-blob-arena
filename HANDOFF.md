@@ -223,10 +223,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 9 GLOBAL HARDENING SHIPPED: GB-1 soak + GB-2 audit (12/12) + GB-3
-  budgets + GB-4 Hindi shell (?lang= proven) + GB-5 report path (live 201)
-  + GB-6 gates (BROWSER GREEN, bundles hold, 431/431). All 10 games live,
-  release UNBLOCKED pending user hands. Open: GB-4b, GB-5b.
+- GB-4b PER-GAME HINDI (in progress, Leo): common game-chrome keys once +
+  per-game keys, all 10 clients wired, prefix-parity tests; English copy
+  byte-identical.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. GB-4b per-game Hindi + GB-5b per-client mutes (Leo) — Phase 2, no gate.
