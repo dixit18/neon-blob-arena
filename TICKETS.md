@@ -6,6 +6,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
+- Sprint 5 GHOSTLINE — Owner: Zara (sim/bots) + Leo (share/client) +
+  Riya (e2e) + Kai (wire-up). Status: GH-1 in progress. Design: async
+  flick time-trial — one seeded course per run, everyone flicks the same
+  layout, fewest shots wins; solo-playable (MIN_START 1), ghost bots from
+  GH-2, GhostChallenge link carries the exact seed + author replay.
 - RD-1 RIFT DIVE 3D flagship — Owner: Leo + Mira + Riya. Accept: lazy
   post-paint upgrade, 2D fallback intact, shell ≤60KB, own chunk ≤25KB,
   vista share, portals for all 5 games. Status: SHIPPED (D13, build green
@@ -28,6 +33,25 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [LZ-4] Saga gates — DONE (web build green, shell 31.63KB ≤60KB, dive
   25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
+
+## Open (prioritized) — Sprint 5 GHOSTLINE (pull in order, Rule 14)
+- [GH-1] Sim — DONE (seeded course + fixed-step flick physics + replay core;
+  19/19 green incl. 100-seed bit-identical reproduce, snapshot ≤2KB).
+  Owner: Zara.
+- [GH-2] Bots + driver: ghost-tier bot table — Owner: Zara. Accept: instant
+  table (solo gets 7 labelled 🤖 ghosts), sharps finish in fewer shots,
+  human flick flow intact; driver on the RoomDriver seam; ≥7 tests.
+- [GH-3] Share: GhostChallenge (seed + author replay) — Owner: Leo + Zara.
+  Accept: `?game=ghostline&room=&seed=` re-entry URL, payload ≤20KB via
+  `assertArtifact`, honest mid-game state.
+- [GH-4] Client: canvas course + flick — Owner: Leo. Accept: course + pucks
+  render, drag-to-flick same-tick, ghost trails, 360px clean, chunk ≤250KB;
+  mounts at `apps/web/src/games/ghostline.ts`.
+- [GH-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green over real sockets; snapshot p95 ≤2KB; replay-link seed reproduces the
+  author's course; receipts in chat. Blocks release if red.
+- [GH-6] Wire-up: manifest + register — Owner: Kai. Accept: `ghostline`
+  already in `/catalog`; `?game=ghostline&room=` plays (refusal dead).
 
 ## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
 - [RT-1] Sim — DONE (24/24 green).

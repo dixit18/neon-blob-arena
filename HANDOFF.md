@@ -223,10 +223,9 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SG-1 STORY ZOOM COMPLETE: LZ-1..LZ-4 SHIPPED (saga chapters, procgen core,
-  motif weather, cinematic 3D, cliffhanger + chapter share, gates green:
-  30/30 web tests, BROWSER GREEN, shell 31.63KB / dive 25.14KB).
-  Tracker: `SUGGESTIONS.md`.
+- Sprint 5 GHOSTLINE: GH-1 SHIPPED (seeded flick sim + replay core, 19/19
+  incl. 100-seed reproduce, snapshot ≤2KB, 298/298 suite). Pulling GH-2
+  (ghost driver + bot table) same turn. Tracker: TICKETS.md.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
