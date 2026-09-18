@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   LineSim, createCourse, simulate, runReplay, MAX_SHOTS, MIN_START,
-  LOBBY_COUNTDOWN_MS, FINAL_MS, START, GOAL, REST_EPS, FIELD_W,
+  LOBBY_COUNTDOWN_MS, FINAL_MS, IDLE_MS, START, GOAL, REST_EPS, FIELD_W,
   type Course,
 } from '../sim.js';
 import { assertArtifact } from '../../../packages/share/src/index.js';
@@ -206,8 +206,16 @@ describe('ghostline sim', () => {
     assert.equal(s.snapshot('a').you.best, 1);
   });
 
-  it('feed never grows past 3 lines', () => {
+  it('untouched lines nap out after IDLE_MS and end the run', () => {
     const s = solo();
+    s.step(IDLE_MS + 1000);
+    const p = s.players.get('a')!;
+    assert.equal(p.exhausted, true);
+    assert.ok(s.feed.join(' ').includes('naps it out'));
+    assert.equal(s.phase, 'final'); // solo nap still closes the run
+  });
+
+  it('feed never grows past 3 lines', () => {    const s = solo();
     for (let i = 0; i < 10; i++) {
       s.flick('a', 0, 0.1);
       stepRest(s);

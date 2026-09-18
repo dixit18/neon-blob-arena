@@ -223,9 +223,10 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 5 GHOSTLINE: GH-1 SHIPPED (seeded flick sim + replay core, 19/19
-  incl. 100-seed reproduce, snapshot ≤2KB, 298/298 suite). Pulling GH-2
-  (ghost driver + bot table) same turn. Tracker: TICKETS.md.
+- Sprint 5 GHOSTLINE: GH-1 SHIPPED (flick sim + replay core) + GH-2 SHIPPED
+  (ghost driver: instant table of 8, rehearsal brain, sharp/casual tiers,
+  idle nap; 307/307 suite, tsc clean). Pulling GH-3 (GhostChallenge share
+  proof) same turn — small: trail payload + mid-game honesty tests.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —

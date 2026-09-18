@@ -23,6 +23,7 @@ export const WALL_COUNT = 6;
 export const MIN_START = 1;
 export const LOBBY_COUNTDOWN_MS = 1500;
 export const FINAL_MS = 8000;
+export const IDLE_MS = 30_000; // an untouched line naps out — no AFK stalls the run
 const TRAIL_EVERY = 6; // record a ghost point every N substeps (20Hz)
 const TRAIL_CAP = 4000;
 
@@ -104,9 +105,11 @@ function bounceCircleBox(
   }
 }
 
-/** Pure replay: run flicks against a course. Ghosts, links and tests use this. */
-export function simulate(course: Course, flicks: Flick[], wantTrail = false): RunResult {
-  const p = { x: START.x, y: START.y, vx: 0, vy: 0 };
+/** Pure rollout: run flicks against a course from any start point. */
+export function rollOut(
+  course: Course, from: { x: number; y: number }, flicks: Flick[], wantTrail = false,
+): RunResult {
+  const p = { x: from.x, y: from.y, vx: 0, vy: 0 };
   const trail: [number, number][] = [];
   let timeMs = 0;
   let finished = false;
@@ -146,6 +149,11 @@ export function simulate(course: Course, flicks: Flick[], wantTrail = false): Ru
   return { x: p.x, y: p.y, shots: used, timeMs, finished, trail };
 }
 
+/** Pure replay from the starting tee. Ghosts, links and tests use this. */
+export function simulate(course: Course, flicks: Flick[], wantTrail = false): RunResult {
+  return rollOut(course, START, flicks, wantTrail);
+}
+
 /** Replay a recorded run: seed + flicks → the exact result, or null. */
 export function runReplay(rep: { seed: number; flicks: Flick[] }): RunResult | null {
   if (!Number.isInteger(rep.seed)) return null;
@@ -158,6 +166,7 @@ export interface LinePlayer {
   x: number; y: number; vx: number; vy: number;
   shots: number; timeMs: number; finished: boolean; exhausted: boolean;
   flicks: Flick[];
+  lastAct: number; // sim-time of the last flick (idle lines nap out)
   best: number | null; // fewest finishing shots, all runs
 }
 
@@ -199,7 +208,7 @@ export class LineSim {
       id, name, isBot,
       x: START.x, y: START.y, vx: 0, vy: 0,
       shots: 0, timeMs: 0, finished: false, exhausted: false,
-      flicks: [], best: null,
+      flicks: [], lastAct: this.time, best: null,
     });
     this.order.push(id);
     if (this.phase === 'lobby' && this.phaseUntil === 0 && this.order.length >= MIN_START) {
@@ -230,6 +239,7 @@ export class LineSim {
     if (p.shots >= MAX_SHOTS) return false;
     p.flicks.push({ angle, power });
     p.shots++;
+    p.lastAct = this.time;
     p.vx = Math.cos(angle) * power * MAX_V;
     p.vy = Math.sin(angle) * power * MAX_V;
     return true;
@@ -254,6 +264,7 @@ export class LineSim {
       p.shots = 0; p.timeMs = 0;
       p.finished = false; p.exhausted = false;
       p.flicks = [];
+      p.lastAct = this.time;
     }
     this.phase = 'run';
     this.phaseUntil = 0; // the run ends when every line is done, not on a clock
@@ -319,7 +330,16 @@ export class LineSim {
         this.phaseUntil = this.time + LOBBY_COUNTDOWN_MS;
       }
     } else if (this.phase === 'run') {
-      for (const id of this.order) this.stepPuck(this.players.get(id)!, dtMs);
+      for (const id of this.order) {
+        const p = this.players.get(id)!;
+        // Idle lines nap out: an AFK seat scores what it has and stops the stall.
+        if (!p.finished && !p.exhausted && Math.hypot(p.vx, p.vy) < REST_EPS
+          && this.time - p.lastAct > IDLE_MS) {
+          p.exhausted = true;
+          this.pushFeed(`💤 ${p.name} naps it out!`);
+        }
+        this.stepPuck(p, dtMs);
+      }
       if (this.allDone()) this.doFinal();
     } else if (this.phase === 'final') {
       if (this.time >= this.phaseUntil) {

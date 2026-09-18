@@ -38,9 +38,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GH-1] Sim — DONE (seeded course + fixed-step flick physics + replay core;
   19/19 green incl. 100-seed bit-identical reproduce, snapshot ≤2KB).
   Owner: Zara.
-- [GH-2] Bots + driver: ghost-tier bot table — Owner: Zara. Accept: instant
-  table (solo gets 7 labelled 🤖 ghosts), sharps finish in fewer shots,
-  human flick flow intact; driver on the RoomDriver seam; ≥7 tests.
+- [GH-2] Bots + driver — DONE (instant table of 8 labelled ghosts, goal-
+  directed rehearsal brain with sharp/casual tiers + flubs, human `input`
+  transport, 30s idle nap; 8/8 driver tests, 307/307 suite). Owner: Zara.
 - [GH-3] Share: GhostChallenge (seed + author replay) — Owner: Leo + Zara.
   Accept: `?game=ghostline&room=&seed=` re-entry URL, payload ≤20KB via
   `assertArtifact`, honest mid-game state.
