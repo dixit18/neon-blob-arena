@@ -997,3 +997,17 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Vikram:** 1 catch, structural: my own SI-6 overtook the integration refusal example (second roll-forward) — killed the tax permanently: refusal example is now cut-content `portal-rush`, never to be wired. Full suite 350/350, both tsc clean, web build green (shell 31.81KB).
 **Aarav:** Sprint 6 SHIPPED — 8th playable game. Next: Sprint 7 TOTEM PANIC slicing (Devika).
 **Kai:** Committing. Tree 14 ahead — push is the user's hands.
+
+## 2026-09-18 — TP-1..TP-6 SHIPPED: TOTEM PANIC PLAYABLE (Sprint 7 done)
+**Aarav:** Sprint 7 cut: TOTEM PANIC, verb DROP. Orthodox version refused: physics-engine tower (nondeterministic, untestable) and solo stacking zen (no party, no share). New law: co-op seeded tower — one drop order, round-robin hands, slip + lean topples, 10 + 3s hold raises, placements ARE the replay.
+**Devika:** TP-1..TP-6 sliced (sim → hands/driver → replay share → client → e2e → wire-up). Party game from day one (MIN_START 2, bots backfill).
+**Rehan (counter, signed):** co-op griefing — a troll slips on purpose and the table groans. Bound: turns rotate (grief throttled to 1 in N), timeout auto-places, bots steady the table; kick arrives with the safety ticket (UX-011 pattern), not this sprint. Second: "2s collapse replay" — our replay is a placement log, not video. Bound stated openly: ReplayMoment re-simulates exactly (proven), the client animates it; no video bytes anywhere.
+**Zara (TP-1):** `games/totem-panic/sim.ts` — seeded widths, overlap-slip + COM-lean topple, hold-to-raise, turn timeouts, spectate-to-next-run, ghost reclaim (Sprint 7 reconnect clause), exact `reSim`.
+**Vikram:** 3 catches: 1) live kept the slipped block, `reSim` dropped it — aligned to live truth. 2) test `raise` helper assumed an empty tower + 2-name turns — hung the 10-player case (infinite loop, caught by timeout); fixed via name-resolved turns. 3) full suite 381/382 — riot-e2e still used totem-panic as refusal example; rolled to cut-content portal-rush alongside integration's (tax dead class-wide).
+**Zara (TP-2):** steady hands — legal-window clamp (bots never slip, stated), sharps ±8, casuals breathe + edge-flirt, 2-5s pacing, party of 4.
+**Leo + Zara (TP-3):** ReplayMoment proof — re-entry URL, exact re-sim match, honest mid-run.
+**Leo (TP-4):** tower client — tap/arrow placement, aim ghost, lean meter, queue preview, spectate banner. Build green, 5.48KB.
+**Kai (TP-6):** registered, refusal dead.
+**Riya (TP-5 receipts):** 6/6 e2e — hello/stream, instant crew, drop lands live, garbage + reclaim survival, wire p95 ≤1.5KB (tight DoD held), steady raise crowns in ~62s. Release UNBLOCKED. Full suite 382/382, both tsc clean, web build green (shell 31.90KB).
+**Aarav:** Sprint 7 SHIPPED — 9th playable game. Next: Sprint 8 RICOCHET SIEGE slicing (Devika).
+**Kai:** Committing. Tree 16 ahead — push is the user's hands.

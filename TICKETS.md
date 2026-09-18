@@ -7,11 +7,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
 ## Doing (this cycle)
 - Sprint 7 TOTEM PANIC — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: TP-1 in progress. Design: co-op
-  tower — one seeded drop order per run, round-robin placements, overlap +
-  lean topple model, 10 levels + 3s hold wins; collapse (or win) becomes a
-  2s ReplayMoment; late joiners spectate to the next run, leavers ghost
-  and reclaim their seat.
+  Riya (e2e) + Kai (wire-up). Status: SHIPPED (TP-1..TP-6, 9th playable
+  game; 6/6 e2e, 382/382 suite, web build green, totem chunk 5.48KB).
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -50,11 +47,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [TP-4] Client — DONE (canvas tower + tap/arrow placement, aim ghost,
   lean meter, queue preview, spectate banner; build green, 5.48KB chunk;
   live proof rides TP-5). Owner: Leo.
-- [TP-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
-  green over real sockets; snapshot p95 ≤1.5KB; receipts in chat. Blocks
-  release if red.
-- [TP-6] Wire-up: manifest + register — Owner: Kai. Accept: `totem-panic`
-  in `/catalog` (already listed); `?game=totem-panic&room=` plays.
+- [TP-5] E2E — DONE (6/6 over real sockets: hello/stream, instant crew,
+  drop lands, garbage+reclaim survival, p95 ≤1.5KB, steady raise crowns;
+  release UNBLOCKED). Owner: Riya.
+- [TP-6] Wire-up — DONE (`totem-panic` registered, refusal dead). Owner: Kai.
 
 ## Open (prioritized) — Sprint 6 SIGNAL SEVEN (SHIPPED — see Done section)
 - [SI-1] Sim — DONE (UTC-day mystery engine + brute-force solver; all 365

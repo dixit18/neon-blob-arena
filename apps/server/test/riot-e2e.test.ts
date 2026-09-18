@@ -183,7 +183,9 @@ describe('riot e2e', () => {
     assert.equal(s.t, 'riot');
     ws.close();
     await new Promise<void>((resolve, reject) => {
-      const g = new WebSocket(`${wsBase}?game=totem-panic&name=X`);
+      // portal-rush is CUT content, never wired — the stable refusal
+      // example (totem-panic held this spot until TP-6).
+      const g = new WebSocket(`${wsBase}?game=portal-rush&name=X`);
       const to = setTimeout(() => reject(new Error('no refusal')), 8000);
       g.on('message', (d) => {
         try {
