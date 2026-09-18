@@ -1050,3 +1050,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Rehan (counter, signed):** report-without-moderation is a write-only void — ACCEPTED with bounds (200-entry log + analytics event make it readable off-box; triage UI is a later ticket, not this one). Mute-without-enforcement is half a shield — answered by GB-5b, not silence.
 **Aarav:** GB-5 DONE → GB-6 gates rollup next (last slice before release cutover).
 **Kai:** Committing. Tree 30 ahead — push is the user's hands.
+
+## 2026-09-18 — GB-6 SHIPPED: release gates green, Sprint 9 done
+**Riya (GB-6 receipts):** stock browser gate on the fully hardened stack — edge landing 7/7 + 228KB paint, nitro room 3/3 + 407KB, 360px paint 218KB, firefox both pages non-blank. BROWSER GREEN (server genuinely up, preview 200 — the anti-theater rule held). Bundles: shell 40.9KB ≤60KB, dive 24.5KB ≤26KB, games 5.2–9.5KB each, report lazy 4.2KB (rooms only), employees lazy 8.4KB (hidden). Full suite 431/431, both tsc clean.
+**Aarav:** composition argument, stated openly: the stock gate proves shell + paint on two engines; all 10 rooms are proven LIVE by their e2e (hello → play → final over real sockets); all 10 shares proven by the audit gate. No single gate covers everything; together they cover everything shippable headlessly. Remaining truth is human-hands: phone checks, 2h soak, UptimeRobot.
+**Vikram:** no new flaws. One correction: GB-1's ticket still read "in progress" after its commit — fixed in this pass (process hygiene, not product).
+**Rehan (counter, signed):** "release UNBLOCKED" overclaims while pushes sit 31 ahead and Render hasn't rebuilt — BOUND ACCEPTED: code-release unblocked (all gates green); production release waits on user hands (push + deploy watch + pinger), listed in Next up, not buried.
+**Aarav:** Sprint 9 GLOBAL HARDENING SHIPPED. The board: GB-4b + GB-5b (Phase 2, no gate), then Devika cuts Sprint 10 from MARKET + telemetry.
+**Kai:** Committing. Tree 31 ahead — push is the user's hands.

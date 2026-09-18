@@ -223,15 +223,17 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 9 GLOBAL HARDENING: GB-1..GB-5 SHIPPED (soak, audit, budgets,
-  Hindi shell, report path: endpoint + shared bar + mute list, 3/3 tests,
-  live bar + 201 proven). Next: GB-6 gates rollup (browser + bundles).
+- Sprint 9 GLOBAL HARDENING SHIPPED: GB-1 soak + GB-2 audit (12/12) + GB-3
+  budgets + GB-4 Hindi shell (?lang= proven) + GB-5 report path (live 201)
+  + GB-6 gates (BROWSER GREEN, bundles hold, 431/431). All 10 games live,
+  release UNBLOCKED pending user hands. Open: GB-4b, GB-5b.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. GB-6 gates rollup (Riya): 10-game browser gate + bundle budgets, then
-   release cutover.
-2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 30 ahead).
+1. GB-4b per-game Hindi + GB-5b per-client mutes (Leo) — Phase 2, no gate.
+2. Sprint 10 / north-star WAPS — Devika cuts the next sprint from MARKET +
+   telemetry; crew pulls on sight.
+3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
+   phone checks + `git push` (tree 31 ahead) + Render deploy watch.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

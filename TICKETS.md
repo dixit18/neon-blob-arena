@@ -6,10 +6,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- Sprint 9 GLOBAL HARDENING — Owner: Riya (gates) + all. Status: GB-1 in
-  progress. Scope per SPRINTS.md: 10-game soak, share-artifact audit,
-  snapshot budgets, Hindi strings table, device tiers, safety/report path.
-  Human-hands items (2h soak, device truth, UptimeRobot) stay user-side.
+- Sprint 9 GLOBAL HARDENING — Owner: Riya (gates) + all. Status: SHIPPED
+  (GB-1..GB-6: soak, audit, budgets, Hindi shell, report path, gates;
+  431/431 suite, BROWSER GREEN, bundles hold). Open follow-ups: GB-4b
+  (per-game Hindi), GB-5b (per-client mutes).
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -37,8 +37,8 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
 ## Open (prioritized) — Sprint 9 GLOBAL HARDENING (pull in order, Rule 14)
-- [GB-1] 10-game soak — Owner: Riya. Accept: soak covers all 10 live games
-  with valid chatter, 30/30, tickAvg <5ms, 0 unhandled. SOAK GREEN.
+- [GB-1] 10-game soak — DONE (all 10 games chatter; 30/30 @405/s, tickAvg
+  0.15ms, 0 unhandled. SOAK GREEN). Owner: Riya.
 - [GB-2] Share-artifact audit — DONE (doodle `moment()` added with
   mid-draw prompt gating; 12/12 audit gate: all 10 titles resolve to
   drivers + own valid catalog-kind artifacts). Owner: Leo + Zara.
@@ -60,9 +60,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GB-5b] Per-client mute enforcement — Owner: Leo. Accept: all 10 game
   clients honor isMuted() in feeds/taunts; headless test per client.
   Follow-up (bar + list ship in GB-5).
-- [GB-6] Release gates rollup — Owner: Riya. Accept: browser gate re-run on
-  the 10-game stack, bundle budget check (shell ≤60KB, chunks sane),
-  HANDOFF cutover to release. Blocks release if red.
+- [GB-6] Release gates rollup — DONE (BROWSER GREEN on hardened stack:
+  edge 7/7 + nitro 3/3 + 360px + firefox ×2; shell 40.9KB ≤60KB, dive
+  24.5KB ≤26KB, games ≤9.5KB, report lazy 4.2KB; 431/431 suite).
+  Owner: Riya.
 
 ## Open (prioritized) — Sprint 8 RICOCHET SIEGE (SHIPPED — see Done section)
 - [RS-1] Sim — DONE (sealed commits, fixed-step ricochet, HP/elimination,
