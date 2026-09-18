@@ -6,9 +6,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- Sprint 6 SIGNAL SEVEN — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: SHIPPED (SI-1..SI-6, 8th playable
-  game; 6/6 e2e, 350/350 suite, web build green, signal chunk 6.19KB).
+- Sprint 7 TOTEM PANIC — Owner: Zara (sim/bots) + Leo (share/client) +
+  Riya (e2e) + Kai (wire-up). Status: TP-1 in progress. Design: co-op
+  tower — one seeded drop order per run, round-robin placements, overlap +
+  lean topple model, 10 levels + 3s hold wins; collapse (or win) becomes a
+  2s ReplayMoment; late joiners spectate to the next run, leavers ghost
+  and reclaim their seat.
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -35,7 +38,26 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
-## Open (prioritized) — Sprint 6 SIGNAL SEVEN (pull in order, Rule 14)
+## Open (prioritized) — Sprint 7 TOTEM PANIC (pull in order, Rule 14)
+- [TP-1] Sim — DONE (seeded co-op tower, slip + lean topple, 10-level hold
+  win, auto-place turns, spectate + ghost reclaim, exact re-sim; 500 seeded
+  cases green, snapshot ≤1.5KB; 17/17). Owner: Zara.
+- [TP-2] Bots + driver: steady hands — Owner: Zara. Accept: tiered offset
+  noise (sharps hug center, casuals flirt with edges), labelled, backfill
+  to 4; driver on the RoomDriver seam; ≥7 tests.
+- [TP-3] Share: ReplayMoment (2s collapse/raise) — Owner: Leo + Zara.
+  Accept: placements replay + outcome + re-entry URL, asserts clean,
+  honest mid-run state.
+- [TP-4] Client: canvas tower + drop — Owner: Leo. Accept: tower + queue +
+  lean meter render, tap-to-place same-tick, spectate view, 360px clean,
+  chunk ≤250KB; mounts at `apps/web/src/games/totem-panic.ts`.
+- [TP-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green over real sockets; snapshot p95 ≤1.5KB; receipts in chat. Blocks
+  release if red.
+- [TP-6] Wire-up: manifest + register — Owner: Kai. Accept: `totem-panic`
+  in `/catalog` (already listed); `?game=totem-panic&room=` plays.
+
+## Open (prioritized) — Sprint 6 SIGNAL SEVEN (SHIPPED — see Done section)
 - [SI-1] Sim — DONE (UTC-day mystery engine + brute-force solver; all 365
   days of 2026 proven uniquely solvable; pip guesses, solo start, ≤2KB
   snapshots, spoiler-free grid core; 17/17 green). Owner: Zara.

@@ -223,11 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 6 SIGNAL SEVEN SHIPPED (8th playable game): SI-1 daily mystery +
-  solver (365-day proof), SI-2 solver-driven tablets + 60s idle close, SI-3
-  spoiler-free DailyGrid, SI-4 tablet client (6.19KB), SI-5 6/6 e2e, SI-6
-  wire-up. Receipts: 350/350 suite, both tsc clean, web build green
-  (shell 31.81KB). Tree 14 ahead of origin (push = user).
+- Sprint 7 TOTEM PANIC (in progress): Devika slicing TP-1..TP-6; Zara
+  pulling TP-1 sim (seeded co-op tower, topple model, replay core).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 7 TOTEM PANIC — Devika to slice TP-1..TP-6; crew pulls on sight.
