@@ -17,6 +17,18 @@ try {
   console.log('[phys] race-phys.wasm unavailable — TS mirror stepping');
 }
 
+// DV-2: Rust/WASM dive procgen staged at boot (DV-3 wires it into the
+// builders). Best-effort like race-phys: TS mirror is bit-identical.
+try {
+  const { readFile } = await import('node:fs/promises');
+  const { initDiveWasm, wasmReady } = await import('../../../apps/web/src/dive-wasm.js');
+  const bytes = await readFile('apps/server/assets/dive-procgen.wasm');
+  const ok = await initDiveWasm(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+  console.log(`[phys] dive-procgen.wasm ${ok && wasmReady() ? 'ACTIVE (Rust procgen staged)' : 'fallback (TS mirror)'}`);
+} catch {
+  console.log('[phys] dive-procgen.wasm unavailable — TS mirror procgen');
+}
+
 const app = createApp();
 
 setInterval(() => {

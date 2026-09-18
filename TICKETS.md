@@ -14,9 +14,10 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   softbox env, solids lit/faceted, era moods lap-0-identical; 13/13 layout
   tests, build green — dive 27,364B ≤27,648 amended openly; 3D-up proven
   live under SwiftShader, BROWSER GREEN on rerun). Owner: Mira + Leo.
-- [DV-2] Rust procgen crate — Owner: Zara. Accept: noise/fBm/Voronoi/
-  shard-layout in Rust, cargo green, 7+ parity vectors bit-identical
-  TS↔Rust, WASM-if-ready loader seam (NR-5 pattern).
+- [DV-2] Rust procgen crate — DONE (hash/noise/fBm/warp/Voronoi/shard/
+  scatter in Rust, cargo 6/6, 8/8 vectors bit-identical TS↔Rust, 26KB wasm
+  built + staged server/client, loader seam, 4/4 wasm-vs-mirror exact,
+  boot ACTIVE; 435/435 suite). Owner: Zara.
 - [DV-3] WASM into dive builders — Owner: Leo + Zara. Accept: Rust-laid
   shards/motif scatter with mirror fallback, lap-0 visual parity, build
   green, no shell growth.

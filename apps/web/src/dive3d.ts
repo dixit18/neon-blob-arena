@@ -10,7 +10,7 @@
 // reduced motion). DPR governor + hidden-tab pause + zero per-frame alloc.
 import { type World } from './descent.js';
 import { chaptersOf, sagaIndex } from './sagas.js';
-import { makeNoise2D, fbm, hashSeed, lsystem } from './procgen.js';
+import { makeNoise2D, fbm, hashSeed, lsystem, scatterPoints } from './procgen.js';
 import {
   shouldUse3D, layoutLap, facedWorld, WORLD_GAP, RING_EVERY,
   layoutShards, stepShard, smoothApproach, portalHit, steerTarget,
@@ -544,12 +544,7 @@ export async function startDive3D(oldCv: HTMLCanvasElement, opts: Dive3DOpts = {
     const mseed = hashSeed(`${world.name}|${motif}|${seed}`);
     const mr = mulberry(mseed);
     const scatter = (n: number, color: number, size: number, sx: number, sy: number, sz: number, y0: number): void => {
-      const pp = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) {
-        pp[i * 3] = (mr() - 0.5) * sx;
-        pp[i * 3 + 1] = y0 + mr() * sy;
-        pp[i * 3 + 2] = (mr() - 0.5) * sz;
-      }
+      const pp = new Float32Array(scatterPoints(mr, n, sx, sy, sz, y0));
       const gg = new T.BufferGeometry();
       gg.setAttribute('position', new T.BufferAttribute(pp, 3));
       const pts = new T.Points(gg, new T.PointsMaterial({ color, size, transparent: true, opacity: 0.85, depthWrite: false }));

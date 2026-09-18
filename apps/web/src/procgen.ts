@@ -92,6 +92,20 @@ export function warpedBands(
 
 export interface Voronoi { f1: number; f2: number; edge: number; cellX: number; cellY: number }
 
+/**
+ * Motif scatter points (DV-2 authority, mirrored in Rust): n points in a
+ * (sx × sy × sz) box standing on y0, drawn from rand in x,y,z order.
+ * Returns f64s — the renderer quantizes to Float32 identically either way.
+ */
+export function scatterPoints(
+  rand: () => number, n: number, sx: number, sy: number, sz: number, y0: number,
+): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) {
+    out.push((rand() - 0.5) * sx, y0 + rand() * sy, (rand() - 0.5) * sz);
+  }
+  return out;
+}
 /** Jittered-grid Voronoi (F1/F2 + edge distance) — cracks, shells, columns. */
 export function voronoi(x: number, y: number, seed: number): Voronoi {
   const cx = Math.floor(x);

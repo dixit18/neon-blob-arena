@@ -1,0 +1,10 @@
+[package]
+name = "dive-procgen"
+version = "0.1.0"
+edition = "2021"
+description = "Rift Dive procedural core — Rust mirror of apps/web/src/procgen.ts + dive layout math (DV-2)"
+license = "MIT"
+
+[lib]
+name = "dive_procgen"
+crate-type = ["cdylib", "rlib"]

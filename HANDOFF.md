@@ -223,9 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- ROOM-LITE SHIPPED: rooms boot zero world (gated descent/3D/rift/saga);
-  eyes confirm pure-game rooms + healthy landing. Next: DV-2 rust procgen
-  (or user eyeballs first).
+- DV-2 SHIPPED: dive-procgen crate + 8/8 parity + loader + boot ACTIVE
+  (435/435). Next: DV-3 wasm into dive builders.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. DV-2 rust procgen → DV-3 wasm dive → DV-4 epic line.

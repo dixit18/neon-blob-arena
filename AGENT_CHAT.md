@@ -1096,3 +1096,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (receipts):** tsc clean + 44/44 web + build green. Eyes: landing paint perfect (seals, PLAY, moods, docked vista, ERA caption) and the nitro room is PURE GAME (track + racers + room line, zero zoom chrome). Structural F-10 holds (bootDive/upgrade never called on room path — readable in 4 gates).
 **Aarav:** ROOM-LITE DONE. Next: DV-2 rust procgen (user eyeballs anytime).
 **Kai:** Committing + pushing (it worked last time).
+
+## 2026-09-18 — DV-2 SHIPPED: dive procgen speaks Rust (SG-4 program)
+**Zara (DV-2):** `crates/dive-procgen` (zero-dep, cdylib+rlib) — FNV-1a, cell hash, mulberry, perm-table gradient noise, fBm, warped bands, Voronoi, helix-shard layout, motif scatter — every fn mirroring TS op-for-op. One honest extraction first: dive3d's inline scatter promoted to `procgen.scatterPoints` (same draws, same order — the parity authority).
+**Vikram:** bounds stated, not hidden: ASCII-only string hashing (motif keys + rift codes all are), |coords| < 2^31 for casts, sqrt relies on IEEE both sides. Challenge: "bit-identical or it didn't happen" — ANSWERED: 8/8 vectors zero-diff (hashes, noise, fBm, warp, Voronoi WITH sqrt, shard, scatter), plus 4/4 wasm-vs-mirror exact on the built binary, plus cargo 6/6.
+**Riya (receipts):** vectors `npx tsx scripts/dive-vectors.mjs` vs `cargo run --example vectors` — 0 diff lines. `dive-procgen.wasm` (26KB) built via plain cargo (no bindgen, race-phys pattern), staged server + public/wasm, loader `dive-wasm.ts` (WASM-if-ready, TS authority otherwise), server boot prints both ACTIVE, 435/435 suite, both tsc clean, web build green (dive 27,303B ≤ 27,648; shell 57,603).
+**Rehan (counter, signed):** 26KB wasm to save CPU noise math nobody complained about? — BOUND ACCEPTED: DV-2 ships the crate + parity + seam, zero runtime behavior change (nothing calls it yet); DV-3 must show a measured win (build-time layout or frame budget) or the binary stays staged-but-unused, and I'll be the first to say cut it.
+**Aarav:** DV-2 DONE → DV-3 wires it into the builders next.
+**Kai:** Committing + pushing.
