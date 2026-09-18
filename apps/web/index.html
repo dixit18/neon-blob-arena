@@ -6,6 +6,9 @@
 <title>Playground — poke something</title>
 <meta name="description" content="The URL you send when the group chat says: what should we do? Instant multiplayer rooms, no signup." />
 <meta name="theme-color" content="#070708" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800;900&display=swap" rel="stylesheet" />
 <style>
   :root {
     --void:#070708; --bone:#F2EDE3; --ink:#070708; --lime:#C6F135; --mag:#FF3D8A;
@@ -48,8 +51,7 @@
   #diveWrap canvas { width:100% !important; height:100% !important; border:none !important; border-radius:0 !important; }
   #float { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:34px 18px 70px; pointer-events:none; }
   #float .kicker, #float h1, #float .sub { pointer-events:none; }
-  #float h1 { font-size:clamp(34px, 7vw, 54px); }
-  #faceBar { pointer-events:auto; display:flex; gap:10px; align-items:center; margin-bottom:12px;
+  #float h1 { font-size:clamp(29px, 7vw, 54px); }  #faceBar { pointer-events:auto; display:flex; gap:10px; align-items:center; margin-bottom:12px;
     background:var(--card); backdrop-filter:blur(12px); border:2px solid rgba(198,241,53,.5);
     border-radius:18px; padding:12px 12px 12px 16px; box-shadow:0 8px 40px rgba(0,0,0,.5); }
   #faceBar b { flex:1; font-size:15px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -58,7 +60,7 @@
     box-shadow:0 6px 30px rgba(198,241,53,.4); transition:transform .1s ease; }
   #faceBar button:hover { transform:translateY(-2px) scale(1.02); }
   #faceBar button:active { transform:scale(.96); }
-  .kicker { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.18em; color:var(--ink);
+  .kicker { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.12em; color:var(--ink);
     background:var(--lime); border-radius:999px; padding:6px 14px; margin-bottom:14px;
     box-shadow:0 0 24px rgba(198,241,53,.45); }
   h1 { font-size:clamp(44px, 10vw, 76px); line-height:.98; letter-spacing:-.02em; margin-bottom:12px;
@@ -100,6 +102,32 @@
   #roomview { display:none; }
   #roomview.on { display:block; }
   #mount { margin-top:14px; }
+  /* ART-1 de-slop (SG-5, referenced): display type as hero, sticker grammar
+     (keylines + hard offset shadows + press physics), film grain over the
+     frame. Later rules win ties — these override the generic layer above. */
+  h1 { font-family:'Unbounded',system-ui,'Segoe UI',Roboto,sans-serif; font-weight:800; letter-spacing:-.01em; }
+  .kicker { transform:rotate(-2deg); border:2px solid #070708; box-shadow:4px 4px 0 #070708; font-family:'Unbounded',system-ui,sans-serif; font-size:11px; }
+  #faceBar { box-shadow:6px 6px 0 rgba(0,0,0,.85); }
+  #faceBar button { box-shadow:4px 4px 0 #070708; font-family:'Unbounded',system-ui,sans-serif; }
+  #faceBar button:active { transform:translate(2px,2px); box-shadow:2px 2px 0 #070708; }
+  .moods button { font-family:'Unbounded',system-ui,sans-serif; font-size:13px; }
+  .moods button.on { box-shadow:4px 4px 0 #070708; }
+  #play { font-family:'Unbounded',system-ui,sans-serif; background:#C6F135; box-shadow:4px 4px 0 #070708; }
+  #play:active { transform:translate(2px,2px); box-shadow:2px 2px 0 #070708; }
+  #sagaTabs button { font-family:'Unbounded',system-ui,sans-serif; }
+  #finale button { box-shadow:3px 3px 0 #070708 !important; }
+  #grain { position:fixed; inset:0; z-index:3; pointer-events:none; opacity:.07;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="160" height="160" filter="url(%23n)" opacity="0.6"/></svg>'); }
+  @media (max-width:420px) { .kicker { transform:rotate(-1deg); } }
+  @media (max-width:420px) {
+    /* NOTE: selectors must beat #float h1 (1,0,1) — bare h1 loses. */
+    #float h1 { font-size:clamp(29px,9vw,40px); }
+    .kicker { font-size:9px; letter-spacing:.08em; transform:none; }
+    #faceBar button { padding:12px 14px; font-size:14px; }
+    #faceBar b { font-size:14px; }
+    .moods button { font-size:13px; padding:14px 8px; }
+  }
+  @media (prefers-reduced-motion:reduce) { .kicker { transform:none; } }
   /* DDV-2: the panel docks to the bottom so the vista breathes — the right
      corner stays open tunnel, PLAY stays primary and always in reach. */
   #float { display:flex; flex-direction:column; justify-content:flex-end; min-height:100dvh; }
@@ -112,6 +140,7 @@
 <body>
 <canvas id="riftCv" aria-hidden="true"></canvas>
 <div id="veil" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
 <div id="shell">
   <div id="landing">
     <div id="diveWrap">

@@ -2,6 +2,22 @@
 Every entry: the user's words + status + owner + where it landed (or why not,
 with the user holding the overrule). Newest first.
 
+## SG-5 — Kill the AI-slop look with real references (ACCEPTED, researching)
+User's words (2026-09-18): UI still looks AI-generated; go to Pinterest and
+find different ideas — not full-page copies: header ideas, hero ideas, 3D
+ideas, list ideas, illustration ideas. That way you get good ideas.
+- What it means (Aarav's read): our landing reads generic (glass cards,
+  gradient button, system type, emoji icons, purple-blob void). Cure =
+  referenced, opinionated art direction: distinctive type, sticker/die-cut
+  language, grain, composed (not centered-stack) hero — principles stolen,
+  assets never (house rule).
+- Status: Mira researching (Pinterest + galleries); Kabir counters before
+  build; Leo ships ART-1 (type + sticker + grain + hero, CSS/DOM only).
+- ART-1 SHIPPED 2026-09-18 (Unbounded + sticker grammar + grain + 360
+  hardening; eyes on 1280, BROWSER GREEN). ART-2 ticketed (icons + game
+  chrome voice).
+- Tickets: ART-1 (TICKETS.md).
+
 ## SG-4 — Epic line + proper light (ACCEPTED, building FIRST)
 User's words (2026-09-18): use public-domain epics (mahabharat/ramayan/
 odyssey belong to no one, go big, no IP issue); procedural generation with

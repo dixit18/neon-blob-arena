@@ -223,13 +223,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- DV-2 SHIPPED: dive-procgen crate + 8/8 parity + loader + boot ACTIVE
-  (435/435). Next: DV-3 wasm into dive builders.
+- ART-1 SHIPPED (SG-5): de-slopped landing (type + sticker + grain),
+  eyes on 1280 + 360, BROWSER GREEN. Next: DV-3 wasm dive (program
+  resumes) unless user eyeballs redirect.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. DV-2 rust procgen → DV-3 wasm dive → DV-4 epic line.
-   User eyeballs: lit dive + variety + seals + corner (all live).
-2. TREE IN SYNC with origin (pushed 2026-09-18, 35 commits landed).
+1. DV-3 wasm dive → DV-4 epic line → GB-4b remainder → GB-5b.
+   User eyeballs: ART-1 face + 360 device truth + all prior.
+2. TREE IN SYNC with origin (pushed 2026-09-18).
    USER still for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
    phone checks + Render deploy watch.
 

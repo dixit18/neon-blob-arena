@@ -6,6 +6,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
+- [ART-1] De-slop the landing — DONE (Unbounded display type, sticker
+  grammar, film grain, 360 hardening; CSS/HTML only, zero JS; build
+  green, BROWSER GREEN, eyes on 1280 + 360). Owner: Mira + Leo.
+- [ART-2] Icons + game chrome character — Owner: Mira + Leo. Accept:
+  emoji-icon audit (SVG glyph set where it counts), per-game HUD voice;
+  follow-up, no gate.
 - [ROOM-LITE] Zoom stays on the landing — DONE (direct game links skip
   descent + 3D upgrade + rift backdrop + saga boot; rooms render game
   only, proven by eyes; F-10 holds structurally; 44/44 web, build green).
