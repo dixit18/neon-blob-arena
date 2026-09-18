@@ -223,8 +223,8 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 8 RICOCHET SIEGE (in progress): Devika sliced RS-1..RS-6; Zara
-  pulling RS-1 sim (simultaneous-commit artillery + ricochet + replay).
+- Sprint 8 RICOCHET SIEGE: RS-1 + RS-2 + RS-3 SHIPPED (27/27 siege tests).
+  RS-4 IN PROGRESS (Leo: canvas arena + drag-aim + COMMIT client).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
 1. Sprint 8 RICOCHET SIEGE — Devika to slice RS-1..RS-6; crew pulls on sight.
