@@ -77,8 +77,9 @@ function flickDelayMs(tier: Tier, rand: () => number): number {
   return tier === 0 ? 1500 + rand() * 1500 : 3000 + rand() * 3000;
 }
 
-export function createLineDriver(rand: () => number = Math.random): RoomDriver {
-  const sim = new LineSim(rand);
+export function createLineDriver(
+  rand: () => number = Math.random,
+): RoomDriver & { setBaseSeed(seed: number): boolean } {  const sim = new LineSim(rand);
   const bots = new Map<string, Tier>();
   let botSeq = 0;
   let seenRun = 0;
@@ -122,10 +123,12 @@ export function createLineDriver(rand: () => number = Math.random): RoomDriver {
     join(info: JoinInfo): void { sim.join(info.id, info.name, info.isBot); ensureBots(); },
     leave(id: string): void { sim.leave(id); bots.delete(id); dueAt.delete(id); ensureBots(); },
     accept(cmd: GameCommand): void {
+      // Wire shape is the protocol's {dx, dy} vector (isInput-gated server-
+      // side) — decoded back to angle/power here. Zero-vector dies in flick.
       if (cmd.kind === 'input' && typeof cmd.data === 'object' && cmd.data !== null) {
         const d = cmd.data as Record<string, unknown>;
-        if (typeof d.angle === 'number' && typeof d.power === 'number') {
-          sim.flick(cmd.by, d.angle, d.power);
+        if (typeof d.dx === 'number' && typeof d.dy === 'number') {
+          sim.flick(cmd.by, Math.atan2(d.dy, d.dx), Math.min(1, Math.hypot(d.dx, d.dy)));
         }
       }
     },
@@ -137,5 +140,6 @@ export function createLineDriver(rand: () => number = Math.random): RoomDriver {
     createBot: (slot: number) => ({ name: tag(BOT_NAMES[slot % BOT_NAMES.length]!) }),
     playerCount: () => sim.playerCount(),
     dispose: () => { bots.clear(); dueAt.clear(); },
+    setBaseSeed: (seed: number) => sim.setBaseSeed(seed),
   };
 }

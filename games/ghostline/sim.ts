@@ -202,6 +202,14 @@ export class LineSim {
     this.base = (seed ?? Math.floor(rand() * 0x7fffffff)) >>> 0;
   }
 
+  /** Challenge links name the course: a fresh room may adopt the seed, a
+   * live room never reseeds under its players. */
+  setBaseSeed(seed: number): boolean {
+    if (!Number.isInteger(seed) || this.order.length > 0) return false;
+    this.base = seed >>> 0;
+    return true;
+  }
+
   playerCount(): number { return this.players.size; }
 
   join(id: string, name: string, isBot: boolean): void {

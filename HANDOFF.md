@@ -223,15 +223,17 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 5 GHOSTLINE: GH-1 + GH-2 + GH-3 SHIPPED. GH-4 IN PROGRESS (Leo:
-  canvas course + drag-flick client at apps/web/src/games/ghostline.ts;
-  adding `pucks` to the snapshot for rival ghosts — budget re-proven).
+- Sprint 5 GHOSTLINE SHIPPED (7th playable game): GH-1 flick sim + replay
+  core, GH-2 rehearsal-brain ghost driver + idle nap, GH-3 GhostChallenge
+  proof, GH-4 canvas drag-flick client (6.16KB), GH-5 6/6 e2e, GH-6 wire-up
+  (`?seed=` challenge rooms). Receipts: 317/317 suite, both tsc clean, web
+  build green (shell 31.72KB). Tree 8 ahead of origin (push = user).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. GH-4 ghostline client (Leo): canvas course + drag-to-flick, ghost trails,
-   360px clean, chunk ≤250KB at `apps/web/src/games/ghostline.ts`.
-2. GH-5 e2e (Riya) then GH-6 wire-up (Kai) — release unblocks after e2e.
-3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
+1. G-2 7-game soak (Riya): scripts/soak.ts + ghostline/room chatter.
+2. Sprint 6 SIGNAL SEVEN — Devika to slice SI-1..SI-6; crew pulls on sight.
+3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
+   phone checks + `git push` (tree 8 ahead).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

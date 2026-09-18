@@ -7,10 +7,11 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 
 ## Doing (this cycle)
 - Sprint 5 GHOSTLINE — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: GH-1 in progress. Design: async
-  flick time-trial — one seeded course per run, everyone flicks the same
-  layout, fewest shots wins; solo-playable (MIN_START 1), ghost bots from
-  GH-2, GhostChallenge link carries the exact seed + author replay.
+  Riya (e2e) + Kai (wire-up). Status: SHIPPED (GH-1..GH-6, 7th playable
+  game; 6/6 e2e, 317/317 suite, web build green, ghostline chunk 6.16KB).
+- [G-2] 7-game soak incl. ghostline — Owner: Riya. Accept: scripts/soak.ts
+  covers all live games (ghostline + read-the-room chatter), 30/30, tickAvg
+  <5ms, 0 unhandled. (GAMES list still ends at ludo; ghostline/room missing.)
 - RD-1 RIFT DIVE 3D flagship — Owner: Leo + Mira + Riya. Accept: lazy
   post-paint upgrade, 2D fallback intact, shell ≤60KB, own chunk ≤25KB,
   vista share, portals for all 5 games. Status: SHIPPED (D13, build green
@@ -50,11 +51,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 - [GH-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
   green over real sockets (incl. client-mount snapshot + flick flow + seed
   re-entry); snapshot p95 ≤2KB; receipts in chat. Blocks release if red.
-- [GH-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
-  green over real sockets; snapshot p95 ≤2KB; replay-link seed reproduces the
-  author's course; receipts in chat. Blocks release if red.
-- [GH-6] Wire-up: manifest + register — Owner: Kai. Accept: `ghostline`
-  already in `/catalog`; `?game=ghostline&room=` plays (refusal dead).
+- [GH-5] E2E — DONE (6/6 over real sockets: hello/stream, instant table,
+  vector-flick spend, garbage+reclaim survival, p95 ≤2KB, seed-link course
+  match; release UNBLOCKED). Owner: Riya.
+- [GH-6] Wire-up — DONE (`ghostline` registered, refusal dead; `?seed=`
+  adopts on fresh rooms, live rooms never reseed; protocol-gate catch:
+  flicks ride `input` {dx,dy}, zero contract change). Owner: Kai.
 
 ## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
 - [RT-1] Sim — DONE (24/24 green).

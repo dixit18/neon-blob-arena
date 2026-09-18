@@ -65,7 +65,9 @@ describe('server integration', () => {
   });
   it('refuses unimplemented games with a code', async () => {
     await new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(`${wsBase}?game=ghostline&name=X`);
+      // ghostline was the refusal example until GH-6 wired it; signal-seven
+      // (Sprint 6) is the next honest refusal.
+      const ws = new WebSocket(`${wsBase}?game=signal-seven&name=X`);
       const to = setTimeout(() => reject(new Error('no refusal')), 5000);
       ws.on('message', (d) => {
         try {

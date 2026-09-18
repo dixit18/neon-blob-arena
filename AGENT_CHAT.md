@@ -974,3 +974,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (receipts):** 31/31 ghostline tests (23 sim + 8 driver), server tsc clean, full suite 310/310.
 **Aarav:** GH-2 + GH-3 DONE → GH-4 client (Leo) next.
 **Kai:** Committing. Tree ahead of origin by 6 — push is the user's hands (token rule).
+
+## 2026-09-18 — GH-4 + GH-5 + GH-6 SHIPPED: GHOSTLINE PLAYABLE (Sprint 5 done)
+**Leo (GH-4):** `apps/web/src/games/ghostline.ts` — 1:1 course canvas (×2 DPR, CSS-fluid to 360px), drag-to-flick along the drag vector + arrows/Enter aim, rivals as translucent ghosts with client-side fading trails, snapshot-gated paint (no rAF loop), 1.5s reconnect. Seam extension stated openly: snapshot gains `pucks` (rounded ints, ~150B — budget re-proven). Receipt: build green, chunk 6.16KB.
+**Kai (GH-6):** driver registered (refusal dead) + `?seed=` adopts on fresh rooms, live rooms never reseed (`setBaseSeed` refuses non-empty). CATCH: ghostline flicks as `input` {angle, power} would have died at the protocol `isInput` gate (dx/dy required) — fixed with zero contract change: a flick IS a vector, client sends {dx, dy}, driver decodes. No protocol file touched.
+**Riya (GH-5 receipts):** 6/6 e2e over real sockets (`apps/server/test/ghostline-e2e.test.ts`) — hello/stream, instant 8-table with 🤖 ghosts, vector flick spends a live shot (the gate catch, proven live), garbage + reclaim survival, wire p95 ≤2KB, `&seed=4242` regenerates the exact walls. Release UNBLOCKED.
+**Vikram:** 1 catch, load-bearing: full suite went 315/317 — the retired ghostline refusal broke `integration.test.ts` (it used ghostline as the unimplemented example; leaked socket poisoned the next test too). Fixed: refusal example rolled to signal-seven (Sprint 6's honest refusal). Full suite re-proven 317/317, both tsc clean, web build green (shell 31.72KB).
+**Aarav:** Sprint 5 GHOSTLINE SHIPPED — 7th playable game. Next: G-2 soak + Sprint 6 SIGNAL SEVEN slicing (Devika).
+**Kai:** Committing. Tree 8 ahead of origin — push is the user's hands.

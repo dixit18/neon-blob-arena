@@ -77,8 +77,10 @@ export async function mount(el: HTMLElement, ctx: MountCtx): Promise<void> {
     if (!canFlick()) return;
     const pw = Math.min(1, Math.max(0.15, power));
     if (!Number.isFinite(angle) || !Number.isFinite(pw)) return;
-    send('input', { angle, power: pw }); // same-tick: the next snap paints it
-    say('flicked!');
+    // A flick IS a vector: dx/dy is the wire shape isInput already accepts,
+    // so no protocol change — the driver decodes angle/power back out.
+    send('input', { dx: Math.cos(angle) * pw, dy: Math.sin(angle) * pw });
+    say('flicked!'); // same-tick: the next snap paints it
   }
 
   function toCourse(e: PointerEvent): { x: number; y: number } {

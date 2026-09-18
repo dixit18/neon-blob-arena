@@ -31,9 +31,9 @@ describe('ghostline driver', () => {
     for (const b of bots) assert.ok(b.n.includes(BOT_TAG));
   });
 
-  it('human flicks flow through `input` {angle, power}', () => {
+  it('human flicks flow through `input` {dx, dy}', () => {
     const d = table();
-    d.accept({ kind: 'input', by: 'h', data: { angle: 0, power: 0.7 }, at: 0 });
+    d.accept({ kind: 'input', by: 'h', data: { dx: 0.7, dy: 0 }, at: 0 });
     const snap = d.snapshot('h') as { shotsLeft: number };
     assert.equal(snap.shotsLeft, MAX_SHOTS - 1);
   });
@@ -41,8 +41,9 @@ describe('ghostline driver', () => {
   it('garbage input dies quietly — the run survives', () => {
     const d = table();
     for (const data of [
-      null, 42, 'flick', { angle: 'north' }, { power: 1 }, {},
-      { angle: NaN, power: 0.5 }, { angle: 0, power: 99 },
+      null, 42, 'flick', { dx: 'east' }, { dy: 1 }, {},
+      { dx: NaN, dy: 0 }, { dx: 0, dy: 0 }, // NaN + zero-vector die
+      { angle: 0, power: 0.5 }, // legacy shape: not a vector, ignored
     ]) {
       d.accept({ kind: 'nope', by: 'h', data, at: 0 });
       d.accept({ kind: 'input', by: 'h', data, at: 0 });
@@ -108,6 +109,15 @@ describe('ghostline driver', () => {
     assert.equal(d.createBot(0).name, `Wisp ${BOT_TAG}`);
     d.leave('h');
     assert.equal(d.playerCount(), 0);
+    d.dispose();
+  });
+
+  it('challenge seeds adopt on fresh rooms, never on live ones', () => {
+    const d = createLineDriver(seq(0.5));
+    assert.equal(d.setBaseSeed(1234), true);
+    assert.equal(d.setBaseSeed(NaN), false);
+    d.join({ id: 'h', name: 'Asha', isBot: false });
+    assert.equal(d.setBaseSeed(999), false); // live room never reseeds
     d.dispose();
   });
 });

@@ -18,6 +18,7 @@ import { createBlazeDriver } from '../../../games/blaze-squad/driver.js';
 import { createNitroDriver } from '../../../games/nitro-rift/driver.js';
 import { createLudoDriver } from '../../../games/ludo-clash/driver.js';
 import { createRoomDriver } from '../../../games/read-the-room/driver.js';
+import { createLineDriver } from '../../../games/ghostline/driver.js';
 
 const EnvelopeSchema = Schema.Struct({
   v: Schema.Literal(1),
@@ -43,6 +44,7 @@ export function createApp(opts: { region?: string } = {}) {
   registry.register('nitro-rift', () => createNitroDriver()); // lane racing, ghost pace
   registry.register('ludo-clash', () => createLudoDriver()); // LD-6: turn board, dice + picks
   registry.register('read-the-room', () => createRoomDriver()); // RT-6: party vote, crowns + fingerprint
+  registry.register('ghostline', () => createLineDriver()); // GH-6: flick time-trial, refusal dead
   const events = new BufferedWriter(async () => {}); // dev sink; Neon writer plugs in here
   const studio = new StudioFeed();
   seedFeed(studio);
@@ -246,6 +248,15 @@ export function createApp(opts: { region?: string } = {}) {
     } catch {
       ws.close(4400, 'room full');
       return;
+    }
+    // GH-6: challenge links (`?game=ghostline&room=&seed=`) name the course.
+    // A fresh room adopts the seed; a live room is never reseeded.
+    if (game === 'ghostline' && room.humans.size === 0) {
+      const seed = Number(url.searchParams.get('seed') || '');
+      const setSeed = (room.driver as unknown as { setBaseSeed?: (s: number) => boolean }).setBaseSeed;
+      if (Number.isInteger(seed) && typeof setSeed === 'function') {
+        try { setSeed.call(room.driver, seed); } catch { /* random course stands */ }
+      }
     }
     const roomRef = room;
     if (!isReclaim && roomRef.humans.size >= MAX_HUMANS) {
