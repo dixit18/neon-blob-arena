@@ -6,9 +6,12 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
 > new deliverable starting with Foundation.
 
 ## Doing (this cycle)
-- Sprint 5 GHOSTLINE — Owner: Zara (sim/bots) + Leo (share/client) +
-  Riya (e2e) + Kai (wire-up). Status: SHIPPED (GH-1..GH-6, 7th playable
-  game; 6/6 e2e, 317/317 suite, web build green, ghostline chunk 6.16KB).
+- Sprint 6 SIGNAL SEVEN — Owner: Zara (sim/bots) + Leo (share/client) +
+  Riya (e2e) + Kai (wire-up). Status: SI-1 in progress. Design: daily
+  deduction — one UTC-day mystery (hidden 3-rune code from 7 runes + 7
+  clues), Mastermind-pip guesses, fewest guesses wins; solo-safe
+  (MIN_START 1); solver proves every 2026 day uniquely solvable; DailyGrid
+  share never leaks the solution.
 - [G-2] 7-game soak — DONE (soak covers all live games incl. ghostline
   flick vectors; 30/30, 408/s, tickAvg 0.13ms/max 16.9ms, 0 unhandled.
   SOAK GREEN). Owner: Riya.
@@ -35,7 +38,26 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
   both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
-## Open (prioritized) — Sprint 5 GHOSTLINE (pull in order, Rule 14)
+## Open (prioritized) — Sprint 6 SIGNAL SEVEN (pull in order, Rule 14)
+- [SI-1] Sim — DONE (UTC-day mystery engine + brute-force solver; all 365
+  days of 2026 proven uniquely solvable; pip guesses, solo start, ≤2KB
+  snapshots, spoiler-free grid core; 17/17 green). Owner: Zara.
+- [SI-2] Bots + driver: rival tablets — Owner: Zara. Accept: tiered solve
+  curves (sharps 3-5, casuals 5-8), labelled, instant fill; driver on the
+  RoomDriver seam; human guess flow intact; ≥7 tests.
+- [SI-3] Share: DailyGrid spoiler-safe — Owner: Leo + Zara. Accept: pip-grid
+  + guess count + re-entry URL, solution never in payload
+  (`daily-leaks-solution` assert), honest mid-day state.
+- [SI-4] Client: clue tablet + rune keys — Owner: Leo. Accept: clues + pip
+  grid render, tappable rune keyboard, 360px clean, chunk ≤250KB; mounts at
+  `apps/web/src/games/signal-seven.ts`.
+- [SI-5] E2E x6 + snapshot budget — Owner: Riya. Accept: 6 end-to-end checks
+  green over real sockets; snapshot p95 ≤2KB; receipts in chat. Blocks
+  release if red.
+- [SI-6] Wire-up: manifest + register — Owner: Kai. Accept: `signal-seven`
+  in `/catalog` (already listed); `?game=signal-seven&room=` plays.
+
+## Open (prioritized) — Sprint 5 GHOSTLINE (SHIPPED — see Done section)
 - [GH-1] Sim — DONE (seeded course + fixed-step flick physics + replay core;
   19/19 green incl. 100-seed bit-identical reproduce, snapshot ≤2KB).
   Owner: Zara.
