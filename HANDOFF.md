@@ -223,17 +223,14 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- Sprint 8 RICOCHET SIEGE SHIPPED (10th playable game): RS-1 commit sim +
-  replay core (1,000-seed proof, p95 1.45ms), RS-2 gunner bots, RS-3
-  hit-for-hit replay proof, RS-4 arena client (6.61KB), RS-5 6/6 e2e, RS-6
-  wire-up. Receipts: 415/415 suite, both tsc clean, web build green
-  (shell 32.00KB). Tree 21 ahead of origin (push = user).
+- Sprint 9 GLOBAL HARDENING: GB-1 SHIPPED (10-game soak green) + GB-2
+  SHIPPED (share audit 12/12) + GB-3 SHIPPED (budget sweep recorded).
+  Next: GB-4 Hindi strings table (Devika + Leo).
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. Sprint 9 GLOBAL HARDENING — Devika to slice GB-1.. (2h soak, Hindi,
-   tiering, safety, bundle gates); crew pulls on sight. All 10 games live.
+1. GB-4 Hindi strings table (Devika + Leo) → GB-5 report path → GB-6 gates.
 2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY +
-   phone checks + `git push` (tree 21 ahead).
+   phone checks + `git push` (tree 27 ahead).
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

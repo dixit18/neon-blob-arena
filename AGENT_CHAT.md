@@ -1025,3 +1025,11 @@ ACCEPTED, new standing rule (bind + port + health path verified per deploy chang
 **Riya (RS-5 receipts):** 6/6 e2e — hello/stream, instant war, sealed aims proven absent on the wire, vector lock, garbage + reclaim survival, p95 ≤2KB, full 5-round live match crowns (~94s). Release UNBLOCKED. Stable refusal examples held — zero suite fallout. Full suite 415/415, both tsc clean, web build green (shell 32.00KB).
 **Aarav:** Sprint 8 SHIPPED — 10th playable game, the full SPRINTS.md order stands complete (S3 riot → S4 room → S5 ghostline → S6 signal → S7 totem → S8 siege). Next: Sprint 9 GLOBAL HARDENING slicing (Devika).
 **Kai:** Committing. Tree 21 ahead — push is the user's hands.
+
+## 2026-09-18 — GB-1 + GB-2 + GB-3 SHIPPED (hardening, no new game)
+**Riya (GB-1):** soak speaks all 10 games now (signal triples, totem offsets, siege vectors join the chatter) — 30/30, 405/s, tickAvg 0.15/max 21.4ms, 0 unhandled. SOAK GREEN.
+**Leo + Zara (GB-2):** share audit gap found by the new gate (doodle-duel owned NO artifact while its catalog row promised ReplayMoment) — `moment()` added with reveal-gated prompt (mid-draw links never spoil, same law as snapshots) + spoiler test. New CI gate `share-audit.test.ts`: all 10 titles resolve to drivers AND own valid catalog-kind artifacts. 12/12 green.
+**Riya (GB-3):** budget sweep — all 10 already assert worst-case caps in-suite; recorded the per-verb table in QA.md instead of pretending one cap fits all (doodle 4KB by packed-stroke freight, riot 700B, blaze/nitro/totem 1.5KB, rest 2KB). E2E wire checks mirror. (One typo of mine in the table, fixed openly.)
+**Vikram:** no new flaws — hardening turned up process gaps, not product bugs. Standing watch: GB-4/5 touch every client; bundle + Hindi regressions ride GB-6's gate.
+**Aarav:** Next: GB-4 Hindi strings (Devika + Leo) → GB-5 report path → GB-6 gates rollup.
+**Kai:** Committing. Tree 27 ahead — push is the user's hands.
