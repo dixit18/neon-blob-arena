@@ -4,6 +4,16 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 → `ORG.md` rules → `QA.md` gate. Then continue from "Next up" below.
 
 ## Where we are (update every work unit)
+- LZ-4 SHIPPED (SG-1 gates green, SG-1 COMPLETE): web build green, shell
+  31.63KB ≤60KB, dive 25.14KB ≤26KB, BROWSER GREEN on live stack (edge
+  landing 7/7 incl. sagaTabs/sagaSub/play/diveCv + 226KB paint, nitro room
+  3/3 + 450KB, 360px paint 216KB, firefox both pages non-blank; server
+  genuinely up :7749 WASM ACTIVE, preview 200 — no theater). First gate run
+  went RED on infra (Start-Process can't exec npx.ps1 → preview 000);
+  root-caused, reran on node-direct boot. Reduced-motion off (CSS kill +
+  3D refused + 2D frozen, unit-tested), PLAY primary (untouched flow,
+  finale one-tap dismiss). Pushing. Next: Sprint 5 GHOSTLINE (Devika slices
+  GH-1..GH-6; crew pulls on sight).
 - LZ-3 SHIPPED (SG-1 story zoom): saga finales (title + Season-2 teaser card
   with challenge-link share) + ?saga=&ch= deep links (dive boots at that page,
   PLAY pre-named) + chapter 📸 share (title + saga/ch link). Verified: 30/30
@@ -213,18 +223,15 @@ If this session died, read in this order: `HANDOFF.md` → `AGENT_CHAT.md` (tail
 - Ports: server 7749, client 5377. Never 3000/8080/8081. Probes use :7751+.
 
 ## Active work
-- SG-1 STORY ZOOM: LZ-1 + LZ-2 + LZ-3 SHIPPED (saga chapters, procgen core,
-  2D motif weather, 3D overlays + atmosphere, cliffhanger finale card +
-  ?saga=&ch= chapter links + chapter 📸 share; 30/30 web tests, build green
-  shell 31.63KB / dive 25.14KB). Next: LZ-4 saga gates (Riya).
+- SG-1 STORY ZOOM COMPLETE: LZ-1..LZ-4 SHIPPED (saga chapters, procgen core,
+  motif weather, cinematic 3D, cliffhanger + chapter share, gates green:
+  30/30 web tests, BROWSER GREEN, shell 31.63KB / dive 25.14KB).
   Tracker: `SUGGESTIONS.md`.
 
 ## Next up (priority order — pull queue, Rule 14: finish → report to Aarav → pull next)
-1. LZ-4 saga gates (Riya): web build green, shell ≤60KB, dive ≤26KB,
-   360px clean, reduced-motion off, PLAY stays primary. Blocks release if red.
-2. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
+1. Sprint 5 GHOSTLINE (deterministic flick + replay + Ghost Challenge) —
    Devika to slice GH-1..GH-6; crew pulls on sight.
-3. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
+2. USER only for: UptimeRobot on /health (BE-001) + Render STUDIO_KEY + phone checks.
 
 ## Session-survival protocol (Rule 9, mandatory)
 1. BEFORE coding: update "Active work" here with goal + files you will touch.

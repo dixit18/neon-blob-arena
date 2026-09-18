@@ -25,10 +25,9 @@ UX-BLOCKER. Every ticket: owner agent + acceptance + re-test receipt.
   ?saga=&ch= deep links boot the dive at that page with PLAY pre-named,
   📸 photo shares chapter title + saga/ch link; 30/30 web tests, build green
   shell 31.63KB / dive 25.14KB). Owner: Leo + Zara.
-- [LZ-4] Saga gates — Owner: Riya. Accept: web build green, shell ≤60KB,
-  dive chunk ≤26KB (was 25: amended openly 2026-09-16 — the chunk now carries
-  11 motif overlays + baked fBm + atmosphere + finale; gzip 9.74KB),
-  360px clean, reduced-motion off, PLAY stays primary. Blocks release if red.
+- [LZ-4] Saga gates — DONE (web build green, shell 31.63KB ≤60KB, dive
+  25.14KB ≤26KB, BROWSER GREEN edge 7/7 + nitro 3/3 + 360px paint + firefox
+  both pages, reduced-motion off, PLAY primary). Owner: Riya.
 
 ## Open (prioritized) — Sprint 4 READ THE ROOM (SHIPPED — see Done section)
 - [RT-1] Sim — DONE (24/24 green).
